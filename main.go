@@ -17,11 +17,7 @@ func testCall() {
 	time.Sleep(time.Second * 3)
 	fmt.Println("# get")
 
-	var authProvider client.AuthProvider = authproviders.KeycloakClientWithSecret{
-		ClientID:     "tomi-test",
-		ClientSecret: "37dd1bc5-50bb-4674-a5fa-2cec87037e52",
-		TokenURL:     "http://104.154.234.133/auth/realms/master/protocol/openid-connect/token",
-	}
+	var authProvider client.AuthProvider = authproviders.NewClientWithSecret("tomi-test", "37dd1bc5-50bb-4674-a5fa-2cec87037e52")
 
 	resp, err := authProvider.Client().Get("http://localhost:8080/test")
 	if err != nil {
@@ -49,12 +45,7 @@ func main() {
 	fmt.Println("listening on :3333")
 	mux := http.NewServeMux()
 
-	var kti service.Introspector = introspectors.KeycloakToken{
-		BaseURL:      "http://104.154.234.133/",
-		Realm:        "master",
-		ClientID:     "tomi-test-backend",
-		ClientSecret: "a7d065c5-0a48-4b42-922e-82636bba85fe",
-	}
+	var kti service.Introspector = introspectors.NewToken()
 
 	mux.Handle("/test", kti.Middleware(http.HandlerFunc(handler)))
 
