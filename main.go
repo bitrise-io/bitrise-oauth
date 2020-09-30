@@ -17,7 +17,7 @@ func testCall() {
 	time.Sleep(time.Second * 3)
 	fmt.Println("# get")
 
-	var authProvider client.AuthProvider = authproviders.NewClientWithSecret("tomi-test", "37dd1bc5-50bb-4674-a5fa-2cec87037e52")
+	var authProvider client.AuthProvider = authproviders.NewWithSecret("tomi-test", "37dd1bc5-50bb-4674-a5fa-2cec87037e52")
 
 	resp, err := authProvider.Client().Get("http://localhost:8080/test")
 	if err != nil {

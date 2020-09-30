@@ -17,8 +17,8 @@ type ClientWithSecret struct {
 	TokenURL     string
 }
 
-// NewClientWithSecret will return the preconfigured model.
-func NewClientWithSecret(clientID, clientSecret string) client.AuthProvider {
+// NewWithSecret will return the preconfigured model.
+func NewWithSecret(clientID, clientSecret string) client.AuthProvider {
 	return ClientWithSecret{
 		TokenURL:     "http://104.154.234.133/auth/realms/master/protocol/openid-connect/token",
 		clientID:     clientID,
