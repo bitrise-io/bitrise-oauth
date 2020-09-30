@@ -45,7 +45,7 @@ func main() {
 	fmt.Println("listening on :3333")
 	mux := http.NewServeMux()
 
-	var kti service.Introspector = introspectors.NewToken()
+	var kti service.Introspector = introspectors.NewJWK(nil, nil, nil)
 
 	mux.Handle("/test", kti.Middleware(http.HandlerFunc(handler)))
 
