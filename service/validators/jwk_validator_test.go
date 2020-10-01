@@ -1,10 +1,10 @@
-package introspectors_test
+package validators_test
 
 import (
 	"log"
 	"net/http"
 
-	"github.com/bitrise-io/bitriseoauth/service/introspectors"
+	"github.com/bitrise-io/bitriseoauth/service/validators"
 	"github.com/labstack/echo"
 )
 
@@ -13,9 +13,9 @@ func ExampleJWK_Middleware() {
 
 	mux := http.NewServeMux()
 
-	introspector := introspectors.NewJWK(nil, nil, nil)
+	validator := validators.NewJWK(nil, nil, nil)
 
-	mux.Handle("/test", introspector.Middleware(http.HandlerFunc(handler)))
+	mux.Handle("/test", validator.Middleware(http.HandlerFunc(handler)))
 
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
@@ -25,18 +25,18 @@ func ExampleJWK_HandlerFunc() {
 
 	mux := http.NewServeMux()
 
-	introspector := introspectors.NewJWK(nil, nil, nil)
+	validator := validators.NewJWK(nil, nil, nil)
 
-	mux.HandleFunc("/test_func", introspector.HandlerFunc(handler))
+	mux.HandleFunc("/test_func", validator.HandlerFunc(handler))
 
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
 
 func ExampleJWK_ValidateRequest() {
-	introspector := introspectors.NewJWK(nil, nil, nil)
+	validator := validators.NewJWK(nil, nil, nil)
 
 	handler := func(c echo.Context) error {
-		if err := introspector.ValidateRequest(c.Request()); err != nil {
+		if err := validator.ValidateRequest(c.Request()); err != nil {
 			return err
 		}
 		return c.String(http.StatusOK, "Hello, World!")
@@ -56,9 +56,9 @@ func ExampleJWK_MiddlewareFunc_echo() {
 
 	e := echo.New()
 
-	introspector := introspectors.NewJWK(nil, nil, nil)
+	validator := validators.NewJWK(nil, nil, nil)
 
-	e.Use(introspector.MiddlewareFunc())
+	e.Use(validator.MiddlewareFunc())
 
 	e.GET("/test", handler)
 

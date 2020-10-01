@@ -6,8 +6,8 @@ import (
 	"github.com/labstack/echo"
 )
 
-// Introspector gives multiple solution to validate the access token received in the request headers using Oauth2.0
-type Introspector interface {
+// Validator gives multiple solution to validate the access token received in the request headers using Oauth2.0
+type Validator interface {
 	HandlerFunc(http.HandlerFunc) http.HandlerFunc
 	Middleware(http.Handler) http.Handler
 	MiddlewareFunc() echo.MiddlewareFunc

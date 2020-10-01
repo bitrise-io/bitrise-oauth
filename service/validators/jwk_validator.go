@@ -1,4 +1,4 @@
-package introspectors
+package validators
 
 import (
 	"net/http"
@@ -21,7 +21,7 @@ type JWK struct {
 //  	baseURL: http://104.154.234.133
 //  	realm: master
 //  	keyCacher: auth0 MemoryKeyCacher with 3 minutes TTL and size 5
-func NewJWK(baseURL, realm *string, keyCacher auth0.KeyCacher) service.Introspector {
+func NewJWK(baseURL, realm *string, keyCacher auth0.KeyCacher) service.Validator {
 	defaultBaseURL := "http://104.154.234.133"
 	if baseURL != nil {
 		defaultBaseURL = *baseURL

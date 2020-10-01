@@ -10,7 +10,7 @@ import (
 	"github.com/bitrise-io/bitriseoauth/client"
 	"github.com/bitrise-io/bitriseoauth/client/authproviders"
 	"github.com/bitrise-io/bitriseoauth/service"
-	"github.com/bitrise-io/bitriseoauth/service/introspectors"
+	"github.com/bitrise-io/bitriseoauth/service/validators"
 )
 
 func testCall() {
@@ -45,7 +45,7 @@ func main() {
 	fmt.Println("listening on :3333")
 	mux := http.NewServeMux()
 
-	var kti service.Introspector = introspectors.NewJWK(nil, nil, nil)
+	var kti service.Validator = validators.NewJWK(nil, nil, nil)
 
 	mux.Handle("/test", kti.Middleware(http.HandlerFunc(handler)))
 
