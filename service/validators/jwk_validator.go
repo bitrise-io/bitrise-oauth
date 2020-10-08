@@ -5,7 +5,7 @@ import (
 	"time"
 
 	auth0 "github.com/auth0-community/go-auth0"
-	"github.com/bitrise-io/bitriseoauth/service"
+	"github.com/bitrise-io/bitrise-oauth/service"
 	"github.com/labstack/echo"
 	"gopkg.in/square/go-jose.v2"
 )

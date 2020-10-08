@@ -7,10 +7,10 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"github.com/bitrise-io/bitriseoauth/client"
-	"github.com/bitrise-io/bitriseoauth/client/authproviders"
-	"github.com/bitrise-io/bitriseoauth/service"
-	"github.com/bitrise-io/bitriseoauth/service/validators"
+	"github.com/bitrise-io/bitrise-oauth/client"
+	"github.com/bitrise-io/bitrise-oauth/client/authproviders"
+	"github.com/bitrise-io/bitrise-oauth/service"
+	"github.com/bitrise-io/bitrise-oauth/service/validators"
 )
 
 func testCall() {

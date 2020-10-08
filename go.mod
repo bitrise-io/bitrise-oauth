@@ -1,4 +1,4 @@
-module github.com/bitrise-io/bitriseoauth
+module github.com/bitrise-io/bitrise-oauth
 
 go 1.15
 

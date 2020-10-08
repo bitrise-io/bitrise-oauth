@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/bitrise-io/bitriseoauth/service/validators"
+	"github.com/bitrise-io/bitrise-oauth/service/validators"
 	"github.com/labstack/echo"
 )
 
