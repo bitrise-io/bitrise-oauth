@@ -42,6 +42,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	go testCall()
 
+	// test
+
 	fmt.Println("listening on :3333")
 	mux := http.NewServeMux()
 
