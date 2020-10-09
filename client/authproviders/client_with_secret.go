@@ -7,7 +7,6 @@ import (
 	"github.com/bitrise-io/bitrise-oauth/client"
 	"github.com/bitrise-io/bitrise-oauth/config"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/clientcredentials"
 )
 
 // ClientWithSecret is a *http.Client preconfigured with Client ID and Client Secret based Oauth2.0 authentication.
@@ -35,11 +34,14 @@ func NewClientWithSecret(clientID, clientSecret string, opts ...ClientOption) cl
 
 // Client is a preconfigured http client using Background context.
 func (kcs ClientWithSecret) Client() *http.Client {
-	creds := clientcredentials.Config{
+	creds := oauth2.Config{
 		ClientID:     kcs.clientID,
 		ClientSecret: kcs.clientSecret,
-		TokenURL:     kcs.tokenURL,
-		AuthStyle:    oauth2.AuthStyleInHeader,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:   kcs.tokenURL,
+			TokenURL:  kcs.tokenURL,
+			AuthStyle: oauth2.AuthStyleInHeader,
+		},
 	}
-	return creds.Client(context.Background())
+	return creds.Client(context.Background(), nil)
 }
