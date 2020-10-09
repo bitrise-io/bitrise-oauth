@@ -42,7 +42,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	go testCall()
 
-	fmt.Println("listening on :3333")
+	fmt.Println("listening on :8080")
 	mux := http.NewServeMux()
 
 	var kti service.Validator = validators.NewJWK(nil, nil, nil)

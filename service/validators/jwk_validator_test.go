@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/bitrise-io/bitrise-oauth/service/validators"
+	"github.com/gorilla/mux"
 	"github.com/labstack/echo"
 )
 
@@ -20,6 +21,20 @@ func ExampleJWK_Middleware() {
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
 
+func ExampleJWK_MiddlewareGorillaMux() {
+	handler := func(w http.ResponseWriter, r *http.Request) {}
+
+	router := mux.NewRouter()
+
+	validator := validators.NewJWK(nil, nil, nil)
+
+	router.Handle("/test", validator.Middleware(http.HandlerFunc(handler))).Methods(http.MethodGet)
+
+	http.Handle("/", router)
+
+	log.Fatal(http.ListenAndServe(":8080", router))
+}
+
 func ExampleJWK_HandlerFunc() {
 	handler := func(w http.ResponseWriter, r *http.Request) {}
 
@@ -30,6 +45,20 @@ func ExampleJWK_HandlerFunc() {
 	mux.HandleFunc("/test_func", validator.HandlerFunc(handler))
 
 	log.Fatal(http.ListenAndServe(":8080", mux))
+}
+
+func ExampleJWK_HandlerFuncWithGorillaMux() {
+	handler := func(w http.ResponseWriter, r *http.Request) {}
+
+	router := mux.NewRouter()
+
+	validator := validators.NewJWK(nil, nil, nil)
+
+	router.HandleFunc("/test_func", validator.HandlerFunc(handler)).Methods(http.MethodGet)
+
+	http.Handle("/", router)
+
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
 func ExampleJWK_ValidateRequest() {
