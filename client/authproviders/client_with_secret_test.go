@@ -88,8 +88,6 @@ func TestNewClientWithSecret_threads_not_using_same_client(t *testing.T) {
 	mockedService.AssertExpectations(t)
 }
 
-// var fakeGrantType = false // TODO: REMOVE! just testing purposes
-
 func TestNewClientWithSecret_using_refresh_token(t *testing.T) {
 	mockedAuthService := mockAuthService{}
 	mockedService := mockService{}
@@ -106,11 +104,6 @@ func TestNewClientWithSecret_using_refresh_token(t *testing.T) {
 			assert.NoError(t, r.ParseForm())
 			grantType := r.PostForm.Get("grant_type")
 
-			// TODO: REMOVE! just testing purposes
-			// if fakeGrantType {
-			// 	grantType = "refresh_token"
-			// }
-
 			if grantType == "refresh_token" {
 				accessToken, refreshToken = "refreshed-access-token", "refreshed-refresh-token"
 			}
@@ -123,7 +116,6 @@ func TestNewClientWithSecret_using_refresh_token(t *testing.T) {
 			}))
 
 			mockedAuthService.Token(grantType)
-			// fakeGrantType = true // TODO: REMOVE! just testing purposes
 		default:
 			tokenHeaderSplit := strings.Split(r.Header.Get("Authorization"), " ")
 			assert.Len(t, tokenHeaderSplit, 2)
@@ -137,26 +129,23 @@ func TestNewClientWithSecret_using_refresh_token(t *testing.T) {
 
 	mockedAuthService.
 		On("Token", "client_credentials").Return().
-		Once()
+		Twice()
 	mockedService.
-		On("Test", "initial-access-token").Return().Times(3) // could be flaky?
-
-	mockedAuthService.
-		On("Token", "refresh_token").Return().
-		Once()
-	mockedService.
-		On("Test", "refreshed-access-token").Return().Times(3) // could be flaky?
+		On("Test", "initial-access-token").Return().
+		Times(6)
 
 	c := authproviders.NewClientWithSecret("my-client-id", "my-secret",
 		authproviders.WithCustomTokenURL(ts.URL+"/token")).Client()
 
 	for i := 0; i < 6; i++ {
-		_, err := c.Get(ts.URL + "/test")
+		resp, err := c.Get(ts.URL + "/test")
 		assert.NoError(t, err)
-		//assert.Equal(t, resp.StatusCode, http.StatusOK)
+		assert.Equal(t, resp.StatusCode, http.StatusOK)
 		time.Sleep(time.Millisecond * 400)
 	}
 
 	mockedAuthService.AssertExpectations(t)
 	mockedService.AssertExpectations(t)
+	mockedAuthService.AssertNotCalled(t, "Token", "refresh_token")
+	mockedService.AssertNotCalled(t, "Test", "refreshed-access-token")
 }
