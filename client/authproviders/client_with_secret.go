@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/bitrise-io/bitrise-oauth/client"
+	"github.com/bitrise-io/bitrise-oauth/config"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
@@ -14,16 +15,22 @@ import (
 type ClientWithSecret struct {
 	clientID     string
 	clientSecret string
-	TokenURL     string
+	tokenURL     string
 }
 
-// NewWithSecret will return the preconfigured model.
-func NewWithSecret(clientID, clientSecret string) client.AuthProvider {
-	return ClientWithSecret{
-		TokenURL:     "http://104.154.234.133/auth/realms/master/protocol/openid-connect/token",
+// NewClientWithSecret will return the preconfigured model.
+func NewClientWithSecret(clientID, clientSecret string, opts ...ClientOption) client.AuthProvider {
+	cws := &ClientWithSecret{
+		tokenURL:     config.TokenURL,
 		clientID:     clientID,
 		clientSecret: clientSecret,
 	}
+
+	for _, opt := range opts {
+		opt(cws)
+	}
+
+	return cws
 }
 
 // Client is a preconfigured http client using Background context.
@@ -31,7 +38,7 @@ func (kcs ClientWithSecret) Client() *http.Client {
 	creds := clientcredentials.Config{
 		ClientID:     kcs.clientID,
 		ClientSecret: kcs.clientSecret,
-		TokenURL:     kcs.TokenURL,
+		TokenURL:     kcs.tokenURL,
 		AuthStyle:    oauth2.AuthStyleInHeader,
 	}
 	return creds.Client(context.Background())

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	auth0 "github.com/auth0-community/go-auth0"
+	"github.com/bitrise-io/bitrise-oauth/config"
 	"github.com/bitrise-io/bitrise-oauth/service"
 	"github.com/labstack/echo"
 	"gopkg.in/square/go-jose.v2"
@@ -13,6 +14,11 @@ import (
 // JWK ...
 type JWK struct {
 	validator *auth0.JWTValidator
+	baseURL   string
+	realm     string
+	keyCacher auth0.KeyCacher
+	jwksURL   string
+	realmURL  string
 }
 
 // NewJWK returns the prepared JWK model. All input arguments are optional.
@@ -21,34 +27,31 @@ type JWK struct {
 //  	baseURL: http://104.154.234.133
 //  	realm: master
 //  	keyCacher: auth0 MemoryKeyCacher with 3 minutes TTL and size 5
-func NewJWK(baseURL, realm *string, keyCacher auth0.KeyCacher) service.Validator {
-	defaultBaseURL := "http://104.154.234.133"
-	if baseURL != nil {
-		defaultBaseURL = *baseURL
+func NewJWK(opts ...ValidatorOption) service.Validator {
+	serviceValidator := &JWK{
+		baseURL:   config.BaseURL,
+		realm:     config.Realm,
+		keyCacher: auth0.NewMemoryKeyCacher(3*time.Minute, 5),
+		jwksURL:   config.JWKSURL,
+		realmURL:  config.RealmURL,
 	}
 
-	defaultRealm := "master"
-	if realm != nil {
-		defaultRealm = *realm
+	for _, opt := range opts {
+		opt(serviceValidator)
 	}
 
-	defaultKeyCacher := auth0.NewMemoryKeyCacher(3*time.Minute, 5)
-	if keyCacher != nil {
-		defaultKeyCacher = keyCacher
+	clientOpts := auth0.JWKClientOptions{
+		URI: serviceValidator.jwksURL,
 	}
 
-	opts := auth0.JWKClientOptions{
-		URI: defaultBaseURL + "/auth/realms/" + defaultRealm + "/protocol/openid-connect/certs",
-	}
-
-	client := auth0.NewJWKClientWithCache(opts, nil, defaultKeyCacher)
+	client := auth0.NewJWKClientWithCache(clientOpts, nil, serviceValidator.keyCacher)
 
 	configuration := auth0.NewConfiguration(client, nil,
-		defaultBaseURL+"/auth/realms/"+defaultRealm, jose.RS256)
+		serviceValidator.realmURL, jose.RS256)
 
-	return JWK{
-		validator: auth0.NewValidator(configuration, nil),
-	}
+	serviceValidator.validator = auth0.NewValidator(configuration, nil)
+
+	return serviceValidator
 }
 
 // ValidateRequest to validate if the request is authenticated and has active token.
