@@ -78,7 +78,6 @@ func TestNewClientWithSecret_threads_using_same_client(t *testing.T) {
 
 	for i := 0; i < callsPerClient; i++ {
 		for j := 0; j < clientsToCreate; j++ {
-			fmt.Println(fmt.Sprintf("clientID-%d", j), fmt.Sprintf("clientSecret-%d", j))
 			c := authproviders.NewClientWithSecret(fmt.Sprintf("clientID-%d", j), fmt.Sprintf("clientSecret-%d", j),
 				authproviders.WithCustomTokenURL(ts.URL+"/token")).Client()
 
@@ -92,7 +91,7 @@ func TestNewClientWithSecret_threads_using_same_client(t *testing.T) {
 	mockedService.AssertExpectations(t)
 }
 
-func TestNewClientWithSecret_using_refresh_token(t *testing.T) {
+func TestNewClientWithSecret_not_using_refresh_token(t *testing.T) {
 	mockedAuthService := mockAuthService{}
 	mockedService := mockService{}
 
