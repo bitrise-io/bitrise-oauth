@@ -43,8 +43,8 @@ func (m *mockService) Test(accessToken string) {
 }
 
 func TestNewClientWithSecret_threads_using_same_client(t *testing.T) {
-	clientsToCreate := 100
-	callsPerClient := 100
+	clientsToCreate := 30
+	callsPerClient := 30
 
 	var createdClients sync.Map
 
