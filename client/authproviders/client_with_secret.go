@@ -2,7 +2,9 @@ package authproviders
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/bitrise-io/bitrise-oauth/client"
 	"github.com/bitrise-io/bitrise-oauth/config"
@@ -32,12 +34,28 @@ func NewClientWithSecret(clientID, clientSecret string, opts ...ClientOption) cl
 	return cws
 }
 
+var clients sync.Map
+
+func key(cfg clientcredentials.Config) string {
+	return cfg.ClientID + cfg.ClientSecret + cfg.TokenURL
+}
+
 // Client is a preconfigured http client using Background context.
 func (kcs ClientWithSecret) Client() *http.Client {
+
 	creds := clientcredentials.Config{
 		ClientID:     kcs.clientID,
 		ClientSecret: kcs.clientSecret,
 		TokenURL:     kcs.tokenURL,
 	}
-	return creds.Client(context.Background())
+
+	client := creds.Client(context.Background())
+
+	storedClient, loaded := clients.LoadOrStore(key(creds), client)
+
+	if !loaded {
+		fmt.Println("XX", loaded)
+	}
+
+	return storedClient.(*http.Client)
 }

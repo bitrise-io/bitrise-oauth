@@ -42,9 +42,12 @@ func (m *mockService) Test(accessToken string) {
 	m.Called(accessToken)
 }
 
-func TestNewClientWithSecret_threads_not_using_same_client(t *testing.T) {
+func TestNewClientWithSecret_threads_using_same_client(t *testing.T) {
 	mockedAuthService := mockAuthService{}
 	mockedService := mockService{}
+
+	clientsToCreate := 10
+	callsPerClient := 20
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -58,8 +61,7 @@ func TestNewClientWithSecret_threads_not_using_same_client(t *testing.T) {
 				ExpiresIn:    3600,
 			}))
 
-			assert.NoError(t, r.ParseForm())
-			mockedAuthService.Token(r.PostForm.Get("grant_type"))
+			mockedAuthService.Token("")
 		default:
 			mockedService.Test("")
 			w.WriteHeader(http.StatusOK)
@@ -69,19 +71,22 @@ func TestNewClientWithSecret_threads_not_using_same_client(t *testing.T) {
 	defer ts.Close()
 
 	mockedAuthService.
-		On("Token", "client_credentials").Return().
-		Once()
+		On("Token", "").Return().
+		Times(clientsToCreate)
 	mockedService.
-		On("Test", "").Return().Times(5)
+		On("Test", "").Return().
+		Times(clientsToCreate * callsPerClient)
 
-	for i := 0; i < 5; i++ {
-		// TODO: remove this comment -> move the two lines above to for loop so the test will pass
-		c := authproviders.NewClientWithSecret("my-client-id", "my-secret",
-			authproviders.WithCustomTokenURL(ts.URL+"/token")).Client()
+	for i := 0; i < callsPerClient; i++ {
+		for j := 0; j < clientsToCreate; j++ {
+			fmt.Println(fmt.Sprintf("clientID-%d", j), fmt.Sprintf("clientSecret-%d", j))
+			c := authproviders.NewClientWithSecret(fmt.Sprintf("clientID-%d", j), fmt.Sprintf("clientSecret-%d", j),
+				authproviders.WithCustomTokenURL(ts.URL+"/token")).Client()
 
-		resp, err := c.Get(ts.URL + "/test")
-		assert.NoError(t, err)
-		assert.Equal(t, resp.StatusCode, http.StatusOK)
+			resp, err := c.Get(ts.URL + "/test")
+			assert.NoError(t, err)
+			assert.Equal(t, resp.StatusCode, http.StatusOK)
+		}
 	}
 
 	mockedAuthService.AssertExpectations(t)
