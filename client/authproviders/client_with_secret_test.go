@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -42,53 +43,38 @@ func (m *mockService) Test(accessToken string) {
 }
 
 func TestNewClientWithSecret_threads_using_same_client(t *testing.T) {
-	mockedAuthService := mockAuthService{}
-	mockedService := mockService{}
+	clientsToCreate := 100
+	callsPerClient := 100
 
-	clientsToCreate := 10
-	callsPerClient := 20
+	var createdClients sync.Map
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/token":
-			w.Header().Add("content-type", "application/json")
-
-			assert.NoError(t, json.NewEncoder(w).Encode(tokenJSON{
-				AccessToken:  "my-access-token",
-				RefreshToken: "my-refresh-token",
-				TokenType:    "Bearer",
-				ExpiresIn:    3600,
-			}))
-
-			mockedAuthService.Token("")
-		default:
-			mockedService.Test("")
-			w.WriteHeader(http.StatusOK)
-		}
-
-	}))
-	defer ts.Close()
-
-	mockedAuthService.
-		On("Token", "").Return().
-		Times(clientsToCreate)
-	mockedService.
-		On("Test", "").Return().
-		Times(clientsToCreate * callsPerClient)
+	var wg sync.WaitGroup
+	wg.Add(clientsToCreate * callsPerClient)
 
 	for i := 0; i < callsPerClient; i++ {
-		for j := 0; j < clientsToCreate; j++ {
-			c := authproviders.NewClientWithSecret(fmt.Sprintf("clientID-%d", j), fmt.Sprintf("clientSecret-%d", j),
-				authproviders.WithCustomTokenURL(ts.URL+"/token")).Client()
+		go func() {
+			for j := 0; j < clientsToCreate; j++ {
+				go func(j int) {
+					defer wg.Done()
+					c := authproviders.NewClientWithSecret(fmt.Sprintf("clientID-%d", j), fmt.Sprintf("clientSecret-%d", j),
+						authproviders.WithCustomTokenURL("myurl")).Client()
 
-			resp, err := c.Get(ts.URL + "/test")
-			assert.NoError(t, err)
-			assert.Equal(t, resp.StatusCode, http.StatusOK)
-		}
+					pointerAddress := fmt.Sprintf("%p", c)
+					createdClients.Store(pointerAddress, c)
+				}(j)
+			}
+		}()
 	}
 
-	mockedAuthService.AssertExpectations(t)
-	mockedService.AssertExpectations(t)
+	wg.Wait()
+
+	createdClientsCount := 0
+	createdClients.Range(func(_, _ interface{}) bool {
+		createdClientsCount++
+		return true
+	})
+
+	assert.Equal(t, clientsToCreate, createdClientsCount)
 }
 
 func TestNewClientWithSecret_not_using_refresh_token(t *testing.T) {
