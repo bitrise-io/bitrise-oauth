@@ -1,6 +1,9 @@
 package validators
 
-import "github.com/auth0-community/go-auth0"
+import (
+	"github.com/auth0-community/go-auth0"
+	"gopkg.in/square/go-jose.v2"
+)
 
 // ValidatorOption ...
 type ValidatorOption func(c *JWK)
@@ -9,6 +12,13 @@ type ValidatorOption func(c *JWK)
 func WithCustomBaseURL(url string) ValidatorOption {
 	return func(c *JWK) {
 		c.baseURL = url
+	}
+}
+
+// WithCustomSignatureAlgorithm ...
+func WithCustomSignatureAlgorithm(sa jose.SignatureAlgorithm) ValidatorOption {
+	return func(c *JWK) {
+		c.signatureAlgorithm = sa
 	}
 }
 

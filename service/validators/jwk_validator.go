@@ -13,12 +13,13 @@ import (
 
 // JWK ...
 type JWK struct {
-	validator *auth0.JWTValidator
-	baseURL   string
-	realm     string
-	keyCacher auth0.KeyCacher
-	jwksURL   string
-	realmURL  string
+	validator          *auth0.JWTValidator
+	baseURL            string
+	realm              string
+	keyCacher          auth0.KeyCacher
+	jwksURL            string
+	realmURL           string
+	signatureAlgorithm jose.SignatureAlgorithm
 }
 
 // NewJWK returns the prepared JWK model. All input arguments are optional.
@@ -29,11 +30,12 @@ type JWK struct {
 //  	keyCacher: auth0 MemoryKeyCacher with 3 minutes TTL and size 5
 func NewJWK(opts ...ValidatorOption) service.Validator {
 	serviceValidator := &JWK{
-		baseURL:   config.BaseURL,
-		realm:     config.Realm,
-		keyCacher: auth0.NewMemoryKeyCacher(3*time.Minute, 5),
-		jwksURL:   config.JWKSURL,
-		realmURL:  config.RealmURL,
+		baseURL:            config.BaseURL,
+		realm:              config.Realm,
+		keyCacher:          auth0.NewMemoryKeyCacher(3*time.Minute, 5),
+		jwksURL:            config.JWKSURL,
+		realmURL:           config.RealmURL,
+		signatureAlgorithm: jose.RS256,
 	}
 
 	for _, opt := range opts {
@@ -47,7 +49,7 @@ func NewJWK(opts ...ValidatorOption) service.Validator {
 	client := auth0.NewJWKClientWithCache(clientOpts, nil, serviceValidator.keyCacher)
 
 	configuration := auth0.NewConfiguration(client, nil,
-		serviceValidator.realmURL, jose.RS256)
+		serviceValidator.realmURL, serviceValidator.signatureAlgorithm)
 
 	serviceValidator.validator = auth0.NewValidator(configuration, nil)
 
