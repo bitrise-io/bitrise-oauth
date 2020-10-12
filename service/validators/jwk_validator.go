@@ -55,16 +55,16 @@ func NewJWK(opts ...ValidatorOption) service.Validator {
 }
 
 // ValidateRequest to validate if the request is authenticated and has active token.
-func (kti JWK) ValidateRequest(r *http.Request) error {
-	_, err := kti.validator.ValidateRequest(r)
+func (sv JWK) ValidateRequest(r *http.Request) error {
+	_, err := sv.validator.ValidateRequest(r)
 	return err
 }
 
 // Middleware used as http package's middleware, in http.Handle.
 // Calls out to ValidateRequest and returns http.StatusUnauthorized with body: invalid token if the token is not active.
-func (kti JWK) Middleware(next http.Handler) http.Handler {
+func (sv JWK) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := kti.ValidateRequest(r); err != nil {
+		if err := sv.ValidateRequest(r); err != nil {
 			http.Error(w, "invalid token", http.StatusUnauthorized)
 			return
 		}
@@ -74,10 +74,10 @@ func (kti JWK) Middleware(next http.Handler) http.Handler {
 
 // MiddlewareFunc can be used with echo.Use.
 // Calls out to ValidateRequest and returns an error for echo.
-func (kti JWK) MiddlewareFunc() echo.MiddlewareFunc {
+func (sv JWK) MiddlewareFunc() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if _, err := kti.validator.ValidateRequest(c.Request()); err != nil {
+			if _, err := sv.validator.ValidateRequest(c.Request()); err != nil {
 				return err
 			}
 			return next(c)
@@ -87,9 +87,9 @@ func (kti JWK) MiddlewareFunc() echo.MiddlewareFunc {
 
 // HandlerFunc used with http.HandleFunc.
 // Calls out to ValidateRequest and returns http.StatusUnauthorized with body: invalid token if the token is not active.
-func (kti JWK) HandlerFunc(hf http.HandlerFunc) http.HandlerFunc {
+func (sv JWK) HandlerFunc(hf http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := kti.ValidateRequest(r); err != nil {
+		if err := sv.ValidateRequest(r); err != nil {
 			http.Error(w, "invalid token", http.StatusUnauthorized)
 			return
 		}
