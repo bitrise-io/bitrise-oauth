@@ -2,7 +2,6 @@ package authproviders
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"sync"
 
@@ -42,7 +41,6 @@ func key(cfg clientcredentials.Config) string {
 
 // Client is a preconfigured http client using Background context.
 func (kcs ClientWithSecret) Client() *http.Client {
-
 	creds := clientcredentials.Config{
 		ClientID:     kcs.clientID,
 		ClientSecret: kcs.clientSecret,
@@ -51,11 +49,6 @@ func (kcs ClientWithSecret) Client() *http.Client {
 
 	client := creds.Client(context.Background())
 
-	storedClient, loaded := clients.LoadOrStore(key(creds), client)
-
-	if !loaded {
-		fmt.Println("XX", loaded)
-	}
-
+	storedClient, _ := clients.LoadOrStore(key(creds), client)
 	return storedClient.(*http.Client)
 }

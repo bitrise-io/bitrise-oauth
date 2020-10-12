@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"net/http/httputil"
 	"strings"
 	"testing"
 	"time"
@@ -100,8 +99,6 @@ func TestNewClientWithSecret_using_refresh_token(t *testing.T) {
 	accessToken, refreshToken := "initial-access-token", "initial-refresh-token"
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, _ := httputil.DumpRequest(r, true)
-		fmt.Println(string(b))
 		switch r.URL.Path {
 		case "/token":
 			w.Header().Add("content-type", "application/json")
