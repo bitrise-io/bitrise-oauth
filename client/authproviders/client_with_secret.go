@@ -3,10 +3,10 @@ package authproviders
 import (
 	"context"
 	"net/http"
+	"sync"
 
 	"github.com/bitrise-io/bitrise-oauth/client"
 	"github.com/bitrise-io/bitrise-oauth/config"
-	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
 
@@ -33,13 +33,22 @@ func NewClientWithSecret(clientID, clientSecret string, opts ...ClientOption) cl
 	return cws
 }
 
+var clients sync.Map
+
+func key(cfg clientcredentials.Config) string {
+	return cfg.ClientID + cfg.ClientSecret + cfg.TokenURL
+}
+
 // Client is a preconfigured http client using Background context.
 func (kcs ClientWithSecret) Client() *http.Client {
 	creds := clientcredentials.Config{
 		ClientID:     kcs.clientID,
 		ClientSecret: kcs.clientSecret,
 		TokenURL:     kcs.tokenURL,
-		AuthStyle:    oauth2.AuthStyleInHeader,
 	}
-	return creds.Client(context.Background())
+
+	client := creds.Client(context.Background())
+
+	storedClient, _ := clients.LoadOrStore(key(creds), client)
+	return storedClient.(*http.Client)
 }
