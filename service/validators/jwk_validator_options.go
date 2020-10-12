@@ -1,6 +1,10 @@
 package validators
 
-import "github.com/auth0-community/go-auth0"
+import (
+	"net/http"
+
+	"github.com/auth0-community/go-auth0"
+)
 
 // ValidatorOption ...
 type ValidatorOption func(c *JWK)
@@ -16,6 +20,13 @@ func WithBaseURL(url string) ValidatorOption {
 func WithRealm(realm string) ValidatorOption {
 	return func(c *JWK) {
 		c.realm = realm
+	}
+}
+
+// WithErrorWriter ...
+func WithErrorWriter(errorWriter func(http.ResponseWriter)) ValidatorOption {
+	return func(c *JWK) {
+		c.errorWriter = errorWriter
 	}
 }
 
