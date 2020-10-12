@@ -2,7 +2,7 @@ package config
 
 // ...
 const (
-	BaseURL  = `http://104.154.234.133/auth`
+	BaseURL  = `http://35.184.90.188`
 	Realm    = `master`
 	RealmURL = BaseURL + `/auth/realms/` + Realm
 	JWKSURL  = RealmURL + `/protocol/openid-connect/certs`
