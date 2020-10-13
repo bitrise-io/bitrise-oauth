@@ -57,7 +57,7 @@ func TestNewClientWithSecret_threads_using_same_client(t *testing.T) {
 				go func(j int) {
 					defer wg.Done()
 					c := authproviders.NewClientWithSecret(fmt.Sprintf("clientID-%d", j), fmt.Sprintf("clientSecret-%d", j),
-						authproviders.WithCustomTokenURL("myurl")).Client()
+						authproviders.WithTokenURL("myurl")).Client()
 
 					pointerAddress := fmt.Sprintf("%p", c)
 					createdClients.Store(pointerAddress, c)
@@ -122,7 +122,7 @@ func TestNewClientWithSecret_not_using_refresh_token(t *testing.T) {
 		Times(6)
 
 	c := authproviders.NewClientWithSecret("my-client-id", "my-secret",
-		authproviders.WithCustomTokenURL(ts.URL+"/token")).Client()
+		authproviders.WithTokenURL(ts.URL+"/token")).Client()
 
 	for i := 0; i < 6; i++ {
 		resp, err := c.Get(ts.URL + "/test")
