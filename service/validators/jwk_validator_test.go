@@ -108,35 +108,78 @@ func ExampleJWK_MiddlewareFunc_echo() {
 	e.Logger.Fatal(e.Start(":1323"))
 }
 
-func Test_GivenRequestWithTokenThatWillNotExpire_WhenTheTokenIsValidatedMultipleTimes_ThenExpectCertsEndpointToBeCalledOnce(t *testing.T) {
-	// Given
-	counter := NewCounter(1)
+func Test_Auth0_JWKS_Caching(t *testing.T) {
+	testCases := []struct {
+		name         string
+		token1       string
+		token2       string
+		expiryInSecs time.Duration
+		want         int
+	}{
+		{
+			"1. Given two requests with the same token that will NOT expire when the requests are validated then expect /certs endpoint to be called ONCE",
+			JWT_1,
+			JWT_1,
+			60,
+			1,
+		},
+		{
+			"2. Given two requests with different tokens that will NOT expire when the requests are validated then expect /certs endpoint to be called TWICE",
+			JWT_1,
+			JWT_2,
+			60,
+			2,
+		},
+		{
+			"3. Given two requests with the same token that will expire when the requests are validated then expect /certs endpoint to be called TWICE",
+			JWT_1,
+			JWT_1,
+			1,
+			2,
+		},
+		{
+			"4. Given two requests with different token that will expire when the requests are validated then expect /certs endpoint to be called TWICE",
+			JWT_1,
+			JWT_2,
+			1,
+			2,
+		},
+	}
 
-	testAuthServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, _ := httputil.DumpRequest(r, true)
-		fmt.Println(string(b))
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			// Given
+			counter := NewCounter(testCase.want)
 
-		switch r.URL.Path {
-		case "/certs":
-			counter.Increment()
-			addContentTypeAndTokenToResponse(w)
-		default:
-			fmt.Println("Request handled by the default endpoint")
-			w.WriteHeader(http.StatusOK)
-		}
-	}))
-	defer testAuthServer.Close()
+			testAuthServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				b, _ := httputil.DumpRequest(r, true)
+				fmt.Println(string(b))
 
-	validator := validators.NewJWK(validators.WithCustomJWKSURL(testAuthServer.URL+"/certs"), validators.WithCustomKeyCacher(auth0.NewMemoryKeyCacher(60*time.Second, 5)))
+				switch r.URL.Path {
+				case "/certs":
+					counter.Increment()
+					addContentTypeAndTokenToResponse(w)
+				default:
+					fmt.Println("Request handled by the default endpoint")
+					w.WriteHeader(http.StatusOK)
+				}
+			}))
+			defer testAuthServer.Close()
 
-	request := createRequestWithToken(JWT_1)
+			validator := validators.NewJWK(validators.WithCustomJWKSURL(testAuthServer.URL+"/certs"), validators.WithCustomKeyCacher(auth0.NewMemoryKeyCacher(testCase.expiryInSecs*time.Second, 5)))
 
-	// When
-	validator.ValidateRequest(request)
-	validator.ValidateRequest(request)
+			request1 := createRequestWithToken(testCase.token1)
+			request2 := createRequestWithToken(testCase.token2)
 
-	// Then
-	assert.Equal(t, counter.Expected, counter.Actual)
+			// When
+			validator.ValidateRequest(request1)
+			time.Sleep(3 * time.Second)
+			validator.ValidateRequest(request2)
+
+			// Then
+			assert.Equal(t, counter.Expected, counter.Actual)
+		})
+	}
 }
 
 func addContentTypeAndTokenToResponse(w http.ResponseWriter) {
