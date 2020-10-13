@@ -185,14 +185,14 @@ func addContentTypeAndTokenToResponse(w http.ResponseWriter) {
 	w.Header().Add("Content-Type", "application/json")
 	_, err := w.Write([]byte("{\"keys\": [{\"kid\": \"WMVY0qerfbFP-3rYKuny5APirfry48nPeeXryP799Fk\",\"kty\": \"RSA\",\"alg\": \"RS256\",\"use\": \"sig\",\"n\": \"kGb4ABWuOgQH7yCydKsqLjZ7-FrWOQ5tezQQofHs5jJYQPXnMalUgvY6v9c0GEBvzebbmkigcGw9e8NesOLnVaP4mkE6TYLDyuL1vDRP9bIQuVOQxDwqhDPmaFKFawxe0YLoFN_N6NOZBZJ69z2Mbhxsd9By4tr_-bR-seg-korL5NUf6KpLYdBeCDy1xK_DSia49vV-SYAG5cuxgejRc32fmmZnVFx7rs8nIIAUoaGAHhWGM7ZFRaxC96dFsVRRR85-TDeukkPi0_-Q2RtNwpoz-hP2g-p6Vl620z3KJYW6pO6ssT3Q8SY0LOoK6gPca7NW7qGvOGyWhM6yk4aqPQ\",\"e\": \"AQAB\",\"x5c\": [\"MIICmzCCAYMCBgF01MwbDDANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDDAZtYXN0ZXIwHhcNMjAwOTI4MTI1ODAwWhcNMzAwOTI4MTI1OTQwWjARMQ8wDQYDVQQDDAZtYXN0ZXIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCQZvgAFa46BAfvILJ0qyouNnv4WtY5Dm17NBCh8ezmMlhA9ecxqVSC9jq/1zQYQG/N5tuaSKBwbD17w16w4udVo/iaQTpNgsPK4vW8NE/1shC5U5DEPCqEM+ZoUoVrDF7RgugU383o05kFknr3PYxuHGx30HLi2v/5tH6x6D6Sisvk1R/oqkth0F4IPLXEr8NKJrj29X5JgAbly7GB6NFzfZ+aZmdUXHuuzycggBShoYAeFYYztkVFrEL3p0WxVFFHzn5MN66SQ+LT/5DZG03CmjP6E/aD6npWXrbTPcolhbqk7qyxPdDxJjQs6grqA9xrs1buoa84bJaEzrKThqo9AgMBAAEwDQYJKoZIhvcNAQELBQADggEBACSleX2IEZqb4h05T9+W3BT2e8cRiX06T8pHk4o70GAooROvMeHu0+l+HlT6lYggerzxsxqYGA7KFOG6JmgFG5XLPlNJoHlX0NOCGfCbrh50Q1HV5TZsqubIUOHglos9/SotipiSSVncd02Uot27sqU3A1HR9qO3IxmTe+W5XIvmzn3Kofpyj5r9qzbSJMfW2YKCJ8n+lG0g184SQ1JtQ2zFwBdziHtO8eBTscadjnZy4WHTs7F9hh2xNGUVBsfDQ5JZooJaZEeGe9r9Fv46R5Py/SMZvcpp6PvNptN2ifXoPzcP6jAZVphRlv7DZXIjb+9UgN3fHcDZNTK3NvJWoDA=\"],\"x5t\": \"fp4lFC6SkVBMvUGHq2MgrvB20L0\",\"x5t#S256\": \"BN6wsc3PZ_XfJXKPqH-SGdhe7QmEz-fECiheWPvkEBA\"}]}"))
 	if err != nil {
-		panic("Can't write body")
+		panic("Can't write body.")
 	}
 }
 
 func createRequestWithToken(jwt string) *http.Request {
 	request, err := http.NewRequest(http.MethodGet, RequestUrl, nil)
 	if err != nil {
-		panic("Can't create request")
+		panic("Can't create request.")
 	}
 
 	request.Header.Add(Authorization, jwt)
@@ -202,6 +202,6 @@ func createRequestWithToken(jwt string) *http.Request {
 func validateRequest(validator service.Validator, request *http.Request) {
 	err := validator.ValidateRequest(request)
 	if err != nil {
-		panic("Can't validate request")
+		fmt.Println("Can't validate request! JWT_1 and JWT_2 just formally valid.")
 	}
 }
