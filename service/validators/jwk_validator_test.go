@@ -21,7 +21,7 @@ func ExampleJWK_Middleware() {
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
 
-func ExampleJWK_MiddlewareGorillaMux() {
+func ExampleJWK_Middleware_gorilla_mux() {
 	handler := func(w http.ResponseWriter, r *http.Request) {}
 
 	router := mux.NewRouter()
@@ -47,7 +47,7 @@ func ExampleJWK_HandlerFunc() {
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
 
-func ExampleJWK_HandlerFuncWithGorillaMux() {
+func ExampleJWK_HandlerFunc_with_gorilla_mux() {
 	handler := func(w http.ResponseWriter, r *http.Request) {}
 
 	router := mux.NewRouter()
