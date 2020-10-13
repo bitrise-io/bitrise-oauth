@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/auth0-community/go-auth0"
+	"gopkg.in/square/go-jose.v2"
 )
 
 // ValidatorOption ...
@@ -13,6 +14,13 @@ type ValidatorOption func(c *JWK)
 func WithBaseURL(url string) ValidatorOption {
 	return func(c *JWK) {
 		c.baseURL = url
+	}
+}
+
+// WithSignatureAlgorithm ...
+func WithSignatureAlgorithm(sa jose.SignatureAlgorithm) ValidatorOption {
+	return func(c *JWK) {
+		c.signatureAlgorithm = sa
 	}
 }
 
