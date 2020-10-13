@@ -20,7 +20,8 @@ type JWK struct {
 	jwksURL            string
 	realmURL           string
 	signatureAlgorithm jose.SignatureAlgorithm
-	errorWriter func(http.ResponseWriter)
+	errorWriter        func(http.ResponseWriter)
+	condition          func() bool
 }
 
 // NewJWK returns the prepared JWK model. All input arguments are optional.
@@ -40,10 +41,13 @@ func NewJWK(opts ...ValidatorOption) service.Validator {
 		errorWriter: func(w http.ResponseWriter) {
 			http.Error(w, "Invalid credentials.", http.StatusUnauthorized)
 		},
+		condition: func() bool { return true },
 	}
 
 	for _, opt := range opts {
-		opt(serviceValidator)
+		if opt != nil {
+			opt(serviceValidator)
+		}
 	}
 
 	clientOpts := auth0.JWKClientOptions{
@@ -62,6 +66,9 @@ func NewJWK(opts ...ValidatorOption) service.Validator {
 
 // ValidateRequest to validate if the request is authenticated and has active token.
 func (sv JWK) ValidateRequest(r *http.Request) error {
+	if !sv.condition() {
+		return nil
+	}
 	_, err := sv.validator.ValidateRequest(r)
 	return err
 }

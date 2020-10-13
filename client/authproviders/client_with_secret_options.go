@@ -9,3 +9,10 @@ func WithTokenURL(tokenURL string) ClientOption {
 		c.tokenURL = tokenURL
 	}
 }
+
+// WithCondition ...
+func WithCondition(condition func() bool) ClientOption {
+	return func(c *ClientWithSecret) {
+		c.condition = condition
+	}
+}

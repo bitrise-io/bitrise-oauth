@@ -16,6 +16,7 @@ type ClientWithSecret struct {
 	clientID     string
 	clientSecret string
 	tokenURL     string
+	condition    func() bool
 }
 
 // NewClientWithSecret will return the preconfigured model.
@@ -24,10 +25,13 @@ func NewClientWithSecret(clientID, clientSecret string, opts ...ClientOption) cl
 		tokenURL:     config.TokenURL,
 		clientID:     clientID,
 		clientSecret: clientSecret,
+		condition:    func() bool { return true },
 	}
 
 	for _, opt := range opts {
-		opt(cws)
+		if opt != nil {
+			opt(cws)
+		}
 	}
 
 	return cws
@@ -41,6 +45,9 @@ func key(cfg clientcredentials.Config) string {
 
 // Client is a preconfigured http client using Background context.
 func (cws ClientWithSecret) Client() *http.Client {
+	if !cws.condition() {
+		return &http.Client{}
+	}
 	creds := clientcredentials.Config{
 		ClientID:     cws.clientID,
 		ClientSecret: cws.clientSecret,

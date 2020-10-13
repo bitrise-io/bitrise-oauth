@@ -14,7 +14,7 @@ func ExampleJWK_Middleware() {
 
 	mux := http.NewServeMux()
 
-	validator := validators.NewJWK(nil, nil, nil)
+	validator := validators.NewJWK()
 
 	mux.Handle("/test", validator.Middleware(http.HandlerFunc(handler)))
 
@@ -26,7 +26,7 @@ func ExampleJWK_Middleware_gorilla_mux() {
 
 	router := mux.NewRouter()
 
-	validator := validators.NewJWK(nil, nil, nil)
+	validator := validators.NewJWK()
 
 	router.Handle("/test", validator.Middleware(http.HandlerFunc(handler))).Methods(http.MethodGet)
 
@@ -40,7 +40,7 @@ func ExampleJWK_HandlerFunc() {
 
 	mux := http.NewServeMux()
 
-	validator := validators.NewJWK(nil, nil, nil)
+	validator := validators.NewJWK()
 
 	mux.HandleFunc("/test_func", validator.HandlerFunc(handler))
 
@@ -52,7 +52,7 @@ func ExampleJWK_HandlerFunc_with_gorilla_mux() {
 
 	router := mux.NewRouter()
 
-	validator := validators.NewJWK(nil, nil, nil)
+	validator := validators.NewJWK()
 
 	router.HandleFunc("/test_func", validator.HandlerFunc(handler)).Methods(http.MethodGet)
 
@@ -62,7 +62,7 @@ func ExampleJWK_HandlerFunc_with_gorilla_mux() {
 }
 
 func ExampleJWK_ValidateRequest() {
-	validator := validators.NewJWK(nil, nil, nil)
+	validator := validators.NewJWK()
 
 	handler := func(c echo.Context) error {
 		if err := validator.ValidateRequest(c.Request()); err != nil {
@@ -85,7 +85,7 @@ func ExampleJWK_MiddlewareFunc_echo() {
 
 	e := echo.New()
 
-	validator := validators.NewJWK(nil, nil, nil)
+	validator := validators.NewJWK()
 
 	e.Use(validator.MiddlewareFunc())
 
