@@ -108,7 +108,7 @@ func ExampleJWK_MiddlewareFunc_echo() {
 	e.Logger.Fatal(e.Start(":1323"))
 }
 
-func Test_GivenRequestWithTokenThatHasNotExpired_WhenRequestWithThisTokenIsValidatedMultipleTimes_ThenExpectCertsEndpointToBeCalledOnce(t *testing.T) {
+func Test_GivenRequestWithTokenThatWillNotExpire_WhenTheTokenIsValidatedMultipleTimes_ThenExpectCertsEndpointToBeCalledOnce(t *testing.T) {
 	// Given
 	counter := NewCounter(1)
 
