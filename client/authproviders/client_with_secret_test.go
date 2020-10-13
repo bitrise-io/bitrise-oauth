@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/bitrise-io/bitrise-oauth/client/authproviders"
-	"github.com/c2fo/testify/mock"
+	"github.com/bitrise-io/bitrise-oauth/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,22 +24,6 @@ type tokenJSON struct {
 	TokenType    string        `json:"token_type"`
 	RefreshToken string        `json:"refresh_token"`
 	ExpiresIn    time.Duration `json:"expires_in"` // at least PayPal returns string, while most return number
-}
-
-type mockAuthService struct {
-	mock.Mock
-}
-
-func (m *mockAuthService) Token(grantType string) {
-	m.Called(grantType)
-}
-
-type mockService struct {
-	mock.Mock
-}
-
-func (m *mockService) Test(accessToken string) {
-	m.Called(accessToken)
 }
 
 func TestNewClientWithSecret_threads_using_same_client(t *testing.T) {
@@ -78,8 +62,8 @@ func TestNewClientWithSecret_threads_using_same_client(t *testing.T) {
 }
 
 func TestNewClientWithSecret_not_using_refresh_token(t *testing.T) {
-	mockedAuthService := mockAuthService{}
-	mockedService := mockService{}
+	mockedAuthService := mocks.AuthService{}
+	mockedClient := mocks.Client{}
 
 	accessToken, refreshToken := "initial-access-token", "initial-refresh-token"
 
@@ -107,7 +91,7 @@ func TestNewClientWithSecret_not_using_refresh_token(t *testing.T) {
 			tokenHeaderSplit := strings.Split(r.Header.Get("Authorization"), " ")
 			assert.Len(t, tokenHeaderSplit, 2)
 
-			mockedService.Test(tokenHeaderSplit[1])
+			mockedClient.Test(tokenHeaderSplit[1])
 
 			w.WriteHeader(http.StatusOK)
 		}
@@ -117,7 +101,7 @@ func TestNewClientWithSecret_not_using_refresh_token(t *testing.T) {
 	mockedAuthService.
 		On("Token", "client_credentials").Return().
 		Twice()
-	mockedService.
+	mockedClient.
 		On("Test", "initial-access-token").Return().
 		Times(6)
 
@@ -132,7 +116,7 @@ func TestNewClientWithSecret_not_using_refresh_token(t *testing.T) {
 	}
 
 	mockedAuthService.AssertExpectations(t)
-	mockedService.AssertExpectations(t)
+	mockedClient.AssertExpectations(t)
 	mockedAuthService.AssertNotCalled(t, "Token", "refresh_token")
-	mockedService.AssertNotCalled(t, "Test", "refreshed-access-token")
+	mockedClient.AssertNotCalled(t, "Test", "refreshed-access-token")
 }
