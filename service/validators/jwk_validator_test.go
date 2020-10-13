@@ -166,7 +166,7 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 			}))
 			defer testAuthServer.Close()
 
-			validator := validators.NewJWK(validators.WithCustomJWKSURL(testAuthServer.URL+"/certs"), validators.WithCustomKeyCacher(auth0.NewMemoryKeyCacher(testCase.expiryInSecs*time.Second, 5)))
+			validator := validators.NewJWK(validators.WithJWKSURL(testAuthServer.URL+"/certs"), validators.WithKeyCacher(auth0.NewMemoryKeyCacher(testCase.expiryInSecs*time.Second, 5)))
 
 			request1 := createRequestWithToken(testCase.token1)
 			request2 := createRequestWithToken(testCase.token2)
