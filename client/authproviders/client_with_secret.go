@@ -40,11 +40,11 @@ func key(cfg clientcredentials.Config) string {
 }
 
 // Client is a preconfigured http client using Background context.
-func (kcs ClientWithSecret) Client() *http.Client {
+func (cws ClientWithSecret) Client() *http.Client {
 	creds := clientcredentials.Config{
-		ClientID:     kcs.clientID,
-		ClientSecret: kcs.clientSecret,
-		TokenURL:     kcs.tokenURL,
+		ClientID:     cws.clientID,
+		ClientSecret: cws.clientSecret,
+		TokenURL:     cws.tokenURL,
 	}
 
 	client := creds.Client(context.Background())
