@@ -13,12 +13,13 @@ import (
 
 // JWK ...
 type JWK struct {
-	validator *auth0.JWTValidator
-	baseURL   string
-	realm     string
-	keyCacher auth0.KeyCacher
-	jwksURL   string
-	realmURL  string
+	validator   *auth0.JWTValidator
+	baseURL     string
+	realm       string
+	keyCacher   auth0.KeyCacher
+	jwksURL     string
+	realmURL    string
+	errorWriter func(http.ResponseWriter)
 }
 
 // NewJWK returns the prepared JWK model. All input arguments are optional.
@@ -34,6 +35,9 @@ func NewJWK(opts ...ValidatorOption) service.Validator {
 		keyCacher: auth0.NewMemoryKeyCacher(3*time.Minute, 5),
 		jwksURL:   config.JWKSURL,
 		realmURL:  config.RealmURL,
+		errorWriter: func(w http.ResponseWriter) {
+			http.Error(w, "Invalid credentials.", http.StatusUnauthorized)
+		},
 	}
 
 	for _, opt := range opts {
@@ -65,7 +69,7 @@ func (sv JWK) ValidateRequest(r *http.Request) error {
 func (sv JWK) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := sv.ValidateRequest(r); err != nil {
-			http.Error(w, "invalid token", http.StatusUnauthorized)
+			sv.errorWriter(w)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -90,7 +94,7 @@ func (sv JWK) MiddlewareFunc() echo.MiddlewareFunc {
 func (sv JWK) HandlerFunc(hf http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := sv.ValidateRequest(r); err != nil {
-			http.Error(w, "invalid token", http.StatusUnauthorized)
+			sv.errorWriter(w)
 			return
 		}
 		hf(w, r)
