@@ -9,18 +9,24 @@ import (
 	"github.com/bitrise-io/bitrise-oauth/service"
 	"github.com/labstack/echo"
 	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
 )
+
+// JWTValidator ...
+type JWTValidator interface {
+	ValidateRequest(r *http.Request) (*jwt.JSONWebToken, error)
+}
 
 // JWK ...
 type JWK struct {
-	validator          *auth0.JWTValidator
+	validator          JWTValidator
 	baseURL            string
 	realm              string
 	keyCacher          auth0.KeyCacher
 	jwksURL            string
 	realmURL           string
 	signatureAlgorithm jose.SignatureAlgorithm
-	errorWriter func(http.ResponseWriter)
+	errorWriter        func(http.ResponseWriter)
 }
 
 // NewJWK returns the prepared JWK model. All input arguments are optional.
@@ -46,16 +52,18 @@ func NewJWK(opts ...ValidatorOption) service.Validator {
 		opt(serviceValidator)
 	}
 
-	clientOpts := auth0.JWKClientOptions{
-		URI: serviceValidator.jwksURL,
+	if serviceValidator.validator == nil {
+		clientOpts := auth0.JWKClientOptions{
+			URI: serviceValidator.jwksURL,
+		}
+
+		client := auth0.NewJWKClientWithCache(clientOpts, nil, serviceValidator.keyCacher)
+
+		configuration := auth0.NewConfiguration(client, nil,
+			serviceValidator.realmURL, serviceValidator.signatureAlgorithm)
+
+		serviceValidator.validator = auth0.NewValidator(configuration, nil)
 	}
-
-	client := auth0.NewJWKClientWithCache(clientOpts, nil, serviceValidator.keyCacher)
-
-	configuration := auth0.NewConfiguration(client, nil,
-		serviceValidator.realmURL, serviceValidator.signatureAlgorithm)
-
-	serviceValidator.validator = auth0.NewValidator(configuration, nil)
 
 	return serviceValidator
 }
