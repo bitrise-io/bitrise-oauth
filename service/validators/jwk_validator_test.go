@@ -115,14 +115,17 @@ func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenEx
 	mockHandler := mocks.Handler{}
 	mockHandler.On("ServeHTTP").Return().Once()
 
-	validator := createValidator(givenSuccessfulJWTValidation(), nil)
-	testServer := startServer(&mockHandler, validator)
+	mockErrorWriter := mocks.ErrorWriter{}
+
+	validator := createValidator(givenSuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
+	testServer := startServerWithMiddleware(&mockHandler, validator)
 	defer testServer.Close()
 
 	// When
 	sendGetRequest(testServer.URL)
 
 	// Then
+	mockHandler.AssertNotCalled(t, "ErrorHandler")
 	mockHandler.AssertExpectations(t)
 }
 
@@ -134,7 +137,7 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_Then
 	mockErrorWriter.On("ErrorHandler").Return().Once()
 
 	validator := createValidator(givenUnsuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
-	testServer := startServer(&mockHandler, validator)
+	testServer := startServerWithMiddleware(&mockHandler, validator)
 	defer testServer.Close()
 
 	// When
@@ -143,6 +146,48 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_Then
 	// Then
 	mockErrorWriter.AssertExpectations(t)
 	mockHandler.AssertNotCalled(t, "ServeHTTP")
+}
+
+// TODO MiddlewareFunction - success
+
+// TODO MiddlewareFunction - error
+
+func Test_GivenSuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_ThenExpectTheNextMiddlewareToBeCalled(t *testing.T) {
+	//Given
+	mockHandlerFunction := mocks.HandlerFunction{}
+	mockHandlerFunction.On("Handler").Return().Once()
+
+	mockErrorWriter := mocks.ErrorWriter{}
+
+	validator := createValidator(givenSuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
+	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator)
+	defer testServer.Close()
+
+	// When
+	sendGetRequest(testServer.URL)
+
+	// Then
+	mockErrorWriter.AssertNotCalled(t, "ErrorHandler")
+	mockHandlerFunction.AssertExpectations(t)
+}
+
+func Test_GivenUnsuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_ThenExpectAnError(t *testing.T) {
+	//Given
+	mockHandlerFunction := mocks.HandlerFunction{}
+
+	mockErrorWriter := mocks.ErrorWriter{}
+	mockErrorWriter.On("ErrorHandler").Return().Once()
+
+	validator := createValidator(givenUnsuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
+	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator)
+	defer testServer.Close()
+
+	// When
+	sendGetRequest(testServer.URL)
+
+	// Then
+	mockErrorWriter.AssertExpectations(t)
+	mockHandlerFunction.AssertNotCalled(t, "Handler")
 }
 
 func Test_Auth0_JWKS_Caching(t *testing.T) {
@@ -225,8 +270,13 @@ func createValidator(mockJWTValidator validators.JWTValidator, errorWriter func(
 	return validator
 }
 
-func startServer(mockHandler *mocks.Handler, validator service.Validator) *httptest.Server {
+func startServerWithMiddleware(mockHandler *mocks.Handler, validator service.Validator) *httptest.Server {
 	testServer := httptest.NewServer(validator.Middleware(mockHandler))
+	return testServer
+}
+
+func startServerWithHandlerFunction(mockHandlerFunction func(http.ResponseWriter, *http.Request), validator service.Validator) *httptest.Server {
+	testServer := httptest.NewServer(validator.HandlerFunc(mockHandlerFunction))
 	return testServer
 }
 
