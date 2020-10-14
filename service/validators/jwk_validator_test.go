@@ -1,6 +1,7 @@
 package validators_test
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -109,6 +110,41 @@ func ExampleJWK_MiddlewareFunc_echo() {
 	e.Logger.Fatal(e.Start(":1323"))
 }
 
+func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenExpectTheNextMiddlewareToBeCalled(t *testing.T) {
+	// Given
+	mockHandler := mocks.Handler{}
+	mockHandler.On("ServeHTTP").Return().Once()
+
+	validator := createValidator(givenSuccessfulJWTValidation(), nil)
+	testServer := startServer(&mockHandler, validator)
+	defer testServer.Close()
+
+	// When
+	sendGetRequest(testServer.URL)
+
+	// Then
+	mockHandler.AssertExpectations(t)
+}
+
+func Test_GivenUnsuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenExpectAnError(t *testing.T) {
+	// Given
+	mockHandler := mocks.Handler{}
+
+	mockErrorWriter := mocks.ErrorWriter{}
+	mockErrorWriter.On("ErrorHandler").Return().Once()
+
+	validator := createValidator(givenUnsuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
+	testServer := startServer(&mockHandler, validator)
+	defer testServer.Close()
+
+	// When
+	sendGetRequest(testServer.URL)
+
+	// Then
+	mockErrorWriter.AssertExpectations(t)
+	mockHandler.AssertNotCalled(t, "ServeHTTP")
+}
+
 func Test_Auth0_JWKS_Caching(t *testing.T) {
 	testCases := []struct {
 		name         string
@@ -118,28 +154,28 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 		want         int
 	}{
 		{
-			"1. Given two requests with the same token that will NOT expire when the requests are validated then expect /certs endpoint to be called ONCE",
+			"1. Given two requests with the same token and JWKS will NOT expire when the requests are validated then expect /certs endpoint to be called ONCE",
 			JWT_1,
 			JWT_1,
 			60,
 			1,
 		},
 		{
-			"2. Given two requests with different tokens that will NOT expire when the requests are validated then expect /certs endpoint to be called TWICE",
+			"2. Given two requests with different tokens JWKS will NOT expire when the requests are validated then expect /certs endpoint to be called TWICE",
 			JWT_1,
 			JWT_2,
 			60,
 			2,
 		},
 		{
-			"3. Given two requests with the same token that will expire when the requests are validated then expect /certs endpoint to be called TWICE",
+			"3. Given two requests with the same token and JWKS will expire when the requests are validated then expect /certs endpoint to be called TWICE",
 			JWT_1,
 			JWT_1,
 			1,
 			2,
 		},
 		{
-			"4. Given two requests with different token that will expire when the requests are validated then expect /certs endpoint to be called TWICE",
+			"4. Given two requests with different token and JWKS will expire when the requests are validated then expect /certs endpoint to be called TWICE",
 			JWT_1,
 			JWT_2,
 			1,
@@ -178,6 +214,34 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 			// Then
 			mockAuthService.AssertExpectations(t)
 		})
+	}
+}
+
+func createValidator(mockJWTValidator validators.JWTValidator, errorWriter func(http.ResponseWriter)) service.Validator {
+	validator := validators.NewJWK(
+		validators.WithValidator(mockJWTValidator),
+		validators.WithErrorWriter(errorWriter),
+	)
+	return validator
+}
+
+func startServer(mockHandler *mocks.Handler, validator service.Validator) *httptest.Server {
+	testServer := httptest.NewServer(validator.Middleware(mockHandler))
+	return testServer
+}
+
+func givenSuccessfulJWTValidation() *mocks.JWTValidator {
+	return new(mocks.JWTValidator).GivenSuccessfulJWTValidation()
+}
+
+func givenUnsuccessfulJWTValidation() *mocks.JWTValidator {
+	return new(mocks.JWTValidator).GivenUnsuccessfulJWTValidation(errors.New("Can't validate request"))
+}
+
+func sendGetRequest(url string) {
+	_, err := http.Get(url)
+	if err != nil {
+		panic(err)
 	}
 }
 
