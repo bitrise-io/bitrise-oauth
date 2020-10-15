@@ -206,7 +206,7 @@ func Test_GivenUnsuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled
 
 	validator := createValidator(givenUnsuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
 	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator)
-	testServer.Close()
+
 	// When
 	sendGetRequest(testServer.URL)
 
