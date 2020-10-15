@@ -10,9 +10,9 @@ lorem ipsum intro
 ## Server
 lorem ipsum intro
 
-## Usage
+### Usage
 
-### Validator as Handler Function
+#### Validator as Handler Function
 ```go
 package main
 
@@ -36,7 +36,7 @@ func main() {
 }
 ```
 
-### Validator as Handler Function with gorilla/mux
+#### Validator as Handler Function with gorilla/mux
 ```go
 package main
 
@@ -64,7 +64,7 @@ func main() {
 
 ```
 
-### Validator as Middleware
+#### Validator as Middleware
 ```go
 package main
 
@@ -88,7 +88,7 @@ func main() {
 }
 ```
 
-### Validator as Middleware with gorilla/mux
+#### Validator as Middleware with gorilla/mux
 ```go
 package main
 
@@ -115,7 +115,7 @@ func main() {
 }
 ```
 
-### Validator as Echo Middleware Function
+#### Validator as Echo Middleware Function
 ```go
 package main
 
@@ -143,7 +143,7 @@ func main() {
 }
 ```
 
-### Validator as Echo Handler Function
+#### Validator as Echo Handler Function
 ```go
 	validator := service.NewValidator()
 
