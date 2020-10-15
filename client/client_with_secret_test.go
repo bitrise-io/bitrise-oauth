@@ -1,4 +1,4 @@
-package authproviders_test
+package client_test
 
 import (
 	"encoding/json"
@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bitrise-io/bitrise-oauth/client/authproviders"
+	"github.com/bitrise-io/bitrise-oauth/client"
 	"github.com/bitrise-io/bitrise-oauth/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
 func Example() {
-	authproviders.NewClientWithSecret("my_client_id", "my_client_secret").Client()
+	client.NewWithSecret("my_client_id", "my_client_secret").ManagedHTTPClient()
 }
 
 type tokenJSON struct {
@@ -40,8 +40,8 @@ func TestNewClientWithSecret_threads_using_same_client(t *testing.T) {
 			for j := 0; j < clientsToCreate; j++ {
 				go func(j int) {
 					defer wg.Done()
-					c := authproviders.NewClientWithSecret(fmt.Sprintf("clientID-%d", j), fmt.Sprintf("clientSecret-%d", j),
-						authproviders.WithTokenURL("myurl")).Client()
+					c := client.NewWithSecret(fmt.Sprintf("clientID-%d", j), fmt.Sprintf("clientSecret-%d", j),
+						client.WithTokenURL("https://google.com")).ManagedHTTPClient()
 
 					pointerAddress := fmt.Sprintf("%p", c)
 					createdClients.Store(pointerAddress, c)
@@ -105,8 +105,8 @@ func TestNewClientWithSecret_not_using_refresh_token(t *testing.T) {
 		On("Test", "initial-access-token").Return().
 		Times(6)
 
-	c := authproviders.NewClientWithSecret("my-client-id", "my-secret",
-		authproviders.WithTokenURL(ts.URL+"/token")).Client()
+	c := client.NewWithSecret("my-client-id", "my-secret",
+		client.WithTokenURL(ts.URL+"/token")).ManagedHTTPClient()
 
 	for i := 0; i < 6; i++ {
 		resp, err := c.Get(ts.URL + "/test")
