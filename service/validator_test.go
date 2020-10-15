@@ -1,4 +1,4 @@
-package validators_test
+package service_test
 
 import (
 	"fmt"
@@ -11,7 +11,6 @@ import (
 	auth0 "github.com/auth0-community/go-auth0"
 	"github.com/bitrise-io/bitrise-oauth/mocks"
 	"github.com/bitrise-io/bitrise-oauth/service"
-	"github.com/bitrise-io/bitrise-oauth/service/validators"
 	"github.com/gorilla/mux"
 	"github.com/labstack/echo"
 )
@@ -24,24 +23,24 @@ const (
 	RequestUrl = "https://bitrise.io/protected_route"
 )
 
-func ExampleJWK_Middleware() {
+func ExampleValidator_Middleware() {
 	handler := func(w http.ResponseWriter, r *http.Request) {}
 
 	mux := http.NewServeMux()
 
-	validator := validators.NewJWK(nil, nil, nil)
+	validator := service.NewValidator()
 
 	mux.Handle("/test", validator.Middleware(http.HandlerFunc(handler)))
 
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
 
-func ExampleJWK_Middleware_gorilla_mux() {
+func ExampleValidator_Middleware_gorilla_mux() {
 	handler := func(w http.ResponseWriter, r *http.Request) {}
 
 	router := mux.NewRouter()
 
-	validator := validators.NewJWK(nil, nil, nil)
+	validator := service.NewValidator()
 
 	router.Handle("/test", validator.Middleware(http.HandlerFunc(handler))).Methods(http.MethodGet)
 
@@ -50,24 +49,24 @@ func ExampleJWK_Middleware_gorilla_mux() {
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
-func ExampleJWK_HandlerFunc() {
+func ExampleValidator_HandlerFunc() {
 	handler := func(w http.ResponseWriter, r *http.Request) {}
 
 	mux := http.NewServeMux()
 
-	validator := validators.NewJWK(nil, nil, nil)
+	validator := service.NewValidator()
 
 	mux.HandleFunc("/test_func", validator.HandlerFunc(handler))
 
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
 
-func ExampleJWK_HandlerFunc_with_gorilla_mux() {
+func ExampleValidator_HandlerFunc_with_gorilla_mux() {
 	handler := func(w http.ResponseWriter, r *http.Request) {}
 
 	router := mux.NewRouter()
 
-	validator := validators.NewJWK(nil, nil, nil)
+	validator := service.NewValidator()
 
 	router.HandleFunc("/test_func", validator.HandlerFunc(handler)).Methods(http.MethodGet)
 
@@ -76,8 +75,8 @@ func ExampleJWK_HandlerFunc_with_gorilla_mux() {
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
-func ExampleJWK_ValidateRequest() {
-	validator := validators.NewJWK(nil, nil, nil)
+func ExampleValidator_ValidateRequest() {
+	validator := service.NewValidator()
 
 	handler := func(c echo.Context) error {
 		if err := validator.ValidateRequest(c.Request()); err != nil {
@@ -93,14 +92,14 @@ func ExampleJWK_ValidateRequest() {
 	e.Logger.Fatal(e.Start(":1323"))
 }
 
-func ExampleJWK_MiddlewareFunc_echo() {
+func ExampleValidator_MiddlewareFunc_echo() {
 	handler := func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
 	}
 
 	e := echo.New()
 
-	validator := validators.NewJWK(nil, nil, nil)
+	validator := service.NewValidator()
 
 	e.Use(validator.MiddlewareFunc())
 
@@ -165,7 +164,7 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 			}))
 			defer testAuthServer.Close()
 
-			validator := validators.NewJWK(validators.WithJWKSURL(testAuthServer.URL+"/certs"), validators.WithKeyCacher(auth0.NewMemoryKeyCacher(testCase.expiryInSecs*time.Millisecond, 5)))
+			validator := service.NewValidator(service.WithJWKSURL(testAuthServer.URL+"/certs"), service.WithKeyCacher(auth0.NewMemoryKeyCacher(testCase.expiryInSecs*time.Millisecond, 5)))
 
 			request1 := createRequestWithToken(testCase.token1)
 			request2 := createRequestWithToken(testCase.token2)
@@ -199,7 +198,7 @@ func createRequestWithToken(jwt string) *http.Request {
 	return request
 }
 
-func validateRequest(validator service.Validator, request *http.Request) {
+func validateRequest(validator service.ValidatorIntf, request *http.Request) {
 	err := validator.ValidateRequest(request)
 	if err != nil {
 		fmt.Println("Can't validate request! JWT_1 and JWT_2 just formally valid.")

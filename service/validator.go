@@ -1,4 +1,4 @@
-package validators
+package service
 
 import (
 	"net/http"
@@ -6,13 +6,20 @@ import (
 
 	auth0 "github.com/auth0-community/go-auth0"
 	"github.com/bitrise-io/bitrise-oauth/config"
-	"github.com/bitrise-io/bitrise-oauth/service"
 	"github.com/labstack/echo"
 	"gopkg.in/square/go-jose.v2"
 )
 
-// JWK ...
-type JWK struct {
+// ValidatorIntf gives multiple solution to validate the access token received in the request headers using Oauth2.0
+type ValidatorIntf interface {
+	HandlerFunc(http.HandlerFunc) http.HandlerFunc
+	Middleware(http.Handler) http.Handler
+	MiddlewareFunc() echo.MiddlewareFunc
+	ValidateRequest(r *http.Request) error
+}
+
+// Validator ...
+type Validator struct {
 	validator          *auth0.JWTValidator
 	baseURL            string
 	realm              string
@@ -20,17 +27,17 @@ type JWK struct {
 	jwksURL            string
 	realmURL           string
 	signatureAlgorithm jose.SignatureAlgorithm
-	errorWriter func(http.ResponseWriter)
+	errorWriter        func(http.ResponseWriter)
 }
 
-// NewJWK returns the prepared JWK model. All input arguments are optional.
+// NewValidator returns the prepared JWK model. All input arguments are optional.
 //
 // Argument defaults when nil:
 //  	baseURL: http://104.154.234.133
 //  	realm: master
 //  	keyCacher: auth0 MemoryKeyCacher with 3 minutes TTL and size 5
-func NewJWK(opts ...ValidatorOption) service.Validator {
-	serviceValidator := &JWK{
+func NewValidator(opts ...ValidatorOption) ValidatorIntf {
+	serviceValidator := &Validator{
 		baseURL:            config.BaseURL,
 		realm:              config.Realm,
 		keyCacher:          auth0.NewMemoryKeyCacher(3*time.Minute, 5),
@@ -61,14 +68,14 @@ func NewJWK(opts ...ValidatorOption) service.Validator {
 }
 
 // ValidateRequest to validate if the request is authenticated and has active token.
-func (sv JWK) ValidateRequest(r *http.Request) error {
+func (sv Validator) ValidateRequest(r *http.Request) error {
 	_, err := sv.validator.ValidateRequest(r)
 	return err
 }
 
 // Middleware used as http package's middleware, in http.Handle.
 // Calls out to ValidateRequest and returns http.StatusUnauthorized with body: invalid token if the token is not active.
-func (sv JWK) Middleware(next http.Handler) http.Handler {
+func (sv Validator) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := sv.ValidateRequest(r); err != nil {
 			sv.errorWriter(w)
@@ -80,7 +87,7 @@ func (sv JWK) Middleware(next http.Handler) http.Handler {
 
 // MiddlewareFunc can be used with echo.Use.
 // Calls out to ValidateRequest and returns an error for echo.
-func (sv JWK) MiddlewareFunc() echo.MiddlewareFunc {
+func (sv Validator) MiddlewareFunc() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if _, err := sv.validator.ValidateRequest(c.Request()); err != nil {
@@ -93,7 +100,7 @@ func (sv JWK) MiddlewareFunc() echo.MiddlewareFunc {
 
 // HandlerFunc used with http.HandleFunc.
 // Calls out to ValidateRequest and returns http.StatusUnauthorized with body: invalid token if the token is not active.
-func (sv JWK) HandlerFunc(hf http.HandlerFunc) http.HandlerFunc {
+func (sv Validator) HandlerFunc(hf http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := sv.ValidateRequest(r); err != nil {
 			sv.errorWriter(w)
