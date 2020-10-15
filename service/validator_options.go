@@ -61,7 +61,7 @@ func WithJWKSURL(jwksURL string) ValidatorOption {
 
 // WithValidator ...
 func WithValidator(validator JWTValidator) ValidatorOption {
-	return func(c *JWK) {
+	return func(c *Validator) {
 		c.validator = validator
 	}
 }
