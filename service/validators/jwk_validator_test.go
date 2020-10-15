@@ -119,12 +119,12 @@ func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenEx
 
 	validator := createValidator(givenSuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
 	testServer := startServerWithMiddleware(mockHandler, validator)
-	defer testServer.Close()
 
 	// When
 	sendGetRequest(testServer.URL)
 
 	// Then
+	testServer.Close()
 	mockErrorWriter.AssertNotCalled(t, "ErrorHandler", mock.Anything)
 	mockHandler.AssertCalled(t, "ServeHTTP", mock.Anything, mock.Anything)
 }
@@ -136,12 +136,12 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_Then
 
 	validator := createValidator(givenUnsuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
 	testServer := startServerWithMiddleware(mockHandler, validator)
-	defer testServer.Close()
 
 	// When
 	sendGetRequest(testServer.URL)
 
 	// Then
+	testServer.Close()
 	mockErrorWriter.AssertCalled(t, "ErrorHandler", mock.Anything)
 	mockHandler.AssertNotCalled(t, "ServeHTTP", mock.Anything, mock.Anything)
 }
@@ -189,12 +189,12 @@ func Test_GivenSuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_T
 
 	validator := createValidator(givenSuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
 	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator)
-	defer testServer.Close()
 
 	// When
 	sendGetRequest(testServer.URL)
 
 	// Then
+	testServer.Close()
 	mockErrorWriter.AssertNotCalled(t, "ErrorHandler", mock.Anything)
 	mockHandlerFunction.AssertCalled(t, "Handler", mock.Anything, mock.Anything)
 }
@@ -206,12 +206,12 @@ func Test_GivenUnsuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled
 
 	validator := createValidator(givenUnsuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
 	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator)
-	defer testServer.Close()
-
+	testServer.Close()
 	// When
 	sendGetRequest(testServer.URL)
 
 	// Then
+	testServer.Close()
 	mockErrorWriter.AssertCalled(t, "ErrorHandler", mock.Anything)
 	mockHandlerFunction.AssertNotCalled(t, "Handler", mock.Anything, mock.Anything)
 }
