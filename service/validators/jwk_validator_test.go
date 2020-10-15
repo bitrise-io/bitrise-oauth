@@ -125,7 +125,7 @@ func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenEx
 	sendGetRequest(testServer.URL)
 
 	// Then
-	mockErrorWriter.AssertNotCalled(t, "ErrorHandler")
+	mockErrorWriter.AssertNotCalled(t, "ErrorHandler", mock.Anything)
 	mockHandler.AssertCalled(t, "ServeHTTP", mock.Anything, mock.Anything)
 }
 
@@ -182,7 +182,7 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenReques
 	mockMiddlewareHandlerFunction.AssertNotCalled(t, "HandlerFunction", mock.Anything)
 }
 
-func Test_GivenSuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_ThenExpectTheNextMiddlewareToBeCalled(t *testing.T) {
+func Test_GivenSuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_ThenExpectTheNextHandlerFunctionToBeCalled(t *testing.T) {
 	//Given
 	mockHandlerFunction := givenMockHandlerFunction()
 	mockErrorWriter := givenMockErrorWriter()
@@ -232,7 +232,7 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 			1,
 		},
 		{
-			"2. Given two requests with different tokens JWKS will NOT expire when the requests are validated then expect /certs endpoint to be called TWICE",
+			"2. Given two requests with different tokens and JWKS will NOT expire when the requests are validated then expect /certs endpoint to be called TWICE",
 			JWT_1,
 			JWT_2,
 			60,
