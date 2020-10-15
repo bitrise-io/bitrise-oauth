@@ -12,7 +12,7 @@ lorem ipsum intro
 
 ### Usage
 
-#### Validator as Handler Function
+#### Handler Function
 ```go
 package main
 
@@ -36,7 +36,7 @@ func main() {
 }
 ```
 
-#### Validator as Handler Function with gorilla/mux
+#### Handler Function with gorilla/mux
 ```go
 package main
 
@@ -64,7 +64,7 @@ func main() {
 
 ```
 
-#### Validator as Middleware
+#### Middleware
 ```go
 package main
 
@@ -88,7 +88,7 @@ func main() {
 }
 ```
 
-#### Validator as Middleware with gorilla/mux
+#### Middleware with gorilla/mux
 ```go
 package main
 
@@ -115,7 +115,7 @@ func main() {
 }
 ```
 
-#### Validator as Echo Middleware Function
+#### Echo Middleware Function
 ```go
 package main
 
@@ -143,7 +143,7 @@ func main() {
 }
 ```
 
-#### Validator as Echo Handler Function
+#### Echo Handler Function
 ```go
 	validator := service.NewValidator()
 
