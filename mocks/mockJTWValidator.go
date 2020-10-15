@@ -24,7 +24,7 @@ func (m *JWTValidator) GivenSuccessfulJWTValidation() *JWTValidator {
 	return m
 }
 
-// GivenUnsuccessfulJTWValidation ...
+// GivenUnsuccessfulJWTValidation ...
 func (m *JWTValidator) GivenUnsuccessfulJWTValidation(err error) *JWTValidator {
 	m.On("ValidateRequest", mock.Anything).Return(&jwt.JSONWebToken{}, err)
 	return m

@@ -13,5 +13,5 @@ type ErrorWriter struct {
 
 // ErrorHandler ...
 func (m *ErrorWriter) ErrorHandler(w http.ResponseWriter) {
-	m.Called()
+	m.Called(w)
 }

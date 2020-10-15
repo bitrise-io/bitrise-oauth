@@ -13,5 +13,5 @@ type Handler struct {
 
 // ServeHTTP ...
 func (m *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	m.Called()
+	m.Called(w, r)
 }
