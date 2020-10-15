@@ -13,6 +13,8 @@ import (
 	"github.com/bitrise-io/bitrise-oauth/mocks"
 	"github.com/bitrise-io/bitrise-oauth/service"
 	"github.com/bitrise-io/bitrise-oauth/service/validators"
+	"github.com/c2fo/testify/assert"
+	"github.com/c2fo/testify/mock"
 	"github.com/gorilla/mux"
 	"github.com/labstack/echo"
 )
@@ -112,55 +114,11 @@ func ExampleJWK_MiddlewareFunc_echo() {
 
 func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenExpectTheNextMiddlewareToBeCalled(t *testing.T) {
 	// Given
-	mockHandler := mocks.Handler{}
-	mockHandler.On("ServeHTTP").Return().Once()
-
-	mockErrorWriter := mocks.ErrorWriter{}
+	mockHandler := givenMockHandler()
+	mockErrorWriter := givenMockErrorWriter()
 
 	validator := createValidator(givenSuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
-	testServer := startServerWithMiddleware(&mockHandler, validator)
-	defer testServer.Close()
-
-	// When
-	sendGetRequest(testServer.URL)
-
-	// Then
-	mockHandler.AssertNotCalled(t, "ErrorHandler")
-	mockHandler.AssertExpectations(t)
-}
-
-func Test_GivenUnsuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenExpectAnError(t *testing.T) {
-	// Given
-	mockHandler := mocks.Handler{}
-
-	mockErrorWriter := mocks.ErrorWriter{}
-	mockErrorWriter.On("ErrorHandler").Return().Once()
-
-	validator := createValidator(givenUnsuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
-	testServer := startServerWithMiddleware(&mockHandler, validator)
-	defer testServer.Close()
-
-	// When
-	sendGetRequest(testServer.URL)
-
-	// Then
-	mockErrorWriter.AssertExpectations(t)
-	mockHandler.AssertNotCalled(t, "ServeHTTP")
-}
-
-// TODO MiddlewareFunction - success
-
-// TODO MiddlewareFunction - error
-
-func Test_GivenSuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_ThenExpectTheNextMiddlewareToBeCalled(t *testing.T) {
-	//Given
-	mockHandlerFunction := mocks.HandlerFunction{}
-	mockHandlerFunction.On("Handler").Return().Once()
-
-	mockErrorWriter := mocks.ErrorWriter{}
-
-	validator := createValidator(givenSuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
-	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator)
+	testServer := startServerWithMiddleware(mockHandler, validator)
 	defer testServer.Close()
 
 	// When
@@ -168,15 +126,83 @@ func Test_GivenSuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_T
 
 	// Then
 	mockErrorWriter.AssertNotCalled(t, "ErrorHandler")
-	mockHandlerFunction.AssertExpectations(t)
+	mockHandler.AssertCalled(t, "ServeHTTP", mock.Anything, mock.Anything)
+}
+
+func Test_GivenUnsuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenExpectAnError(t *testing.T) {
+	// Given
+	mockHandler := givenMockHandler()
+	mockErrorWriter := givenMockErrorWriter()
+
+	validator := createValidator(givenUnsuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
+	testServer := startServerWithMiddleware(mockHandler, validator)
+	defer testServer.Close()
+
+	// When
+	sendGetRequest(testServer.URL)
+
+	// Then
+	mockErrorWriter.AssertCalled(t, "ErrorHandler", mock.Anything)
+	mockHandler.AssertNotCalled(t, "ServeHTTP", mock.Anything, mock.Anything)
+}
+
+func Test_GivenSuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenRequestIsHandled_ThenExpectTheNextMiddlewareToBeCalled(t *testing.T) {
+	// Given
+	mockMiddlewareHandlerFunction := givenMockMiddlewareHandlerFunctionWithSuccess()
+	mockErrorWriter := givenMockErrorWriter()
+
+	validator := createValidator(givenSuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
+	validatorMiddlewareFunction := validator.MiddlewareFunc()(mockMiddlewareHandlerFunction.HandlerFunction)
+
+	context := createContext()
+
+	// When
+	err := validatorMiddlewareFunction(context)
+
+	// Then
+	assert.Nil(t, err)
+	mockMiddlewareHandlerFunction.AssertCalled(t, "HandlerFunction", mock.Anything)
+}
+
+func Test_GivenUnsuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenRequestIsHandled_ThenExpectAnError(t *testing.T) {
+	// Given
+	mockMiddlewareHandlerFunction := givenMockMiddlewareHandlerFunctionWithSuccess()
+	mockErrorWriter := givenMockErrorWriter()
+
+	validator := createValidator(givenUnsuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
+	validatorMiddlewareFunction := validator.MiddlewareFunc()(mockMiddlewareHandlerFunction.HandlerFunction)
+
+	context := createContext()
+
+	// When
+	err := validatorMiddlewareFunction(context)
+
+	// Then
+	assert.NotNil(t, err)
+	mockMiddlewareHandlerFunction.AssertNotCalled(t, "HandlerFunction", mock.Anything)
+}
+
+func Test_GivenSuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_ThenExpectTheNextMiddlewareToBeCalled(t *testing.T) {
+	//Given
+	mockHandlerFunction := givenMockHandlerFunction()
+	mockErrorWriter := givenMockErrorWriter()
+
+	validator := createValidator(givenSuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
+	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator)
+	defer testServer.Close()
+
+	// When
+	sendGetRequest(testServer.URL)
+
+	// Then
+	mockErrorWriter.AssertNotCalled(t, "ErrorHandler", mock.Anything)
+	mockHandlerFunction.AssertCalled(t, "Handler", mock.Anything, mock.Anything)
 }
 
 func Test_GivenUnsuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_ThenExpectAnError(t *testing.T) {
 	//Given
-	mockHandlerFunction := mocks.HandlerFunction{}
-
-	mockErrorWriter := mocks.ErrorWriter{}
-	mockErrorWriter.On("ErrorHandler").Return().Once()
+	mockHandlerFunction := givenMockHandlerFunction()
+	mockErrorWriter := givenMockErrorWriter()
 
 	validator := createValidator(givenUnsuccessfulJWTValidation(), mockErrorWriter.ErrorHandler)
 	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator)
@@ -186,8 +212,8 @@ func Test_GivenUnsuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled
 	sendGetRequest(testServer.URL)
 
 	// Then
-	mockErrorWriter.AssertExpectations(t)
-	mockHandlerFunction.AssertNotCalled(t, "Handler")
+	mockErrorWriter.AssertCalled(t, "ErrorHandler", mock.Anything)
+	mockHandlerFunction.AssertNotCalled(t, "Handler", mock.Anything, mock.Anything)
 }
 
 func Test_Auth0_JWKS_Caching(t *testing.T) {
@@ -262,6 +288,38 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 	}
 }
 
+func givenSuccessfulJWTValidation() *mocks.JWTValidator {
+	return new(mocks.JWTValidator).GivenSuccessfulJWTValidation()
+}
+
+func givenUnsuccessfulJWTValidation() *mocks.JWTValidator {
+	return new(mocks.JWTValidator).GivenUnsuccessfulJWTValidation(errors.New("Can't validate request"))
+}
+
+func givenMockHandler() *mocks.Handler {
+	mockHandler := new(mocks.Handler)
+	mockHandler.On("ServeHTTP", mock.Anything, mock.Anything).Return()
+	return mockHandler
+}
+
+func givenMockMiddlewareHandlerFunctionWithSuccess() *mocks.MiddlewareHandlerFunction {
+	mockMiddlewareHandlerFunction := new(mocks.MiddlewareHandlerFunction)
+	mockMiddlewareHandlerFunction.GivenSuccess()
+	return mockMiddlewareHandlerFunction
+}
+
+func givenMockHandlerFunction() *mocks.HandlerFunction {
+	mockHandlerFunction := new(mocks.HandlerFunction)
+	mockHandlerFunction.On("Handler", mock.Anything, mock.Anything).Return()
+	return mockHandlerFunction
+}
+
+func givenMockErrorWriter() *mocks.ErrorWriter {
+	mockErrorWriter := new(mocks.ErrorWriter)
+	mockErrorWriter.On("ErrorHandler", mock.Anything).Return()
+	return mockErrorWriter
+}
+
 func createValidator(mockJWTValidator validators.JWTValidator, errorWriter func(http.ResponseWriter)) service.Validator {
 	validator := validators.NewJWK(
 		validators.WithValidator(mockJWTValidator),
@@ -280,19 +338,21 @@ func startServerWithHandlerFunction(mockHandlerFunction func(http.ResponseWriter
 	return testServer
 }
 
-func givenSuccessfulJWTValidation() *mocks.JWTValidator {
-	return new(mocks.JWTValidator).GivenSuccessfulJWTValidation()
-}
-
-func givenUnsuccessfulJWTValidation() *mocks.JWTValidator {
-	return new(mocks.JWTValidator).GivenUnsuccessfulJWTValidation(errors.New("Can't validate request"))
-}
-
 func sendGetRequest(url string) {
 	_, err := http.Get(url)
 	if err != nil {
 		panic(err)
 	}
+}
+
+func createContext() echo.Context {
+	echo := echo.New()
+
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+	recorder := httptest.NewRecorder()
+	context := echo.NewContext(request, recorder)
+
+	return context
 }
 
 func addContentTypeAndTokenToResponse(w http.ResponseWriter) {
