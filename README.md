@@ -149,6 +149,16 @@ func main() {
 
 #### Echo Handler Function
 ```go
+package main
+
+import (
+	"net/http"
+
+	"github.com/bitrise-io/bitrise-oauth/service"
+	"github.com/labstack/echo"
+)
+
+func main() {
 	validator := service.NewValidator()
 
 	handler := func(c echo.Context) error {
@@ -163,6 +173,7 @@ func main() {
 	e.GET("/test", handler)
 
 	e.Logger.Fatal(e.Start(":8080"))
+}
 ```
 
 
