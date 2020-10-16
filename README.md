@@ -21,14 +21,77 @@ The server-side validation logic is located at the `service` package. You can us
 	- Gorilla's HTTP router called [**gorilla/mux**](https://github.com/gorilla/mux)
 - **Middleware Function** and **Handler Function** with Labstack's router called [**echo**](https://github.com/labstack/echo)
 
+
 ### API
-for service package
+#### `ValidatorIntf`
+Describes the possible operations and use-cases of our package.
+
+#### `Validator`
+Implements the `ValidatorIntf` interface. As its name reflects, this class is responsible for the validation of a request, using an `auth0.Validator` instance.
+You can use `ValidatorOption`s to configure.
+
+##### Fields
+- `validator: JWTValidator` holds the `auth0.JWTValidator` instance, used to validate a request. You may find further information about the `JWTValidator` interface in the next paragraph.
+
+- `baseURL string` holds the base URL of the authentication service.
+
+- `realm string` holds the realm.
+
+- `keyCacher auth0.KeyCacher` holds the *JWK* cacher. By default it can hold **5 keys* at max, for no longer than **3 minutes**.
+
+- `jwksURL string` holds the keystore URL.
+
+- `realmURL string` holds the realm URL.
+
+- `signatureAlgorithm jose.SignatureAlgorithm` holds the encryption/decription algorithm of the *JWT*. By default this is `RS256`.
+
+##### Methods
+- `NewValidator(opts ...ValidatorOption) ValidatorIntf` returns a new instance of `Validator`. It might recieves `ValidatorOption`s as a parameter.
+
+- `ValidateRequest(r *http.Request) error` calls the `ValidateRequest` function of `auth0.JWTValidator` instance in order to validate a request. It returns `nil` if the validation has succeded, otherwise returns an `error`.
+
+- `Middleware(next http.Handler, opts ...HTTPMiddlewareOption) http.Handler` returns a `http.Handler` instance. It calls `ValidateRequest` to validate the request. Calls the next middleware if the validation has succeded, otherwise sends an error using and error writer. It might recieves `HTTPMiddlewareOption`s as a parameter.
+
+- `MiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc` returns a `echo.MiddlewareFunc` instance. It calls `ValidateRequest` to validate the request. Calls the next `echo.HandlerFunc` if the validation has succeded, otherwise returns an `error`. It might recieves `EchoMiddlewareOption`s as a parameter. 
+
+- `HandlerFunc(hf http.HandlerFunc, opts ...HTTPMiddlewareOption) http.HandlerFunc` returns a `http.HandlerFunc` instance. It calls `ValidateRequest` to validate the request. Calls the next handler function if the validation has succeded, otherwise sends an error using and error writer. It might recieves `HTTPMiddlewareOption`s as a parameter.
+
+#### `JWTValidator`
+Since `auth0.JWTValidator` is not an interface, it was necessary to create an interface to loosen the coupling and making it exchangable and mockable in tests.
+
 
 ### Options
-intro?
-#### Validator options
+The package offers wide configurability using Options. You can easily override any parameter passing the desired Option(s) as a constructor parameter. Not only the `Validator` itself have Options, but each use-case has its own Options as well, offering a further possibility for configuration.
 
-#### Middleware options
+#### ValidatorOption
+You can customize the `Validator` during instantiation with Options. Using is just a matter of passing them as a constructor parameter, separated by a comma:
+```go
+service.NewValidator(service.WithJWKSURL("https://authservice.bitrise.io"), service.WithRealm("master"))
+```
+
+The available `ValidatorOption`s are the following:
+- `WithBaseURL(url string) ValidatorOption` overrides the base URL of the authentication service.
+
+- `WithSignatureAlgorithm(sa jose.SignatureAlgorithm) ValidatorOption` overrides the encryption/decription algorithm of the *JWT*.
+
+- `WithRealm(realm string) ValidatorOption` overrides the realm.
+
+- `WithKeyCacher(kc auth0.KeyCacher) ValidatorOption` overrides the *JWK* cacher.
+
+- `WithRealmURL(realmURL string) ValidatorOption` overrides the realm URL.
+
+- `WithJWKSURL(jwksURL string) ValidatorOption` overrides the keystore URL.
+
+- `WithValidator(validator JWTValidator) ValidatorOption` overrides the Auth0 `Validator`.
+
+
+#### HTTPMiddlewareOption
+You can configure the *Handler Function* and *Middleware* use-cases via passing these Options either to `Validator`'s `HandlerFunc` or `Middleware` function. The available `HTTPMiddlewareOption`s are the following:
+- `WithHTTPErrorWriter(errorWriter func(w http.ResponseWriter, r *http.Request, err error)) HTTPMiddlewareOption` overrides the error writer.
+
+#### EchoMiddlewareOption
+You can configure the *echo* use-case via passing these Options to `Validator`'s `MiddlewareFunc` function. The available `EchoMiddlewareOption`s are the following:
+- `WithContextErrorWriter(errorWriter func(echo.Context, error) error) EchoMiddlewareOption` overrides the error writer.
 
 ### Usage
 
