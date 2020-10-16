@@ -3,42 +3,42 @@
 # Bitrise OAuth library for Go
 This is a very thin package over Go's standard [OAuth2 library](https://github.com/golang/oauth2) and official [Auth0 library](https://github.com/auth0-community/auth0-go) for Go, extending its functionality via introducing an additional layer that handles the initialization and communication with our current authorization provider [Keycloak](https://github.com/keycloak/keycloak).
 
-This package provides both *client-side* and *server-side* (covering all of our current use-cases) wrappers. In this document, you may find useful information about the APIs, the custom configuration options, and the usage as well.
+This package provides both *client-side* and *server-side* wrappers, covering all of our current use-cases. In this document, you may find useful information about the APIs, the custom configuration options, and the usage as well.
 
 ## Client
-The *client-side* validation logic is located at the `client` package. The package offers a convenient way to gain an access token on *client-side*. It was achieved by extending Go's standard `http.Client`. It basically holds the necessary parameters for a successful token request (like client ID, client secret, or the authorization server's token URL). You can use the `AuthProvider` via several different ways to gain an access token. You may find information about each use-case at the API paragraph. Client means service client, it can be used for S2S authentication, not a user for U2S authentication.
+The *client-side* validation logic is located at the `client` package. The package offers a convenient way to gain an access token on *client-side*. It was achieved by extending Go's standard `http.Client`. It basically holds the necessary parameters for a successful token request (like **client ID**, **client secret**, and the **token URL** of the authorization server). You can use the `AuthProvider` via several different ways to gain an access token. You may find information about each use-case in the API paragraph. One important thing to note, that in this context *client* means service client, participating in service-to-service authentication.
 
 ### API
 #### `AuthProvider` interface
 Describes the possible operations and use-cases of our package.
 
 #### `WithSecret` impl
-Implements the `AuthProvider` interface. This class is used to gain an authenticated `http.Client` to make further authenticated HTTP calls, or alternatively, a token source can be created as well, but in this case, only the access token can be gained, not a complete authenticated HTTP client. You can use `HTTPClientOption`s to configure.
+Implements the `AuthProvider` interface. This class is used to gain an authenticated `http.Client` to make further authenticated *HTTP* calls, or alternatively, a token source can be created as well, but in this case, only the access token can be gained, not a complete authenticated `http.Client`. You can use `HTTPClientOption`s to configure.
 
 ##### Fields
 - `clientID string` holds the client ID.
 
 - `clientSecret string` holds the client secret.
 
-- `tokenURL string` hold the URL of the authentication service that is used to gain an access token.
+- `tokenURL string` holds the URL of the authentication service that provides an access token.
 
 - `credentials clientcredentials.Config` holds the parameters above in an `oauth.clientcredentials.Config` instance, used by the underlying *OAuth* library.
 
 ##### Methods
 - `NewWithSecret(clientID, clientSecret string, opts ...Option) AuthProvider` returns a new instance of `AuthProvider`. It might receive `Option`s as a parameter.
 
-- `TokenSource() oauth2.TokenSource` returns an `oauth.clientcredentials.TokenSource` that returns t until t expires, automatically refreshing it as necessary using the provided context and the client ID and client secret.
+- `TokenSource() oauth2.TokenSource` returns an `oauth.clientcredentials.TokenSource` that returns the token until it expires, automatically refreshing it as necessary using the provided context and the client ID and client secret.
 
 - `HTTPClient(opts ...HTTPClientOption) *http.Client` returns a preconfigured `http.Client`.
 
-- `ManagedHTTPClient(opts ...HTTPClientOption) *http.Client` returns a preconfigured `http.Client`. Uses a thread-safe map to store the created clients, using the `clientID` + `clientSecret` + `tokenURL` combination as a key. When the function is called, it will try to retrieve an instance from the map by the credentials. If it already exists, the instance will be returned, otherwise, a new instance will be created, save in the map and returned.
+- `ManagedHTTPClient(opts ...HTTPClientOption) *http.Client` returns a preconfigured `http.Client`. Uses a thread-safe map to store the created clients, using the `clientID` + `clientSecret` + `tokenURL` combination as a key. When the function is called, it will try to retrieve an instance from the map by the credentials. If it already exists, the instance will be returned, otherwise, a new instance will be created, afterwards saved in the map, and returned.
 
 
 ### Options
 The package offers wide configurability using Options. You can easily override any parameter passing the desired Option(s) as a constructor parameter. Not only the `AuthProvider` itself have Options, but each use-case has its own Options as well, offering a further possibility for configuration.
 
 #### Option
-- `WithTokenURL(tokenURL string) Option` overrides the URL of the authentication service that is used to gain an access token.
+- `WithTokenURL(tokenURL string) Option` overrides the URL of the authentication service that provides an access token.
 
 #### HTTPClientOption
 - `WithContext(ctx context.Context) HTTPClientOption` overrides the HTTP context of the client.
@@ -48,8 +48,8 @@ The package offers wide configurability using Options. You can easily override a
 
 ### Usage
 ```go
-	authProvider := client.NewWithSecret("my-client-id", "my-client-secret")
-	resp, err := authProvider.ManagedHTTPClient().Get("https://authservice.bitrise.io/token-endpoint")
+authProvider := client.NewWithSecret("my-client-id", "my-client-secret")
+resp, err := authProvider.ManagedHTTPClient().Get("https://authservice.bitrise.io/token-endpoint")
 ```
 
 ## Server
