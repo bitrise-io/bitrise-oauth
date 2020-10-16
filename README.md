@@ -1,4 +1,4 @@
-![Build Status](https://app.bitrise.io/app/e6a7166eda823c72/status.svg?token=LACL0_krbTkiMlmi4kBLNA&branch=master)
+[![Build Status](https://app.bitrise.io/app/e6a7166eda823c72/status.svg?token=LACL0_krbTkiMlmi4kBLNA)](https://app.bitrise.io/app/e6a7166eda823c72)
 
 # Bitrise OAuth library for Go
 This is a very thin package over Go's standard [OAuth2 library](https://github.com/golang/oauth2), extending its functionality via introducing an additional layer that handles the initialization and communication with our current authorization provider [Keycloak](https://github.com/keycloak/keycloak).
