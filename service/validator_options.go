@@ -1,8 +1,6 @@
 package service
 
 import (
-	"net/http"
-
 	"github.com/auth0-community/go-auth0"
 	"gopkg.in/square/go-jose.v2"
 )
@@ -28,13 +26,6 @@ func WithSignatureAlgorithm(sa jose.SignatureAlgorithm) ValidatorOption {
 func WithRealm(realm string) ValidatorOption {
 	return func(c *Validator) {
 		c.realm = realm
-	}
-}
-
-// WithErrorWriter ...
-func WithErrorWriter(errorWriter func(http.ResponseWriter)) ValidatorOption {
-	return func(c *Validator) {
-		c.errorWriter = errorWriter
 	}
 }
 
