@@ -45,6 +45,9 @@ You can use `ValidatorOption`s to configure.
 
 - `signatureAlgorithm jose.SignatureAlgorithm` holds the encryption/decription algorithm of the *JWT*. By default this is `RS256`.
 
+##### Methods
+- NewValidator(opts ...ValidatorOption) ValidatorIntf
+
 
 ### Options
 The package offers wide configurability using Options. You can easily override any parameter passing the desired Option(s) as a constructor parameter. Not only the `Validator` itself have Options, but each use-case has its own Options as well, offering a further possibility for configuration.
@@ -58,26 +61,26 @@ service.NewValidator(service.WithJWKSURL("https://authservice.bitrise.io"), serv
 The available `ValidatorOption`s are the following:
 - `WithBaseURL(url string)` overrides the base URL of the authentication service.
 
-- `WithSignatureAlgorithm(sa jose.SignatureAlgorithm)` overrides the encryption/decription algorithm of the *JWT*.
+- `WithSignatureAlgorithm(sa jose.SignatureAlgorithm) ValidatorOption` overrides the encryption/decription algorithm of the *JWT*.
 
-- `WithRealm(realm string)` overrides the realm.
+- `WithRealm(realm string) ValidatorOption` overrides the realm.
 
-- `WithKeyCacher(kc auth0.KeyCacher)` overrides the *JWK* cacher.
+- `WithKeyCacher(kc auth0.KeyCacher) ValidatorOption` overrides the *JWK* cacher.
 
-- `WithRealmURL(realmURL string)` overrides the realm URL.
+- `WithRealmURL(realmURL string) ValidatorOption` overrides the realm URL.
 
-- `WithJWKSURL(jwksURL string)` overrides the keystore URL.
+- `WithJWKSURL(jwksURL string) ValidatorOption` overrides the keystore URL.
 
-- `WithValidator(validator JWTValidator)` overrides the Auth0 `Validator`.
+- `WithValidator(validator JWTValidator) ValidatorOption` overrides the Auth0 `Validator`.
 
 
 #### HTTPMiddlewareOption
 You can configure the *Handler Function* and *Middleware* use-cases via passing these Options either to `Validator`'s `HandlerFunc` or `Middleware` function. The available `HTTPMiddlewareOption`s are the following:
-- `WithHTTPErrorWriter(errorWriter func(w http.ResponseWriter, r *http.Request, err error))` overrides the error writer.
+- `WithHTTPErrorWriter(errorWriter func(w http.ResponseWriter, r *http.Request, err error)) HTTPMiddlewareOption` overrides the error writer.
 
 #### EchoMiddlewareOption
 You can configure the *echo* use-case via passing these Options to `Validator`'s `MiddlewareFunc` function. The available `EchoMiddlewareOption`s are the following:
-- `WithContextErrorWriter(errorWriter func(echo.Context, error) error)` overrides the error writer.
+- `WithContextErrorWriter(errorWriter func(echo.Context, error) error) EchoMiddlewareOption` overrides the error writer.
 
 ### Usage
 
