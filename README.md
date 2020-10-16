@@ -23,7 +23,27 @@ The server-side validation logic is located at the `service` package. You can us
 
 
 ### API
-for service package
+#### `ValidatorIntf`
+Describes the possible operations and use-cases of our package.
+
+#### `Validator`
+Implements the `ValidatorIntf` interface. As its name reflects, this class is responsible for the validation of a request, using an *auth0* `Validator` instance.
+You can use `ValidatorOption`s to configure.
+
+##### Fields
+- `validator: JWTValidator` holds the *auth0* `Validator` instance, used to validate a request.
+
+- `baseURL: string` holds the base URL of the authentication service.
+
+- `realm string` holds the realm.
+
+- `keyCacher auth0.KeyCacher` holds the *JWK* cacher. By default it can hold **5 keys* at max, for no longer than **3 minutes**.
+
+- `jwksURL string` holds the keystore URL.
+
+- `realmURL string` holds the realm URL.
+
+- `signatureAlgorithm jose.SignatureAlgorithm` holds the encryption/decription algorithm of the *JWT*. By default this is `RS256`.
 
 
 ### Options
@@ -36,7 +56,7 @@ service.NewValidator(service.WithJWKSURL("https://authservice.bitrise.io"), serv
 ```
 
 The available `ValidatorOption`s are the following:
-- `WithBaseURL(url string)` overrides the authentication service's base URL.
+- `WithBaseURL(url string)` overrides the base URL of the authentication service.
 
 - `WithSignatureAlgorithm(sa jose.SignatureAlgorithm)` overrides the encryption/decription algorithm of the *JWT*.
 
