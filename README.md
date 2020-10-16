@@ -29,12 +29,13 @@ The package offers wide configurability using Options. You can easily override a
 
 #### ValidatorOption
 Using these Options you can customize the `Validator` during instantiation. The available Options are the following:
-- `WithBaseURL(url string)` overrides the authentication service's base URL.	
-- `WithSignatureAlgorithm(sa jose.SignatureAlgorithm)` overrides the encryption/decription algorithm of the *JWT*.		
-- `WithRealm(realm string)` overrides the realm.	
-- `WithKeyCacher(kc auth0.KeyCacher)` overrides the JWK cacher.
-- `WithRealmURL(realmURL string)` overrides the realm URL.	
-- `WithJWKSURL(jwksURL string)` overrides the keystore URL.	
+- `WithBaseURL(url string)` overrides the authentication service's base URL.
+
+- `WithSignatureAlgorithm(sa jose.SignatureAlgorithm)` overrides the encryption/decription algorithm of the *JWT*.
+- `WithRealm(realm string)` overrides the realm.
+- `WithKeyCacher(kc auth0.KeyCacher)` overrides the *JWK* cacher.
+- `WithRealmURL(realmURL string)` overrides the realm URL.
+- `WithJWKSURL(jwksURL string)` overrides the keystore URL.
 - `WithValidator(validator JWTValidator)` overrides the Auth0 `Validator`.
 
 
