@@ -46,16 +46,15 @@ You can use `ValidatorOption`s to configure.
 - `signatureAlgorithm jose.SignatureAlgorithm` holds the encryption/decription algorithm of the *JWT*. By default this is `RS256`.
 
 ##### Methods
-- `NewValidator(opts ...ValidatorOption) ValidatorIntf` returns a new instance of `Validator`. It can recieve the `ValidatorOption`s as a parameter.
+- `NewValidator(opts ...ValidatorOption) ValidatorIntf` returns a new instance of `Validator`. It might recieves `ValidatorOption`s as a parameter.
 
 - `ValidateRequest(r *http.Request) error` calls the `ValidateRequest` function of *auth0*'s `JWTValidator` instance in order to validate a request. It returns `nil` if the validation has succeded, otherwise returns an `error`.
 
-All of the following methods use the `ValidateRequest` method above:
-- `Middleware(next http.Handler, opts ...HTTPMiddlewareOption) http.Handler`
+- `Middleware(next http.Handler, opts ...HTTPMiddlewareOption) http.Handler` returns a `http.Handler` instance. It calls `ValidateRequest` to validate the request. Calls the next middleware if the validation has succeded, otherwise sends an error using and error writer. It might recieves `HTTPMiddlewareOption`s as a parameter.
 
-- `MiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc`
+- `MiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc` returns a `echo.MiddlewareFunc` instance. It calls `ValidateRequest` to validate the request. Calls the next `echo.HandlerFunc` if the validation has succeded, otherwise returns an `error`. It might recieves `EchoMiddlewareOption`s as a parameter. 
 
-- `HandlerFunc(hf http.HandlerFunc, opts ...HTTPMiddlewareOption) http.HandlerFunc`
+- `HandlerFunc(hf http.HandlerFunc, opts ...HTTPMiddlewareOption) http.HandlerFunc` returns a `http.HandlerFunc` instance. It calls `ValidateRequest` to validate the request. Calls the next handler function if the validation has succeded, otherwise sends an error using and error writer. It might recieves `HTTPMiddlewareOption`s as a parameter.
 
 
 ### Options
