@@ -25,13 +25,13 @@ Implements the `AuthProvider` interface. This class is used to gain an authentic
 - `credentials clientcredentials.Config` holds the parameters above in an `oauth.clientcredentials.Config` instance, used by the underlying *OAuth* library.
 
 ##### Methods
-- `NewWithSecret(clientID, clientSecret string, opts ...Option) AuthProvider`
+- `NewWithSecret(clientID, clientSecret string, opts ...Option) AuthProvider` returns a new instance of `AuthProvider`. It might receive `Option`s as a parameter.
 
-- `TokenSource() oauth2.TokenSource`
+- `TokenSource() oauth2.TokenSource` 
 
-- `HTTPClient(opts ...HTTPClientOption) *http.Client`
+- `HTTPClient(opts ...HTTPClientOption) *http.Client` 
 
-- `ManagedHTTPClient(opts ...HTTPClientOption) *http.Client`
+- `ManagedHTTPClient(opts ...HTTPClientOption) *http.Client` 
 
 
 ### Options
@@ -43,34 +43,13 @@ The package offers wide configurability using Options. You can easily override a
 #### HTTPClientOption
 - `WithContext(ctx context.Context) HTTPClientOption` overrides the HTTP context of the client.
 
-- `WithBaseClient(bc *http.Client) HTTPClientOption` overrides the base client.
+- `WithBaseClient(bc *http.Client) HTTPClientOption` can extend an already existing HTTP client with authentication.
 
 
 ### Usage
 ```go
-package main
-
-import (
-	"fmt"
-	"net/http/httputil"
-
-	"github.com/bitrise-io/bitrise-oauth/client"
-)
-
-func main() {
 	authProvider := client.NewWithSecret("my-client-id", "my-client-secret")
-
 	resp, err := authProvider.ManagedHTTPClient().Get("https://authservice.bitrise.io/token-endpoint")
-	if err != nil {
-		panic(err)
-	}
-
-	rb, err := httputil.DumpResponse(resp, true)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("resp:\n" + string(rb))
-}
 ```
 
 ## Server
@@ -159,16 +138,6 @@ You can configure the *echo* use-case via passing these Options to `Validator`'s
 
 #### Handler Function
 ```go
-package main
-
-import (
-	"log"
-	"net/http"
-
-	"github.com/bitrise-io/bitrise-oauth/service"
-)
-
-func main() {
 	handler := func(w http.ResponseWriter, r *http.Request) {}
 
 	mux := http.NewServeMux()
@@ -178,22 +147,11 @@ func main() {
 	mux.HandleFunc("/test_func", validator.HandlerFunc(handler))
 
 	log.Fatal(http.ListenAndServe(":8080", mux))
-}
 ```
 
 #### Handler Function with gorilla/mux
 ```go
 package main
-
-import (
-	"log"
-	"net/http"
-
-	"github.com/bitrise-io/bitrise-oauth/service"
-	"github.com/gorilla/mux"
-)
-
-func main() {
 	handler := func(w http.ResponseWriter, r *http.Request) {}
 
 	router := mux.NewRouter()
@@ -205,22 +163,11 @@ func main() {
 	http.Handle("/", router)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
-}
-
 ```
 
 #### Middleware
 ```go
 package main
-
-import (
-	"log"
-	"net/http"
-
-	"github.com/bitrise-io/bitrise-oauth/service"
-)
-
-func main() {
 	handler := func(w http.ResponseWriter, r *http.Request) {}
 
 	mux := http.NewServeMux()
@@ -230,22 +177,10 @@ func main() {
 	mux.Handle("/test", validator.Middleware(http.HandlerFunc(handler)))
 
 	log.Fatal(http.ListenAndServe(":8080", mux))
-}
 ```
 
 #### Middleware with gorilla/mux
 ```go
-package main
-
-import (
-	"log"
-	"net/http"
-
-	"github.com/bitrise-io/bitrise-oauth/service"
-	"github.com/gorilla/mux"
-)
-
-func main() {
 	handler := func(w http.ResponseWriter, r *http.Request) {}
 
 	router := mux.NewRouter()
@@ -257,21 +192,10 @@ func main() {
 	http.Handle("/", router)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
-}
 ```
 
 #### Echo Middleware Function
 ```go
-package main
-
-import (
-	"net/http"
-
-	"github.com/bitrise-io/bitrise-oauth/service"
-	"github.com/labstack/echo"
-)
-
-func main() {
 	handler := func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
 	}
@@ -285,21 +209,10 @@ func main() {
 	e.GET("/test", handler)
 
 	e.Logger.Fatal(e.Start(":8080"))
-}
 ```
 
 #### Echo Handler Function
 ```go
-package main
-
-import (
-	"net/http"
-
-	"github.com/bitrise-io/bitrise-oauth/service"
-	"github.com/labstack/echo"
-)
-
-func main() {
 	validator := service.NewValidator()
 
 	handler := func(c echo.Context) error {
@@ -314,7 +227,6 @@ func main() {
 	e.GET("/test", handler)
 
 	e.Logger.Fatal(e.Start(":8080"))
-}
 ```
 
 
