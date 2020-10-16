@@ -6,10 +6,53 @@ This is a very thin package over Go's standard [OAuth2 library](https://github.c
 This package provides both *client-side* and *server-side* (covering all of our current use-cases) wrappers. In this document, you may find useful information about the APIs, the custom configuration options, and the usage as well.
 
 ## Client
-lorem ipsum intro
+The package offers a convenient way to gain an access token on *client-side*. It was achieved by extending the Go's standard `http.Client`. It basically holds the necessary parameters for a successful token request (like client ID, client secret, or the authorization server's token URL).
+
+### API
+#### `AuthProvider` interface
 
 
+#### `WithSecret` impl
 
+sync map -> descripbe in ManagedHTTPClient()
+
+### Options
+#### Option
+- `WithTokenURL(tokenURL string) Option`
+
+
+#### HTTPClientOption
+- `WithContext(ctx context.Context) HTTPClientOption`
+
+- `WithBaseClient(bc *http.Client) HTTPClientOption`
+
+
+### Usage
+```go
+package main
+
+import (
+	"fmt"
+	"net/http/httputil"
+
+	"github.com/bitrise-io/bitrise-oauth/client"
+)
+
+func main() {
+	authProvider := client.NewWithSecret("my-client-id", "my-client-secret")
+
+	resp, err := authProvider.ManagedHTTPClient().Get("https://authservice.bitrise.io/token-endpoint")
+	if err != nil {
+		panic(err)
+	}
+
+	rb, err := httputil.DumpResponse(resp, true)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("resp:\n" + string(rb))
+}
+```
 
 ## Server
 The server-side validation logic is located at the `service` package. You can use the `Validator` via several different methods to validate any request. The supported use-cases are the following:
@@ -84,7 +127,6 @@ The available `ValidatorOption`s are the following:
 
 - `WithValidator(validator JWTValidator) ValidatorOption` overrides the Auth0 `auth0.JWTValidator`.
 
-
 #### HTTPMiddlewareOption
 You can configure the *Handler Function* and *Middleware* use-cases via passing these Options either to `Validator`'s `HandlerFunc` or `Middleware` function. The available `HTTPMiddlewareOption`s are the following:
 - `WithHTTPErrorWriter(errorWriter func(w http.ResponseWriter, r *http.Request, err error)) HTTPMiddlewareOption` overrides the error writer.
@@ -92,6 +134,7 @@ You can configure the *Handler Function* and *Middleware* use-cases via passing 
 #### EchoMiddlewareOption
 You can configure the *echo* use-case via passing these Options to `Validator`'s `MiddlewareFunc` function. The available `EchoMiddlewareOption`s are the following:
 - `WithContextErrorWriter(errorWriter func(echo.Context, error) error) EchoMiddlewareOption` overrides the error writer.
+
 
 ### Usage
 
