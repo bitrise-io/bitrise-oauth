@@ -27,11 +27,11 @@ The server-side validation logic is located at the `service` package. You can us
 Describes the possible operations and use-cases of our package.
 
 #### `Validator`
-Implements the `ValidatorIntf` interface. As its name reflects, this class is responsible for the validation of a request, using an *auth0* `Validator` instance.
+Implements the `ValidatorIntf` interface. As its name reflects, this class is responsible for the validation of a request, using an `auth0.Validator` instance.
 You can use `ValidatorOption`s to configure.
 
 ##### Fields
-- `validator: JWTValidator` holds the *auth0* `JWTValidator` instance, used to validate a request. You may find further information about the `JWTValidator` interface in the next paragraph.
+- `validator: JWTValidator` holds the `auth0.JWTValidator` instance, used to validate a request. You may find further information about the `JWTValidator` interface in the next paragraph.
 
 - `baseURL string` holds the base URL of the authentication service.
 
@@ -48,13 +48,16 @@ You can use `ValidatorOption`s to configure.
 ##### Methods
 - `NewValidator(opts ...ValidatorOption) ValidatorIntf` returns a new instance of `Validator`. It might recieves `ValidatorOption`s as a parameter.
 
-- `ValidateRequest(r *http.Request) error` calls the `ValidateRequest` function of *auth0*'s `JWTValidator` instance in order to validate a request. It returns `nil` if the validation has succeded, otherwise returns an `error`.
+- `ValidateRequest(r *http.Request) error` calls the `ValidateRequest` function of `auth0.JWTValidator` instance in order to validate a request. It returns `nil` if the validation has succeded, otherwise returns an `error`.
 
 - `Middleware(next http.Handler, opts ...HTTPMiddlewareOption) http.Handler` returns a `http.Handler` instance. It calls `ValidateRequest` to validate the request. Calls the next middleware if the validation has succeded, otherwise sends an error using and error writer. It might recieves `HTTPMiddlewareOption`s as a parameter.
 
 - `MiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc` returns a `echo.MiddlewareFunc` instance. It calls `ValidateRequest` to validate the request. Calls the next `echo.HandlerFunc` if the validation has succeded, otherwise returns an `error`. It might recieves `EchoMiddlewareOption`s as a parameter. 
 
 - `HandlerFunc(hf http.HandlerFunc, opts ...HTTPMiddlewareOption) http.HandlerFunc` returns a `http.HandlerFunc` instance. It calls `ValidateRequest` to validate the request. Calls the next handler function if the validation has succeded, otherwise sends an error using and error writer. It might recieves `HTTPMiddlewareOption`s as a parameter.
+
+#### `JWTValidator`
+Since `auth0.JWTValidator` is not an interface, it was necessary to create an interface to loosen the coupling and making it exchangable and mockable in tests.
 
 
 ### Options
