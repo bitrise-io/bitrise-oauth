@@ -1,6 +1,7 @@
 package client_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"github.com/bitrise-io/bitrise-oauth/client"
 	"github.com/bitrise-io/bitrise-oauth/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Example() {
@@ -26,7 +28,7 @@ type tokenJSON struct {
 	ExpiresIn    time.Duration `json:"expires_in"` // at least PayPal returns string, while most return number
 }
 
-func TestNewClientWithSecret_threads_using_same_client(t *testing.T) {
+func TestNewWithSecret_threads_using_same_client(t *testing.T) {
 	clientsToCreate := 30
 	callsPerClient := 30
 
@@ -61,7 +63,7 @@ func TestNewClientWithSecret_threads_using_same_client(t *testing.T) {
 	assert.Equal(t, clientsToCreate, createdClientsCount)
 }
 
-func TestNewClientWithSecret_not_using_refresh_token(t *testing.T) {
+func TestNewWithSecret_not_using_refresh_token(t *testing.T) {
 	mockedAuthService := mocks.AuthService{}
 	mockedClient := mocks.Client{}
 
@@ -119,4 +121,86 @@ func TestNewClientWithSecret_not_using_refresh_token(t *testing.T) {
 	mockedClient.AssertExpectations(t)
 	mockedAuthService.AssertNotCalled(t, "Token", "refresh_token")
 	mockedClient.AssertNotCalled(t, "Test", "refreshed-access-token")
+}
+
+func Test_base_client(t *testing.T) {
+	baseClient := &http.Client{}
+
+	client := client.NewWithSecret("test-id", "test-secret").HTTPClient(client.WithBaseClient(baseClient))
+
+	assert.Equal(t, baseClient, client)
+}
+
+func Test_context(t *testing.T) {
+	baseCtx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ts.Close()
+
+	client := client.NewWithSecret("test-id", "test-secret", client.WithTokenURL(ts.URL+"/token")).HTTPClient(client.WithContext(baseCtx))
+
+	url := ts.URL + "/token"
+
+	_, err := client.Get(url)
+	assert.Error(t, err)
+	assert.EqualError(t, err, fmt.Sprintf(`Get "%s": context canceled`, url))
+}
+
+func Test_token_source(t *testing.T) {
+	mockedAuthService := mocks.AuthService{}
+	mockedClient := mocks.Client{}
+
+	accessToken, refreshToken := "initial-access-token", "initial-refresh-token"
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/token":
+			w.Header().Add("content-type", "application/json")
+
+			assert.NoError(t, r.ParseForm())
+			grantType := r.PostForm.Get("grant_type")
+
+			if grantType == "refresh_token" {
+				accessToken, refreshToken = "refreshed-access-token", "refreshed-refresh-token"
+			}
+
+			assert.NoError(t, json.NewEncoder(w).Encode(tokenJSON{
+				AccessToken:  accessToken,
+				RefreshToken: refreshToken,
+				TokenType:    "Bearer",
+				ExpiresIn:    11, // go has a -10 seconds delta time gap - https://github.com/golang/oauth2/blob/master/token.go#L22
+			}))
+
+			mockedAuthService.Token(grantType)
+		default:
+			tokenHeaderSplit := strings.Split(r.Header.Get("Authorization"), " ")
+			assert.Len(t, tokenHeaderSplit, 2)
+
+			mockedClient.Test(tokenHeaderSplit[1])
+
+			w.WriteHeader(http.StatusOK)
+		}
+	}))
+	defer ts.Close()
+
+	mockedAuthService.
+		On("Token", "client_credentials").Return().
+		Once()
+
+	tokenSource := client.NewWithSecret("my-client-id", "my-secret",
+		client.WithTokenURL(ts.URL+"/token")).TokenSource()
+
+	token, err := tokenSource.Token()
+	require.NoError(t, err)
+	require.Equal(t, token.AccessToken, accessToken)
+
+	token, err = tokenSource.Token()
+	require.NoError(t, err)
+	require.Equal(t, token.AccessToken, accessToken)
+
+	mockedAuthService.AssertExpectations(t)
+	mockedClient.AssertExpectations(t)
 }
