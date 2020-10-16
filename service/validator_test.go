@@ -117,7 +117,7 @@ func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenEx
 	mockErrorWriter := givenMockErrorWriter()
 
 	validator := createValidator(givenSuccessfulJWTValidation())
-	testServer := startServerWithMiddleware(mockHandler, validator, mockErrorWriter.ErrorHandler)
+	testServer := startServerWithMiddleware(mockHandler, validator, service.WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
 	sendGetRequest(testServer.URL)
@@ -134,7 +134,7 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_Then
 	mockErrorWriter := givenMockErrorWriter()
 
 	validator := createValidator(givenUnsuccessfulJWTValidation())
-	testServer := startServerWithMiddleware(mockHandler, validator, mockErrorWriter.ErrorHandler)
+	testServer := startServerWithMiddleware(mockHandler, validator, service.WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
 	sendGetRequest(testServer.URL)
@@ -332,8 +332,8 @@ func createValidator(mockJWTValidator service.JWTValidator) service.ValidatorInt
 	return validator
 }
 
-func startServerWithMiddleware(mockHandler *mocks.Handler, validator service.ValidatorIntf, errorWriter func(w http.ResponseWriter, r *http.Request, err error)) *httptest.Server {
-	testServer := httptest.NewServer(validator.Middleware(mockHandler, service.WithHTTPErrorWriter(errorWriter)))
+func startServerWithMiddleware(mockHandler *mocks.Handler, validator service.ValidatorIntf, opts ...service.HTTPMiddlewareOption) *httptest.Server {
+	testServer := httptest.NewServer(validator.Middleware(mockHandler, opts...))
 	return testServer
 }
 
