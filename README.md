@@ -138,95 +138,93 @@ You can configure the *echo* use-case via passing these Options to `Validator`'s
 
 #### Handler Function
 ```go
-	handler := func(w http.ResponseWriter, r *http.Request) {}
+handler := func(w http.ResponseWriter, r *http.Request) {}
 
-	mux := http.NewServeMux()
+mux := http.NewServeMux()
 
-	validator := service.NewValidator()
+validator := service.NewValidator()
 
-	mux.HandleFunc("/test_func", validator.HandlerFunc(handler))
+mux.HandleFunc("/test_func", validator.HandlerFunc(handler))
 
-	log.Fatal(http.ListenAndServe(":8080", mux))
+log.Fatal(http.ListenAndServe(":8080", mux))
 ```
 
 #### Handler Function with gorilla/mux
 ```go
-package main
-	handler := func(w http.ResponseWriter, r *http.Request) {}
+handler := func(w http.ResponseWriter, r *http.Request) {}
 
-	router := mux.NewRouter()
+router := mux.NewRouter()
 
-	validator := service.NewValidator()
+validator := service.NewValidator()
 
-	router.HandleFunc("/test_func", validator.HandlerFunc(handler)).Methods(http.MethodGet)
+router.HandleFunc("/test_func", validator.HandlerFunc(handler)).Methods(http.MethodGet)
 
-	http.Handle("/", router)
+http.Handle("/", router)
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+log.Fatal(http.ListenAndServe(":8080", router))
 ```
 
 #### Middleware
 ```go
-package main
-	handler := func(w http.ResponseWriter, r *http.Request) {}
+handler := func(w http.ResponseWriter, r *http.Request) {}
 
-	mux := http.NewServeMux()
+mux := http.NewServeMux()
 
-	validator := service.NewValidator()
+validator := service.NewValidator()
 
-	mux.Handle("/test", validator.Middleware(http.HandlerFunc(handler)))
+mux.Handle("/test", validator.Middleware(http.HandlerFunc(handler)))
 
-	log.Fatal(http.ListenAndServe(":8080", mux))
+log.Fatal(http.ListenAndServe(":8080", mux))
 ```
 
 #### Middleware with gorilla/mux
 ```go
-	handler := func(w http.ResponseWriter, r *http.Request) {}
+handler := func(w http.ResponseWriter, r *http.Request) {}
 
-	router := mux.NewRouter()
+router := mux.NewRouter()
 
-	validator := service.NewValidator()
+validator := service.NewValidator()
 
-	router.Handle("/test", validator.Middleware(http.HandlerFunc(handler))).Methods(http.MethodGet)
+router.Handle("/test", validator.Middleware(http.HandlerFunc(handler))).Methods(http.MethodGet)
 
-	http.Handle("/", router)
+http.Handle("/", router)
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+log.Fatal(http.ListenAndServe(":8080", router))
 ```
 
 #### Echo Middleware Function
 ```go
-	handler := func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
-	}
+handler := func(c echo.Context) error {
+	return c.String(http.StatusOK, "Hello, World!")
+}
 
-	e := echo.New()
+e := echo.New()
 
-	validator := service.NewValidator()
+validator := service.NewValidator()
 
-	e.Use(validator.MiddlewareFunc())
+e.Use(validator.MiddlewareFunc())
 
-	e.GET("/test", handler)
+e.GET("/test", handler)
 
-	e.Logger.Fatal(e.Start(":8080"))
+e.Logger.Fatal(e.Start(":8080"))
 ```
 
 #### Echo Handler Function
 ```go
-	validator := service.NewValidator()
+validator := service.NewValidator()
 
-	handler := func(c echo.Context) error {
-		if err := validator.ValidateRequest(c.Request()); err != nil {
-			return err
-		}
-		return c.String(http.StatusOK, "Hello, World!")
+handler := func(c echo.Context) error {
+	if err := validator.ValidateRequest(c.Request()); err != nil {
+		return err
 	}
+	return c.String(http.StatusOK, "Hello, World!")
+}
 
-	e := echo.New()
+e := echo.New()
 
-	e.GET("/test", handler)
+e.GET("/test", handler)
 
-	e.Logger.Fatal(e.Start(":8080"))
+e.Logger.Fatal(e.Start(":8080"))
 ```
 
 
