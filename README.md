@@ -6,13 +6,54 @@ This is a very thin package over Go's standard [OAuth2 library](https://github.c
 This package provides both *client-side* and *server-side* (covering all of our current use-cases) wrappers. In this document, you may find useful information about the APIs, the custom configuration options, and the usage as well.
 
 ## Client
-lorem ipsum intro
+The *client-side* validation logic is located at the `client` package. The package offers a convenient way to gain an access token on *client-side*. It was achieved by extending Go's standard `http.Client`. It basically holds the necessary parameters for a successful token request (like client ID, client secret, or the authorization server's token URL). You can use the `AuthProvider` via several different ways to gain an access token. You may find information about each use-case at the API paragraph. Client means service client, it can be used for S2S authentication, not a user for U2S authentication.
+
+### API
+#### `AuthProvider` interface
+Describes the possible operations and use-cases of our package.
+
+#### `WithSecret` impl
+Implements the `AuthProvider` interface. This class is used to gain an authenticated `http.Client` to make further authenticated HTTP calls, or alternatively, a token source can be created as well, but in this case, only the access token can be gained, not a complete authenticated HTTP client. You can use `HTTPClientOption`s to configure.
+
+##### Fields
+- `clientID string` holds the client ID.
+
+- `clientSecret string` holds the client secret.
+
+- `tokenURL string` hold the URL of the authentication service that is used to gain an access token.
+
+- `credentials clientcredentials.Config` holds the parameters above in an `oauth.clientcredentials.Config` instance, used by the underlying *OAuth* library.
+
+##### Methods
+- `NewWithSecret(clientID, clientSecret string, opts ...Option) AuthProvider` returns a new instance of `AuthProvider`. It might receive `Option`s as a parameter.
+
+- `TokenSource() oauth2.TokenSource` returns an `oauth.clientcredentials.TokenSource` that returns t until t expires, automatically refreshing it as necessary using the provided context and the client ID and client secret.
+
+- `HTTPClient(opts ...HTTPClientOption) *http.Client` returns a preconfigured `http.Client`.
+
+- `ManagedHTTPClient(opts ...HTTPClientOption) *http.Client` returns a preconfigured `http.Client`. Uses a thread-safe map to store the created clients, using the `clientID` + `clientSecret` + `tokenURL` combination as a key. When the function is called, it will try to retrieve an instance from the map by the credentials. If it already exists, the instance will be returned, otherwise, a new instance will be created, save in the map and returned.
 
 
+### Options
+The package offers wide configurability using Options. You can easily override any parameter passing the desired Option(s) as a constructor parameter. Not only the `AuthProvider` itself have Options, but each use-case has its own Options as well, offering a further possibility for configuration.
 
+#### Option
+- `WithTokenURL(tokenURL string) Option` overrides the URL of the authentication service that is used to gain an access token.
+
+#### HTTPClientOption
+- `WithContext(ctx context.Context) HTTPClientOption` overrides the HTTP context of the client.
+
+- `WithBaseClient(bc *http.Client) HTTPClientOption` can extend an already existing HTTP client.
+
+
+### Usage
+```go
+	authProvider := client.NewWithSecret("my-client-id", "my-client-secret")
+	resp, err := authProvider.ManagedHTTPClient().Get("https://authservice.bitrise.io/token-endpoint")
+```
 
 ## Server
-The server-side validation logic is located at the `service` package. You can use the `Validator` via several different methods to validate any request. The supported use-cases are the following:
+The server-side validation logic is located at the `service` package. You can use the `Validator` via several different ways to validate any request. The supported use-cases are the following:
 - **Handler Function** with:
 	- Go's default HTTP multiplexer
 	- Gorilla's HTTP router called [**gorilla/mux**](https://github.com/gorilla/mux)
@@ -84,7 +125,6 @@ The available `ValidatorOption`s are the following:
 
 - `WithValidator(validator JWTValidator) ValidatorOption` overrides the Auth0 `auth0.JWTValidator`.
 
-
 #### HTTPMiddlewareOption
 You can configure the *Handler Function* and *Middleware* use-cases via passing these Options either to `Validator`'s `HandlerFunc` or `Middleware` function. The available `HTTPMiddlewareOption`s are the following:
 - `WithHTTPErrorWriter(errorWriter func(w http.ResponseWriter, r *http.Request, err error)) HTTPMiddlewareOption` overrides the error writer.
@@ -93,166 +133,98 @@ You can configure the *Handler Function* and *Middleware* use-cases via passing 
 You can configure the *echo* use-case via passing these Options to `Validator`'s `MiddlewareFunc` function. The available `EchoMiddlewareOption`s are the following:
 - `WithContextErrorWriter(errorWriter func(echo.Context, error) error) EchoMiddlewareOption` overrides the error writer.
 
+
 ### Usage
 
 #### Handler Function
 ```go
-package main
+handler := func(w http.ResponseWriter, r *http.Request) {}
 
-import (
-	"log"
-	"net/http"
+mux := http.NewServeMux()
 
-	"github.com/bitrise-io/bitrise-oauth/service"
-)
+validator := service.NewValidator()
 
-func main() {
-	handler := func(w http.ResponseWriter, r *http.Request) {}
+mux.HandleFunc("/test_func", validator.HandlerFunc(handler))
 
-	mux := http.NewServeMux()
-
-	validator := service.NewValidator()
-
-	mux.HandleFunc("/test_func", validator.HandlerFunc(handler))
-
-	log.Fatal(http.ListenAndServe(":8080", mux))
-}
+log.Fatal(http.ListenAndServe(":8080", mux))
 ```
 
 #### Handler Function with gorilla/mux
 ```go
-package main
+handler := func(w http.ResponseWriter, r *http.Request) {}
 
-import (
-	"log"
-	"net/http"
+router := mux.NewRouter()
 
-	"github.com/bitrise-io/bitrise-oauth/service"
-	"github.com/gorilla/mux"
-)
+validator := service.NewValidator()
 
-func main() {
-	handler := func(w http.ResponseWriter, r *http.Request) {}
+router.HandleFunc("/test_func", validator.HandlerFunc(handler)).Methods(http.MethodGet)
 
-	router := mux.NewRouter()
+http.Handle("/", router)
 
-	validator := service.NewValidator()
-
-	router.HandleFunc("/test_func", validator.HandlerFunc(handler)).Methods(http.MethodGet)
-
-	http.Handle("/", router)
-
-	log.Fatal(http.ListenAndServe(":8080", router))
-}
-
+log.Fatal(http.ListenAndServe(":8080", router))
 ```
 
 #### Middleware
 ```go
-package main
+handler := func(w http.ResponseWriter, r *http.Request) {}
 
-import (
-	"log"
-	"net/http"
+mux := http.NewServeMux()
 
-	"github.com/bitrise-io/bitrise-oauth/service"
-)
+validator := service.NewValidator()
 
-func main() {
-	handler := func(w http.ResponseWriter, r *http.Request) {}
+mux.Handle("/test", validator.Middleware(http.HandlerFunc(handler)))
 
-	mux := http.NewServeMux()
-
-	validator := service.NewValidator()
-
-	mux.Handle("/test", validator.Middleware(http.HandlerFunc(handler)))
-
-	log.Fatal(http.ListenAndServe(":8080", mux))
-}
+log.Fatal(http.ListenAndServe(":8080", mux))
 ```
 
 #### Middleware with gorilla/mux
 ```go
-package main
+handler := func(w http.ResponseWriter, r *http.Request) {}
 
-import (
-	"log"
-	"net/http"
+router := mux.NewRouter()
 
-	"github.com/bitrise-io/bitrise-oauth/service"
-	"github.com/gorilla/mux"
-)
+validator := service.NewValidator()
 
-func main() {
-	handler := func(w http.ResponseWriter, r *http.Request) {}
+router.Handle("/test", validator.Middleware(http.HandlerFunc(handler))).Methods(http.MethodGet)
 
-	router := mux.NewRouter()
+http.Handle("/", router)
 
-	validator := service.NewValidator()
-
-	router.Handle("/test", validator.Middleware(http.HandlerFunc(handler))).Methods(http.MethodGet)
-
-	http.Handle("/", router)
-
-	log.Fatal(http.ListenAndServe(":8080", router))
-}
+log.Fatal(http.ListenAndServe(":8080", router))
 ```
 
 #### Echo Middleware Function
 ```go
-package main
-
-import (
-	"net/http"
-
-	"github.com/bitrise-io/bitrise-oauth/service"
-	"github.com/labstack/echo"
-)
-
-func main() {
-	handler := func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
-	}
-
-	e := echo.New()
-
-	validator := service.NewValidator()
-
-	e.Use(validator.MiddlewareFunc())
-
-	e.GET("/test", handler)
-
-	e.Logger.Fatal(e.Start(":8080"))
+handler := func(c echo.Context) error {
+	return c.String(http.StatusOK, "Hello, World!")
 }
+
+e := echo.New()
+
+validator := service.NewValidator()
+
+e.Use(validator.MiddlewareFunc())
+
+e.GET("/test", handler)
+
+e.Logger.Fatal(e.Start(":8080"))
 ```
 
 #### Echo Handler Function
 ```go
-package main
+validator := service.NewValidator()
 
-import (
-	"net/http"
-
-	"github.com/bitrise-io/bitrise-oauth/service"
-	"github.com/labstack/echo"
-)
-
-func main() {
-	validator := service.NewValidator()
-
-	handler := func(c echo.Context) error {
-		if err := validator.ValidateRequest(c.Request()); err != nil {
-			return err
-		}
-		return c.String(http.StatusOK, "Hello, World!")
+handler := func(c echo.Context) error {
+	if err := validator.ValidateRequest(c.Request()); err != nil {
+		return err
 	}
-
-	e := echo.New()
-
-	e.GET("/test", handler)
-
-	e.Logger.Fatal(e.Start(":8080"))
+	return c.String(http.StatusOK, "Hello, World!")
 }
+
+e := echo.New()
+
+e.GET("/test", handler)
+
+e.Logger.Fatal(e.Start(":8080"))
 ```
 
 
