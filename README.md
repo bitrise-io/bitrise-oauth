@@ -31,9 +31,9 @@ Implements the `ValidatorIntf` interface. As its name reflects, this class is re
 You can use `ValidatorOption`s to configure.
 
 ##### Fields
-- `validator: JWTValidator` holds the *auth0* `Validator` instance, used to validate a request.
+- `validator: JWTValidator` holds the *auth0* `JWTValidator` instance, used to validate a request. You may find further information about the `JWTValidator` interface in the next paragraph.
 
-- `baseURL: string` holds the base URL of the authentication service.
+- `baseURL string` holds the base URL of the authentication service.
 
 - `realm string` holds the realm.
 
@@ -46,7 +46,16 @@ You can use `ValidatorOption`s to configure.
 - `signatureAlgorithm jose.SignatureAlgorithm` holds the encryption/decription algorithm of the *JWT*. By default this is `RS256`.
 
 ##### Methods
-- NewValidator(opts ...ValidatorOption) ValidatorIntf
+- `NewValidator(opts ...ValidatorOption) ValidatorIntf` returns a new instance of `Validator`. It can recieve the `ValidatorOption`s as a parameter.
+
+- `ValidateRequest(r *http.Request) error` calls the `ValidateRequest` function of *auth0*'s `JWTValidator` instance in order to validate a request. It returns `nil` if the validation has succeded, otherwise returns an `error`.
+
+All of the following methods use the `ValidateRequest` method above:
+- `Middleware(next http.Handler, opts ...HTTPMiddlewareOption) http.Handler`
+
+- `MiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc`
+
+- `HandlerFunc(hf http.HandlerFunc, opts ...HTTPMiddlewareOption) http.HandlerFunc`
 
 
 ### Options
@@ -59,7 +68,7 @@ service.NewValidator(service.WithJWKSURL("https://authservice.bitrise.io"), serv
 ```
 
 The available `ValidatorOption`s are the following:
-- `WithBaseURL(url string)` overrides the base URL of the authentication service.
+- `WithBaseURL(url string) ValidatorOption` overrides the base URL of the authentication service.
 
 - `WithSignatureAlgorithm(sa jose.SignatureAlgorithm) ValidatorOption` overrides the encryption/decription algorithm of the *JWT*.
 
