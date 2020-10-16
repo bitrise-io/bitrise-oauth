@@ -35,21 +35,29 @@ You can customize the `Validator` during instantiation with Options. Using is ju
 service.NewValidator(service.WithJWKSURL("https://authservice.bitrise.io"), service.WithRealm("master"))
 ```
 
-The available Options are the following:
+The available `ValidatorOption`s are the following:
 - `WithBaseURL(url string)` overrides the authentication service's base URL.
 
 - `WithSignatureAlgorithm(sa jose.SignatureAlgorithm)` overrides the encryption/decription algorithm of the *JWT*.
+
 - `WithRealm(realm string)` overrides the realm.
+
 - `WithKeyCacher(kc auth0.KeyCacher)` overrides the *JWK* cacher.
+
 - `WithRealmURL(realmURL string)` overrides the realm URL.
+
 - `WithJWKSURL(jwksURL string)` overrides the keystore URL.
+
 - `WithValidator(validator JWTValidator)` overrides the Auth0 `Validator`.
 
 
 #### HTTPMiddlewareOption
+You can configure the *Handler Function* and *Middleware* use-cases via passing these Options either to `Validator`'s `HandlerFunc` or `Middleware` function. The available `HTTPMiddlewareOption`s are the following:
+- `WithHTTPErrorWriter(errorWriter func(w http.ResponseWriter, r *http.Request, err error))` overrides the error writer.
 
 #### EchoMiddlewareOption
-
+You can configure the *echo* use-case via passing these Options to `Validator`'s `MiddlewareFunc` function. The available `EchoMiddlewareOption`s are the following:
+- `WithContextErrorWriter(errorWriter func(echo.Context, error) error)` overrides the error writer.
 
 ### Usage
 
