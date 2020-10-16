@@ -14,7 +14,7 @@ type ErrorWriter struct {
 
 // ErrorHandler ...
 func (m *ErrorWriter) ErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
-	m.Called(w, nil, err)
+	m.Called(w, r, err)
 }
 
 // EchoHandlerFunc ...
