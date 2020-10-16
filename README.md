@@ -21,14 +21,21 @@ The server-side validation logic is located at the `service` package. You can us
 	- Gorilla's HTTP router called [**gorilla/mux**](https://github.com/gorilla/mux)
 - **Middleware Function** and **Handler Function** with Labstack's router called [**echo**](https://github.com/labstack/echo)
 
+
 ### API
 for service package
+
 
 ### Options
 The package offers wide configurability using Options. You can easily override any parameter passing the desired Option(s) as a constructor parameter. Not only the `Validator` itself have Options, but each use-case has its own Options as well, offering a further possibility for configuration.
 
 #### ValidatorOption
-Using these Options you can customize the `Validator` during instantiation. The available Options are the following:
+You can customize the `Validator` during instantiation with Options. Using is just a matter of passing them as a constructor parameter, separated by a comma:
+```go
+service.NewValidator(service.WithJWKSURL("https://authservice.bitrise.io"), service.WithRealm("master"))
+```
+
+The available Options are the following:
 - `WithBaseURL(url string)` overrides the authentication service's base URL.
 
 - `WithSignatureAlgorithm(sa jose.SignatureAlgorithm)` overrides the encryption/decription algorithm of the *JWT*.
@@ -42,6 +49,7 @@ Using these Options you can customize the `Validator` during instantiation. The 
 #### HTTPMiddlewareOption
 
 #### EchoMiddlewareOption
+
 
 ### Usage
 
