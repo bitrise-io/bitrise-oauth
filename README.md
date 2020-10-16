@@ -21,9 +21,14 @@ The server-side validation logic is located at the `service` package. You can us
 	- Gorilla's HTTP router called [**gorilla/mux**](https://github.com/gorilla/mux)
 - **Middleware Function** and **Handler Function** with Labstack's router called [**echo**](https://github.com/labstack/echo)
 
-### API?
+### API
+for service package
 
-### Options?
+### Options
+intro?
+#### Validator options
+
+#### Middleware options
 
 ### Usage
 
