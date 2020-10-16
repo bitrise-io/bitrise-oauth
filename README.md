@@ -1,4 +1,4 @@
-[![Build Status](https://app.bitrise.io/app/e6a7166eda823c72/status.svg?token=LACL0_krbTkiMlmi4kBLNA)](https://app.bitrise.io/app/e6a7166eda823c72)
+[![Build Status](https://app.bitrise.io/app/e6a7166eda823c72/status.svg?token=LACL0_krbTkiMlmi4kBLNA&branch=master)](https://app.bitrise.io/app/e6a7166eda823c72)
 
 # Bitrise OAuth library for Go
 This is a very thin package over Go's standard [OAuth2 library](https://github.com/golang/oauth2), extending its functionality via introducing an additional layer that handles the initialization and communication with our current authorization provider [Keycloak](https://github.com/keycloak/keycloak).
@@ -12,7 +12,14 @@ lorem ipsum intro
 
 
 ## Server
-lorem ipsum intro
+The server-side validation logic is located at the `service` package. You can use the `Validator` to via several different methods in order to validate any request. The supported use-cases are the following:
+- **Handler Function** with:
+	- Go's default HTTP multiplexer
+	- Gorilla's HTTP router called [**gorilla/mux**](https://github.com/gorilla/mux)
+- **Middleware** with:
+	- Go's default HTTP multiplexer
+	- Gorilla's HTTP router called [**gorilla/mux**](https://github.com/gorilla/mux)
+- **Middleware Function** and **Handler Function** with Labstack's router called [**echo**](https://github.com/labstack/echo)
 
 ### API?
 
