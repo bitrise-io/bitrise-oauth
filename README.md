@@ -29,43 +29,43 @@ The package offers wide configurability using Options. You can easily override a
 
 #### ValidatorOption
 Using these Options you can customize the `Validator` during instantiation. The available Options are the following:
-- `WithBaseURL(url string)` overrides the authentication service's base URL.
+##### `WithBaseURL(url string)` overrides the authentication service's base URL.
 
 	```go
 	service.NewValidator(service.WithBaseURL("https://authservice.bitrise.io"))
 	```
 	
-- `WithSignatureAlgorithm(sa jose.SignatureAlgorithm)` overrides the signature algorithm that used to encrypt/decript the *JWT*.
+##### `WithSignatureAlgorithm(sa jose.SignatureAlgorithm)` overrides the signature algorithm that used to encrypt/decript the *JWT*.
 
 	```go
 	service.NewValidator(service.WithSignatureAlgorithm(jose.RS256))
 	```
 	
-- `WithRealm(realm string)` overrides the realm.
+##### `WithRealm(realm string)` overrides the realm.
 
 	```go
 	service.NewValidator(service.WithRealm("master"))
 	```
 	
-- `WithKeyCacher(kc auth0.KeyCacher)` overrides the JWK cacher.
+##### `WithKeyCacher(kc auth0.KeyCacher)` overrides the JWK cacher.
 
 	```go
 	service.NewValidator(service.WithKeyCacher(auth0.NewMemoryKeyCacher(3*time.Minute, 5)))
 	```
 	
-- `WithRealmURL(realmURL string)` overrides the realm URL.
+##### `WithRealmURL(realmURL string)` overrides the realm URL.
 
 	```go
 	service.NewValidator(service.WithRealmURL("https://authservice.bitrise.io/auth/realms/master"))
 	```
 	
-- `WithJWKSURL(jwksURL string)` overrides the keystore URL.
+##### `WithJWKSURL(jwksURL string)` overrides the keystore URL.
 
 	```go
 	service.NewValidator(service.WithJWKSURL("https://authservice.bitrise.io/auth/realms/master/protocol/openid-connect/certs"))
 	```
 	
-- `WithValidator(validator JWTValidator)` overrides the Auth0 `Validator`.
+##### `WithValidator(validator JWTValidator)` overrides the Auth0 `Validator`.
 
 	```go
 	clientOpts := auth0.JWKClientOptions{
