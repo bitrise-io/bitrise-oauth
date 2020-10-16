@@ -18,9 +18,9 @@ type JWTValidator interface {
 
 // ValidatorIntf gives multiple solution to validate the access token received in the request headers using Oauth2.0
 type ValidatorIntf interface {
-	HandlerFunc(http.HandlerFunc) http.HandlerFunc
-	Middleware(http.Handler) http.Handler
-	MiddlewareFunc() echo.MiddlewareFunc
+	HandlerFunc(http.HandlerFunc, ...HTTPMiddlewareOption) http.HandlerFunc
+	Middleware(http.Handler, ...HTTPMiddlewareOption) http.Handler
+	MiddlewareFunc(...EchoMiddlewareOption) echo.MiddlewareFunc
 	ValidateRequest(r *http.Request) error
 }
 
@@ -33,7 +33,6 @@ type Validator struct {
 	jwksURL            string
 	realmURL           string
 	signatureAlgorithm jose.SignatureAlgorithm
-	errorWriter        func(http.ResponseWriter)
 }
 
 // NewValidator returns the prepared JWK model. All input arguments are optional.
@@ -50,9 +49,6 @@ func NewValidator(opts ...ValidatorOption) ValidatorIntf {
 		jwksURL:            config.JWKSURL,
 		realmURL:           config.RealmURL,
 		signatureAlgorithm: jose.RS256,
-		errorWriter: func(w http.ResponseWriter) {
-			http.Error(w, "Invalid credentials.", http.StatusUnauthorized)
-		},
 	}
 
 	for _, opt := range opts {
@@ -83,10 +79,18 @@ func (sv Validator) ValidateRequest(r *http.Request) error {
 
 // Middleware used as http package's middleware, in http.Handle.
 // Calls out to ValidateRequest and returns http.StatusUnauthorized with body: invalid token if the token is not active.
-func (sv Validator) Middleware(next http.Handler) http.Handler {
+func (sv Validator) Middleware(next http.Handler, opts ...HTTPMiddlewareOption) http.Handler {
+	handlerConfig := &HTTPMiddlewareConfig{
+		errorWriter: defaultHTTPErrorWriter,
+	}
+
+	for _, opt := range opts {
+		opt(handlerConfig)
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := sv.ValidateRequest(r); err != nil {
-			sv.errorWriter(w)
+			handlerConfig.errorWriter(w, r, err)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -95,11 +99,19 @@ func (sv Validator) Middleware(next http.Handler) http.Handler {
 
 // MiddlewareFunc can be used with echo.Use.
 // Calls out to ValidateRequest and returns an error for echo.
-func (sv Validator) MiddlewareFunc() echo.MiddlewareFunc {
+func (sv Validator) MiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc {
+	handlerConfig := &EchoMiddlewareConfig{
+		errorWriter: defaultEchoErrorWriter,
+	}
+
+	for _, opt := range opts {
+		opt(handlerConfig)
+	}
+
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if _, err := sv.validator.ValidateRequest(c.Request()); err != nil {
-				return err
+				return handlerConfig.errorWriter(c, err)
 			}
 			return next(c)
 		}
@@ -108,10 +120,18 @@ func (sv Validator) MiddlewareFunc() echo.MiddlewareFunc {
 
 // HandlerFunc used with http.HandleFunc.
 // Calls out to ValidateRequest and returns http.StatusUnauthorized with body: invalid token if the token is not active.
-func (sv Validator) HandlerFunc(hf http.HandlerFunc) http.HandlerFunc {
+func (sv Validator) HandlerFunc(hf http.HandlerFunc, opts ...HTTPMiddlewareOption) http.HandlerFunc {
+	handlerConfig := &HTTPMiddlewareConfig{
+		errorWriter: defaultHTTPErrorWriter,
+	}
+
+	for _, opt := range opts {
+		opt(handlerConfig)
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := sv.ValidateRequest(r); err != nil {
-			sv.errorWriter(w)
+			handlerConfig.errorWriter(w, r, err)
 			return
 		}
 		hf(w, r)
