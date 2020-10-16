@@ -25,10 +25,66 @@ The server-side validation logic is located at the `service` package. You can us
 for service package
 
 ### Options
-intro?
-#### Validator options
+The package offers wide configurability using Options. You can easily override any parameter passing the desired Option(s) as a constructor parameter. Not only the `Validator` itself have Options, but each use-case has its own Options as well, offering a further possibility for configuration.
 
-#### Middleware options
+#### ValidatorOption
+Using these Options you can customize the `Validator` during instantiation. The available Options are the following:
+- `WithBaseURL(url string)` overrides the authentication service's base URL.
+
+	```go
+	service.NewValidator(service.WithBaseURL("https://authservice.bitrise.io"))
+	```
+	
+- `WithSignatureAlgorithm(sa jose.SignatureAlgorithm)` overrides the signature algorithm that used to encrypt/decript the *JWT*.
+
+	```go
+	service.NewValidator(service.WithSignatureAlgorithm(jose.RS256))
+	```
+	
+- `WithRealm(realm string)` overrides the realm.
+
+	```go
+	service.NewValidator(service.WithRealm("master"))
+	```
+	
+- `WithKeyCacher(kc auth0.KeyCacher)` overrides the JWK cacher.
+
+	```go
+	service.NewValidator(service.WithKeyCacher(auth0.NewMemoryKeyCacher(3*time.Minute, 5)))
+	```
+	
+- `WithRealmURL(realmURL string)` overrides the realm URL.
+
+	```go
+	service.NewValidator(service.WithRealmURL("https://authservice.bitrise.io/auth/realms/master"))
+	```
+	
+- `WithJWKSURL(jwksURL string)` overrides the keystore URL.
+
+	```go
+	service.NewValidator(service.WithJWKSURL("https://authservice.bitrise.io/auth/realms/master/protocol/openid-connect/certs"))
+	```
+	
+- `WithValidator(validator JWTValidator)` overrides the Auth0 `Validator`.
+
+	```go
+	clientOpts := auth0.JWKClientOptions{
+		URI: serviceValidator.jwksURL,
+	}
+
+	client := auth0.NewJWKClientWithCache(clientOpts, nil, serviceValidator.keyCacher)
+
+	configuration := auth0.NewConfiguration(client, nil,
+		serviceValidator.realmURL, serviceValidator.signatureAlgorithm)
+
+	validator = auth0.NewValidator(configuration, nil)
+	
+	service.NewValidator(service.WithValidator(validator))
+	```
+
+#### HTTPMiddlewareOption
+
+#### EchoMiddlewareOption
 
 ### Usage
 
