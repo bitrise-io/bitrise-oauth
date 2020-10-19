@@ -6,7 +6,7 @@ This package is a very thin layer over Go's standard [OAuth2 library](https://gi
 This package provides both *client-side* and *server-side* wrappers, covering all of our current use-cases. In this document, you may find useful information about the APIs, the custom configuration options, and the usage as well.
 
 ## Client
-The *client-side* validation logic is located at the `client` package. The package offers a convenient way to gain an access token on *client-side*. It was achieved by extending Go's standard `http.Client`. It basically holds the necessary parameters for a successful token request (like **client ID**, **client secret**, and the **token URL** of the authorization server). You can use the `AuthProvider` via several different ways to gain an access token. You may find information about each use-case in the API paragraph. One important thing to note, that in this context *client* means service client, participating in service-to-service authentication.
+The *client-side* validation logic is located in the `client` package. The package offers a convenient way to gain an access token on the *client-side*. It was achieved by extending Go's standard `http.Client`. It basically holds the necessary parameters for a successful token request (like **client ID**, **client secret**, and the **token URL** of the authorization server). You can use the `AuthProvider` in several different ways to gain an access token. You may find information about each use-case in the API paragraph. One important thing to note is that in this context *client* means service client, participating in service-to-service authentication.
 
 ### API
 #### `AuthProvider` interface
