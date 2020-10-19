@@ -105,7 +105,7 @@ Since `auth0.JWTValidator` is not an interface, it was necessary to create an in
 The package offers wide configurability using Options. You can easily override any parameter by passing the desired Option(s) as constructor arguments. Not only the `Validator` itself has Options, but each use-case has their own Options as well, offering further configuration possibilities.
 
 #### ValidatorOption
-You can customize the `Validator` during instantiation with Options. Using is just a matter of passing them as a constructor parameter, separated by a comma:
+You can customize the `Validator` during instantiation with Options. It's as easy as passing them as constructor parameters, separated by a comma:
 ```go
 service.NewValidator(service.WithJWKSURL("https://authservice.bitrise.io"), service.WithRealm("master"))
 ```
