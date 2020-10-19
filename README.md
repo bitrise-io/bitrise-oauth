@@ -31,7 +31,7 @@ Implements the `AuthProvider` interface. This class is used to gain an authentic
 
 - `HTTPClient(opts ...HTTPClientOption) *http.Client` returns a preconfigured `http.Client`.
 
-- `ManagedHTTPClient(opts ...HTTPClientOption) *http.Client` returns a preconfigured `http.Client`. Uses a thread-safe map to store the created clients, using the `clientID` + `clientSecret` + `tokenURL` combination as a key. When the function is called, it will try to retrieve an instance from the map by the credentials. If it already exists, the instance will be returned, otherwise, a new instance will be created, afterwards saved in the map, and returned.
+- `ManagedHTTPClient(opts ...HTTPClientOption) *http.Client` returns a preconfigured `http.Client`. Uses a thread-safe map to store the created clients, using the `clientID` + `clientSecret` + `tokenURL` combination as a key. When the function is called, it will try to retrieve an existing instance from the map by the credentials. If found, the instance will be returned. Otherwise, a new instance will be created, saved in the map, and returned.
 
 
 ### Options
