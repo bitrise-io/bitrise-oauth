@@ -108,15 +108,19 @@ func Test_GivenATokenThatWillExpireAfter1Second_WhenANewTokenIsAcquired_ThenExpe
 	mockedClient.AssertNotCalled(t, "Test", "refreshed-access-token")
 }
 
-func Test_base_client(t *testing.T) {
+func Test_GivenAnExistingHTTPClient_WhenItIsPassedAsAnOptionDuringInstantiation_ThenExpectTheNewClientToBeAnExtendedCopyOfTheExistingOne(t *testing.T) {
+	// Given
 	baseClient := &http.Client{}
 
+	// When
 	client := client.NewWithSecret("test-id", "test-secret").HTTPClient(client.WithBaseClient(baseClient))
 
+	// Then
 	assert.Equal(t, baseClient, client)
 }
 
-func Test_context(t *testing.T) {
+func Test_GivenAnExistingHTTPContext_WhenItIsPassedAsAnOptionDuringInstantiation_ThenExpectTheNewClientToHaveTheSameContextAsTheExistingOne(t *testing.T) {
+	// Given
 	baseCtx, cancel := context.WithCancel(context.Background())
 	cancel()
 
@@ -125,10 +129,12 @@ func Test_context(t *testing.T) {
 	}))
 	defer ts.Close()
 
+	// When
 	client := client.NewWithSecret("test-id", "test-secret", client.WithTokenURL(ts.URL+"/token")).HTTPClient(client.WithContext(baseCtx))
 
 	url := ts.URL + "/token"
 
+	// Then
 	_, err := client.Get(url)
 	assert.Error(t, err)
 	assert.EqualError(t, err, fmt.Sprintf(`Get "%s": context canceled`, url))
@@ -159,7 +165,8 @@ func startMockServer(t *testing.T, mockedAuthService *mocks.AuthService, mockedC
 	}))
 }
 
-func Test_token_source(t *testing.T) {
+func Test_GivenTokenSourceWithTokenThatWillNotExpireBetweenRequests_WhenTokenStoreIsFetchedMultipleTimes_ThenExpectTheSameTokenGranted(t *testing.T) {
+	// Given
 	mockedAuthService := &mocks.AuthService{}
 	mockedClient := &mocks.Client{}
 
@@ -175,6 +182,7 @@ func Test_token_source(t *testing.T) {
 	tokenSource := client.NewWithSecret("my-client-id", "my-secret",
 		client.WithTokenURL(ts.URL+"/token")).TokenSource()
 
+	// When
 	token, err := tokenSource.Token()
 	require.NoError(t, err)
 	require.Equal(t, token.AccessToken, accessToken)
@@ -183,6 +191,7 @@ func Test_token_source(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, token.AccessToken, accessToken)
 
+	// Then
 	mockedAuthService.AssertExpectations(t)
 	mockedClient.AssertExpectations(t)
 }
