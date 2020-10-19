@@ -51,19 +51,27 @@ func NewValidator(opts ...ValidatorOption) Validator {
 	}
 
 	if serviceValidator.jwtValidator == nil {
-		clientOpts := auth0.JWKClientOptions{
-			URI: serviceValidator.jwksURL,
-		}
-
-		client := auth0.NewJWKClientWithCache(clientOpts, nil, serviceValidator.keyCacher)
-
-		configuration := auth0.NewConfiguration(client, nil,
-			serviceValidator.realmURL, serviceValidator.signatureAlgorithm)
-
-		serviceValidator.jwtValidator = auth0.NewValidator(configuration, nil)
+		serviceValidator.jwtValidator = createDefaultJWTValidator(
+			serviceValidator.jwksURL,
+			serviceValidator.keyCacher,
+			serviceValidator.realmURL,
+			serviceValidator.signatureAlgorithm,
+		)
 	}
 
 	return serviceValidator
+}
+
+func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmURL string, signatureAlgorithm jose.SignatureAlgorithm) JWTValidator {
+	clientOpts := auth0.JWKClientOptions{
+		URI: jwksURL,
+	}
+
+	client := auth0.NewJWKClientWithCache(clientOpts, nil, keyCacher)
+
+	configuration := auth0.NewConfiguration(client, nil, realmURL, signatureAlgorithm)
+
+	return auth0.NewValidator(configuration, nil)
 }
 
 // ValidateRequest to validate if the request is authenticated and has active token.
