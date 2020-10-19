@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/bitrise-io/bitrise-oauth/config"
@@ -19,8 +20,7 @@ type AuthProvider interface {
 
 var clients sync.Map
 
-// WithSecret is a *http.Client preconfigured with Client ID and Client Secret based Oauth2.0 authentication.
-// TokenURL is exported to make it it for development/debugging purposes.
+// WithSecret hold the ouath client credentials
 type WithSecret struct {
 	clientID     string
 	clientSecret string
@@ -50,16 +50,16 @@ func NewWithSecret(clientID, clientSecret string, opts ...Option) AuthProvider {
 }
 
 func (cws *WithSecret) uid() string {
-	return cws.clientID + cws.clientSecret + cws.tokenURL
+	return strings.Join([]string{cws.clientID, cws.clientSecret, cws.tokenURL}, "-")
 }
 
-// TokenSource returns an token source that refreshes the token only when expires
+// TokenSource returns a token source that refreshes the token only when expires
 func (cws *WithSecret) TokenSource() oauth2.TokenSource {
 	return cws.credentials.TokenSource(context.Background())
 }
 
 // ManagedHTTPClient is a preconfigured http client using in-memory client storage
-// this way the clients with the same credentials will be reaused.
+// this way the clients with the same credentials will be reused.
 func (cws *WithSecret) ManagedHTTPClient(opts ...HTTPClientOption) *http.Client {
 	if storedClient, loaded := clients.Load(cws.uid()); loaded {
 		return storedClient.(*http.Client)

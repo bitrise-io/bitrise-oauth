@@ -34,74 +34,53 @@ func TestNewWithSecret_threads_using_same_client(t *testing.T) {
 
 	var createdClients sync.Map
 
-	var wg sync.WaitGroup
-	wg.Add(clientsToCreate * callsPerClient)
+	async(clientsToCreate, callsPerClient, func(_, j int) {
+		c := client.NewWithSecret(fmt.Sprintf("clientID-%d", j), fmt.Sprintf("clientSecret-%d", j),
+			client.WithTokenURL("https://google.com")).ManagedHTTPClient()
 
-	for i := 0; i < callsPerClient; i++ {
-		go func() {
-			for j := 0; j < clientsToCreate; j++ {
-				go func(j int) {
-					defer wg.Done()
-					c := client.NewWithSecret(fmt.Sprintf("clientID-%d", j), fmt.Sprintf("clientSecret-%d", j),
-						client.WithTokenURL("https://google.com")).ManagedHTTPClient()
-
-					pointerAddress := fmt.Sprintf("%p", c)
-					createdClients.Store(pointerAddress, c)
-				}(j)
-			}
-		}()
-	}
-
-	wg.Wait()
-
-	createdClientsCount := 0
-	createdClients.Range(func(_, _ interface{}) bool {
-		createdClientsCount++
-		return true
+		pointerAddress := fmt.Sprintf("%p", c)
+		createdClients.Store(pointerAddress, c)
 	})
 
-	assert.Equal(t, clientsToCreate, createdClientsCount)
+	assert.Equal(t, clientsToCreate, syncMapLen(&createdClients))
+}
+
+func syncMapLen(sm *sync.Map) int {
+	len := 0
+	sm.Range(func(_, _ interface{}) bool {
+		len++
+		return true
+	})
+	return len
+}
+
+func async(iCount, jCount int, fn func(int, int)) {
+	var wg sync.WaitGroup
+	wg.Add(iCount * jCount)
+	for i := 0; i < iCount; i++ {
+		go func(i int) {
+			for j := 0; j < jCount; j++ {
+				go func(j int) {
+					defer wg.Done()
+					fn(i, j)
+				}(j)
+			}
+		}(i)
+	}
+	wg.Wait()
 }
 
 func TestNewWithSecret_not_using_refresh_token(t *testing.T) {
 	mockedAuthService := mocks.AuthService{}
 	mockedClient := mocks.Client{}
 
-	accessToken, refreshToken := "initial-access-token", "initial-refresh-token"
+	accessToken := "initial-access-token"
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/token":
-			w.Header().Add("content-type", "application/json")
-
-			assert.NoError(t, r.ParseForm())
-			grantType := r.PostForm.Get("grant_type")
-
-			if grantType == "refresh_token" {
-				accessToken, refreshToken = "refreshed-access-token", "refreshed-refresh-token"
-			}
-
-			assert.NoError(t, json.NewEncoder(w).Encode(tokenJSON{
-				AccessToken:  accessToken,
-				RefreshToken: refreshToken,
-				TokenType:    "Bearer",
-				ExpiresIn:    11, // go has a -10 seconds delta time gap - https://github.com/golang/oauth2/blob/master/token.go#L22
-			}))
-
-			mockedAuthService.Token(grantType)
-		default:
-			tokenHeaderSplit := strings.Split(r.Header.Get("Authorization"), " ")
-			assert.Len(t, tokenHeaderSplit, 2)
-
-			mockedClient.Test(tokenHeaderSplit[1])
-
-			w.WriteHeader(http.StatusOK)
-		}
-	}))
+	ts := startMockServer(t, &mockedAuthService, &mockedClient, accessToken)
 	defer ts.Close()
 
 	mockedAuthService.
-		On("Token", "client_credentials").Return().
+		On("Token").Return().
 		Twice()
 	mockedClient.
 		On("Test", "initial-access-token").Return().
@@ -149,32 +128,20 @@ func Test_context(t *testing.T) {
 	assert.EqualError(t, err, fmt.Sprintf(`Get "%s": context canceled`, url))
 }
 
-func Test_token_source(t *testing.T) {
-	mockedAuthService := mocks.AuthService{}
-	mockedClient := mocks.Client{}
-
-	accessToken, refreshToken := "initial-access-token", "initial-refresh-token"
-
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func startMockServer(t *testing.T, mockedAuthService *mocks.AuthService, mockedClient *mocks.Client, accessToken string) *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/token":
 			w.Header().Add("content-type", "application/json")
 
-			assert.NoError(t, r.ParseForm())
-			grantType := r.PostForm.Get("grant_type")
-
-			if grantType == "refresh_token" {
-				accessToken, refreshToken = "refreshed-access-token", "refreshed-refresh-token"
-			}
-
 			assert.NoError(t, json.NewEncoder(w).Encode(tokenJSON{
 				AccessToken:  accessToken,
-				RefreshToken: refreshToken,
+				RefreshToken: "refresh-token",
 				TokenType:    "Bearer",
 				ExpiresIn:    11, // go has a -10 seconds delta time gap - https://github.com/golang/oauth2/blob/master/token.go#L22
 			}))
 
-			mockedAuthService.Token(grantType)
+			mockedAuthService.Token()
 		default:
 			tokenHeaderSplit := strings.Split(r.Header.Get("Authorization"), " ")
 			assert.Len(t, tokenHeaderSplit, 2)
@@ -184,10 +151,19 @@ func Test_token_source(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 		}
 	}))
+}
+
+func Test_token_source(t *testing.T) {
+	mockedAuthService := &mocks.AuthService{}
+	mockedClient := &mocks.Client{}
+
+	accessToken := "initial-access-token"
+
+	ts := startMockServer(t, mockedAuthService, mockedClient, accessToken)
 	defer ts.Close()
 
 	mockedAuthService.
-		On("Token", "client_credentials").Return().
+		On("Token").Return().
 		Once()
 
 	tokenSource := client.NewWithSecret("my-client-id", "my-secret",

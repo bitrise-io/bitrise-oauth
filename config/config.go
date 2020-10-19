@@ -2,7 +2,7 @@ package config
 
 // ...
 const (
-	BaseURL  = `http://35.232.43.235`
+	BaseURL  = `https://auth.services.bitrise.io`
 	Realm    = `master`
 	RealmURL = BaseURL + `/auth/realms/` + Realm
 	JWKSURL  = RealmURL + `/protocol/openid-connect/certs`

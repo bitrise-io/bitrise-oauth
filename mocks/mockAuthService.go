@@ -8,8 +8,8 @@ type AuthService struct {
 }
 
 // Token simulates the /token endpoint called
-func (m *AuthService) Token(grantType string) {
-	m.Called(grantType)
+func (m *AuthService) Token() {
+	m.Called()
 }
 
 // Certs simulates the /certs endpoint called

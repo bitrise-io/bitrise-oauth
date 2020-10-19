@@ -110,7 +110,7 @@ func (sv Validator) MiddlewareFunc(opts ...EchoMiddlewareOption) echo.Middleware
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if _, err := sv.validator.ValidateRequest(c.Request()); err != nil {
+			if err := sv.ValidateRequest(c.Request()); err != nil {
 				return handlerConfig.errorWriter(c, err)
 			}
 			return next(c)
