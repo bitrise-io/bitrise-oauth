@@ -159,7 +159,7 @@ func Test_GivenSuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenRequestI
 	err := validatorMiddlewareFunction(context)
 
 	// Then
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	mockMiddlewareHandlerFunction.AssertCalled(t, "HandlerFunction", mock.Anything)
 }
 
@@ -177,7 +177,7 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenReques
 	err := validatorMiddlewareFunction(context)
 
 	// Then
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 	mockMiddlewareHandlerFunction.AssertNotCalled(t, "HandlerFunction", mock.Anything)
 }
 

@@ -28,12 +28,14 @@ type tokenJSON struct {
 	ExpiresIn    time.Duration `json:"expires_in"` // at least PayPal returns string, while most return number
 }
 
-func TestNewWithSecret_threads_using_same_client(t *testing.T) {
+func Test_Given30ThreadsAndEachWillLaunch30RequestsOnNewThreads_WhenTheManagedHttpClientsAreInstantiated_ThenExpect30HttpClientsToBeCreated(t *testing.T) {
+	// Given
 	clientsToCreate := 30
 	callsPerClient := 30
 
 	var createdClients sync.Map
 
+	// When
 	async(clientsToCreate, callsPerClient, func(_, j int) {
 		c := client.NewWithSecret(fmt.Sprintf("clientID-%d", j), fmt.Sprintf("clientSecret-%d", j),
 			client.WithTokenURL("https://google.com")).ManagedHTTPClient()
@@ -42,6 +44,7 @@ func TestNewWithSecret_threads_using_same_client(t *testing.T) {
 		createdClients.Store(pointerAddress, c)
 	})
 
+	// Then
 	assert.Equal(t, clientsToCreate, syncMapLen(&createdClients))
 }
 
@@ -70,7 +73,8 @@ func async(iCount, jCount int, fn func(int, int)) {
 	wg.Wait()
 }
 
-func TestNewWithSecret_not_using_refresh_token(t *testing.T) {
+func Test_GivenATokenThatWillExpireAfter1Second_WhenANewTokenIsAcquired_ThenExpectTheRefreshTokenNotToBeUsed(t *testing.T) {
+	// Given
 	mockedAuthService := mocks.AuthService{}
 	mockedClient := mocks.Client{}
 
@@ -86,9 +90,11 @@ func TestNewWithSecret_not_using_refresh_token(t *testing.T) {
 		On("Test", "initial-access-token").Return().
 		Times(6)
 
+	// When
 	c := client.NewWithSecret("my-client-id", "my-secret",
 		client.WithTokenURL(ts.URL+"/token")).ManagedHTTPClient()
 
+	// Then
 	for i := 0; i < 6; i++ {
 		resp, err := c.Get(ts.URL + "/test")
 		assert.NoError(t, err)
