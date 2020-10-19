@@ -61,14 +61,16 @@ func (cws *WithSecret) TokenSource() oauth2.TokenSource {
 // ManagedHTTPClient is a preconfigured http client using in-memory client storage
 // this way the clients with the same credentials will be reused.
 func (cws *WithSecret) ManagedHTTPClient(opts ...HTTPClientOption) *http.Client {
-	if storedClient, loaded := clients.Load(cws.uid()); loaded {
-		return storedClient.(*http.Client)
+	creds := clientcredentials.Config{
+		ClientID:     cws.clientID,
+		ClientSecret: cws.clientSecret,
+		TokenURL:     cws.tokenURL,
 	}
 
-	client := cws.HTTPClient(opts...)
-	clients.Store(cws.uid(), client)
+	client := creds.Client(context.Background())
 
-	return client
+	storedClient, _ := clients.LoadOrStore(cws.uid(), client)
+	return storedClient.(*http.Client)
 }
 
 // HTTPClient is a preconfigured http client
