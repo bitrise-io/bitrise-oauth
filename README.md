@@ -35,7 +35,7 @@ Implements the `AuthProvider` interface. This class is used to gain an authentic
 
 
 ### Options
-The package offers wide configurability using Options. You can easily override any parameter passing the desired Option(s) as a constructor parameter. Not only the `AuthProvider` itself have Options, but each use-case has its own Options as well, offering a further possibility for configuration.
+The package offers wide configurability using Options. You can easily override any parameter by passing the desired Option(s) as constructor arguments. Not only the `AuthProvider` itself has Options, but each use-case has their own Options as well, offering further configuration possibilities.
 
 #### Option
 - `WithTokenURL(tokenURL string) Option` overrides the URL of the authentication service that provides an access token.
