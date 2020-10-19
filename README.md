@@ -53,7 +53,7 @@ resp, err := authProvider.ManagedHTTPClient().Get("https://authservice.bitrise.i
 ```
 
 ## Server
-The server-side validation logic is located at the `service` package. You can use the `Validator` via several different ways to validate any request. The supported use-cases are the following:
+The server-side validation logic is located in the `service` package. You can use the `Validator` in several different ways to validate any request. The supported use-cases are the following:
 - **Handler Function** with:
 	- Go's default HTTP multiplexer
 	- Gorilla's HTTP router called [**gorilla/mux**](https://github.com/gorilla/mux)
