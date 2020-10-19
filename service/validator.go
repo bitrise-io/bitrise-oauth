@@ -78,7 +78,7 @@ func (sv Validator) ValidateRequest(r *http.Request) error {
 }
 
 // Middleware used as http package's middleware, in http.Handle.
-// Calls out to ValidateRequest and returns http.StatusUnauthorized with body: invalid token if the token is not active.
+// Calls out to ValidateRequest and returns http.Status Unauthorized with body: invalid token if the token is not active.
 func (sv Validator) Middleware(next http.Handler, opts ...HTTPMiddlewareOption) http.Handler {
 	handlerConfig := &HTTPMiddlewareConfig{
 		errorWriter: defaultHTTPErrorWriter,
@@ -119,7 +119,7 @@ func (sv Validator) MiddlewareFunc(opts ...EchoMiddlewareOption) echo.Middleware
 }
 
 // HandlerFunc used with http.HandleFunc.
-// Calls out to ValidateRequest and returns http.StatusUnauthorized with body: invalid token if the token is not active.
+// Calls out to ValidateRequest and returns http.Status Unauthorized with body: invalid token if the token is not active.
 func (sv Validator) HandlerFunc(hf http.HandlerFunc, opts ...HTTPMiddlewareOption) http.HandlerFunc {
 	handlerConfig := &HTTPMiddlewareConfig{
 		errorWriter: defaultHTTPErrorWriter,

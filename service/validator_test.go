@@ -178,7 +178,7 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenReques
 
 	// Then
 	assert.NotNil(t, err)
-	mockMiddlewareHandlerFunction.AssertNotCalled(t, "EchoHandlerFunc", mock.Anything, mock.Anything)
+	mockMiddlewareHandlerFunction.AssertNotCalled(t, "HandlerFunction", mock.Anything)
 }
 
 func Test_GivenSuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_ThenExpectTheNextHandlerFunctionToBeCalled(t *testing.T) {
