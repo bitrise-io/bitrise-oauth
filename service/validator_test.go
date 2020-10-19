@@ -238,19 +238,19 @@ func givenMockEchoErrorWriter(err error) *mocks.ErrorWriter {
 	return mockErrorWriter
 }
 
-func createValidator(mockJWTValidator service.JWTValidator) service.ValidatorIntf {
+func createValidator(mockJWTValidator service.JWTValidator) service.Validator {
 	validator := service.NewValidator(
 		service.WithValidator(mockJWTValidator),
 	)
 	return validator
 }
 
-func startServerWithMiddleware(mockHandler *mocks.Handler, validator service.ValidatorIntf, opts ...service.HTTPMiddlewareOption) *httptest.Server {
+func startServerWithMiddleware(mockHandler *mocks.Handler, validator service.Validator, opts ...service.HTTPMiddlewareOption) *httptest.Server {
 	testServer := httptest.NewServer(validator.Middleware(mockHandler, opts...))
 	return testServer
 }
 
-func startServerWithHandlerFunction(mockHandlerFunction func(http.ResponseWriter, *http.Request), validator service.ValidatorIntf, opt service.HTTPMiddlewareOption) *httptest.Server {
+func startServerWithHandlerFunction(mockHandlerFunction func(http.ResponseWriter, *http.Request), validator service.Validator, opt service.HTTPMiddlewareOption) *httptest.Server {
 	testServer := httptest.NewServer(validator.HandlerFunc(mockHandlerFunction, opt))
 	return testServer
 }
@@ -290,7 +290,7 @@ func createRequestWithToken(jwt string) *http.Request {
 	return request
 }
 
-func validateRequest(validator service.ValidatorIntf, request *http.Request) {
+func validateRequest(validator service.Validator, request *http.Request) {
 	err := validator.ValidateRequest(request)
 	if err != nil {
 		fmt.Println("Can't validate request! JWT_1 and JWT_2 just formally valid.")
