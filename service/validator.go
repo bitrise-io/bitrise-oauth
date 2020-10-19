@@ -16,17 +16,17 @@ type JWTValidator interface {
 	ValidateRequest(r *http.Request) (*jwt.JSONWebToken, error)
 }
 
-// ValidatorIntf gives multiple solution to validate the access token received in the request headers using Oauth2.0
-type ValidatorIntf interface {
+// Validator gives multiple solution to validate the access token received in the request headers using Oauth2.0
+type Validator interface {
 	HandlerFunc(http.HandlerFunc, ...HTTPMiddlewareOption) http.HandlerFunc
 	Middleware(http.Handler, ...HTTPMiddlewareOption) http.Handler
 	MiddlewareFunc(...EchoMiddlewareOption) echo.MiddlewareFunc
 	ValidateRequest(r *http.Request) error
 }
 
-// Validator ...
-type Validator struct {
-	validator          JWTValidator
+// ValidatorConfig ...
+type ValidatorConfig struct {
+	jwtValidator       JWTValidator
 	baseURL            string
 	realm              string
 	keyCacher          auth0.KeyCacher
@@ -36,13 +36,8 @@ type Validator struct {
 }
 
 // NewValidator returns the prepared JWK model. All input arguments are optional.
-//
-// Argument defaults when nil:
-//  	baseURL: http://104.154.234.133
-//  	realm: master
-//  	keyCacher: auth0 MemoryKeyCacher with 3 minutes TTL and size 5
-func NewValidator(opts ...ValidatorOption) ValidatorIntf {
-	serviceValidator := &Validator{
+func NewValidator(opts ...ValidatorOption) Validator {
+	serviceValidator := &ValidatorConfig{
 		baseURL:            config.BaseURL,
 		realm:              config.Realm,
 		keyCacher:          auth0.NewMemoryKeyCacher(3*time.Minute, 5),
@@ -55,7 +50,7 @@ func NewValidator(opts ...ValidatorOption) ValidatorIntf {
 		opt(serviceValidator)
 	}
 
-	if serviceValidator.validator == nil {
+	if serviceValidator.jwtValidator == nil {
 		clientOpts := auth0.JWKClientOptions{
 			URI: serviceValidator.jwksURL,
 		}
@@ -65,21 +60,21 @@ func NewValidator(opts ...ValidatorOption) ValidatorIntf {
 		configuration := auth0.NewConfiguration(client, nil,
 			serviceValidator.realmURL, serviceValidator.signatureAlgorithm)
 
-		serviceValidator.validator = auth0.NewValidator(configuration, nil)
+		serviceValidator.jwtValidator = auth0.NewValidator(configuration, nil)
 	}
 
 	return serviceValidator
 }
 
 // ValidateRequest to validate if the request is authenticated and has active token.
-func (sv Validator) ValidateRequest(r *http.Request) error {
-	_, err := sv.validator.ValidateRequest(r)
+func (sv ValidatorConfig) ValidateRequest(r *http.Request) error {
+	_, err := sv.jwtValidator.ValidateRequest(r)
 	return err
 }
 
 // Middleware used as http package's middleware, in http.Handle.
 // Calls out to ValidateRequest and returns http.Status Unauthorized with body: invalid token if the token is not active.
-func (sv Validator) Middleware(next http.Handler, opts ...HTTPMiddlewareOption) http.Handler {
+func (sv ValidatorConfig) Middleware(next http.Handler, opts ...HTTPMiddlewareOption) http.Handler {
 	handlerConfig := &HTTPMiddlewareConfig{
 		errorWriter: defaultHTTPErrorWriter,
 	}
@@ -99,7 +94,7 @@ func (sv Validator) Middleware(next http.Handler, opts ...HTTPMiddlewareOption) 
 
 // MiddlewareFunc can be used with echo.Use.
 // Calls out to ValidateRequest and returns an error for echo.
-func (sv Validator) MiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc {
+func (sv ValidatorConfig) MiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc {
 	handlerConfig := &EchoMiddlewareConfig{
 		errorWriter: defaultEchoErrorWriter,
 	}
@@ -120,7 +115,7 @@ func (sv Validator) MiddlewareFunc(opts ...EchoMiddlewareOption) echo.Middleware
 
 // HandlerFunc used with http.HandleFunc.
 // Calls out to ValidateRequest and returns http.Status Unauthorized with body: invalid token if the token is not active.
-func (sv Validator) HandlerFunc(hf http.HandlerFunc, opts ...HTTPMiddlewareOption) http.HandlerFunc {
+func (sv ValidatorConfig) HandlerFunc(hf http.HandlerFunc, opts ...HTTPMiddlewareOption) http.HandlerFunc {
 	handlerConfig := &HTTPMiddlewareConfig{
 		errorWriter: defaultHTTPErrorWriter,
 	}

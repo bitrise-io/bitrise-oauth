@@ -3,7 +3,6 @@ package service_test
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,7 +13,6 @@ import (
 	"github.com/bitrise-io/bitrise-oauth/service"
 	"github.com/c2fo/testify/assert"
 	"github.com/c2fo/testify/mock"
-	"github.com/gorilla/mux"
 	"github.com/labstack/echo"
 )
 
@@ -25,91 +23,6 @@ const (
 	JWT_2      = "BEARER eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldNVlkwcWVyZmJGUC0zcllLdW55NUFQaXJmcnk0OG5QZWVYcnlQNzk5RmsxIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.XLWuYJ3xb71XGh3XXH0xpX18_Q8RWQDIjUs6EKYD1mX2KXkJIWKj_1m4gNziEdTm03tXFKuDCXhdnFB7L7NJeOtT9dVNtIfqkBR0cYd2KU6HitPck9qd5wz_JcaaPQttHfrVBxJVIaK7ifZFCjjlGSukkYQ7aQalEv2ZjTycXP7FVs7bDq39f1OWdw2rM6XurrjWm65uEwC9m2z08DdgPnmyzCFh0NE5WyMHkezcIl2DDHxJjmb0AZkdIYW1q-AbYs0CIlAemOnxW_or7uzgtATZ-GWE_WEJp_bOeTkZK3BLnShXhlRdKNaHJXCuBzfBwdUY24-x6mEPRKNBYPGW3w"
 	RequestUrl = "https://bitrise.io/protected_route"
 )
-
-func ExampleValidator_Middleware() {
-	handler := func(w http.ResponseWriter, r *http.Request) {}
-
-	mux := http.NewServeMux()
-
-	validator := service.NewValidator()
-
-	mux.Handle("/test", validator.Middleware(http.HandlerFunc(handler)))
-
-	log.Fatal(http.ListenAndServe(":8080", mux))
-}
-
-func ExampleValidator_Middleware_gorilla_mux() {
-	handler := func(w http.ResponseWriter, r *http.Request) {}
-
-	router := mux.NewRouter()
-
-	validator := service.NewValidator()
-
-	router.Handle("/test", validator.Middleware(http.HandlerFunc(handler))).Methods(http.MethodGet)
-
-	http.Handle("/", router)
-
-	log.Fatal(http.ListenAndServe(":8080", router))
-}
-
-func ExampleValidator_HandlerFunc() {
-	handler := func(w http.ResponseWriter, r *http.Request) {}
-
-	mux := http.NewServeMux()
-
-	validator := service.NewValidator()
-
-	mux.HandleFunc("/test_func", validator.HandlerFunc(handler))
-
-	log.Fatal(http.ListenAndServe(":8080", mux))
-}
-
-func ExampleValidator_HandlerFunc_with_gorilla_mux() {
-	handler := func(w http.ResponseWriter, r *http.Request) {}
-
-	router := mux.NewRouter()
-
-	validator := service.NewValidator()
-
-	router.HandleFunc("/test_func", validator.HandlerFunc(handler)).Methods(http.MethodGet)
-
-	http.Handle("/", router)
-
-	log.Fatal(http.ListenAndServe(":8080", router))
-}
-
-func ExampleValidator_ValidateRequest() {
-	validator := service.NewValidator()
-
-	handler := func(c echo.Context) error {
-		if err := validator.ValidateRequest(c.Request()); err != nil {
-			return err
-		}
-		return c.String(http.StatusOK, "Hello, World!")
-	}
-
-	e := echo.New()
-
-	e.GET("/test", handler)
-
-	e.Logger.Fatal(e.Start(":1323"))
-}
-
-func ExampleValidator_MiddlewareFunc_echo() {
-	handler := func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
-	}
-
-	e := echo.New()
-
-	validator := service.NewValidator()
-
-	e.Use(validator.MiddlewareFunc())
-
-	e.GET("/test", handler)
-
-	e.Logger.Fatal(e.Start(":1323"))
-}
 
 func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenExpectTheNextMiddlewareToBeCalled(t *testing.T) {
 	// Given

@@ -6,53 +6,53 @@ import (
 )
 
 // ValidatorOption ...
-type ValidatorOption func(c *Validator)
+type ValidatorOption func(c *ValidatorConfig)
 
 // WithBaseURL ...
 func WithBaseURL(url string) ValidatorOption {
-	return func(c *Validator) {
+	return func(c *ValidatorConfig) {
 		c.baseURL = url
 	}
 }
 
 // WithSignatureAlgorithm ...
 func WithSignatureAlgorithm(sa jose.SignatureAlgorithm) ValidatorOption {
-	return func(c *Validator) {
+	return func(c *ValidatorConfig) {
 		c.signatureAlgorithm = sa
 	}
 }
 
 // WithRealm ...
 func WithRealm(realm string) ValidatorOption {
-	return func(c *Validator) {
+	return func(c *ValidatorConfig) {
 		c.realm = realm
 	}
 }
 
 // WithKeyCacher ...
 func WithKeyCacher(kc auth0.KeyCacher) ValidatorOption {
-	return func(c *Validator) {
+	return func(c *ValidatorConfig) {
 		c.keyCacher = kc
 	}
 }
 
 // WithRealmURL ...
 func WithRealmURL(realmURL string) ValidatorOption {
-	return func(c *Validator) {
+	return func(c *ValidatorConfig) {
 		c.realmURL = realmURL
 	}
 }
 
 // WithJWKSURL ...
 func WithJWKSURL(jwksURL string) ValidatorOption {
-	return func(c *Validator) {
+	return func(c *ValidatorConfig) {
 		c.jwksURL = jwksURL
 	}
 }
 
 // WithValidator ...
 func WithValidator(validator JWTValidator) ValidatorOption {
-	return func(c *Validator) {
-		c.validator = validator
+	return func(c *ValidatorConfig) {
+		c.jwtValidator = validator
 	}
 }
