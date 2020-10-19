@@ -48,7 +48,10 @@ func Test_Given30ThreadsAndEachWillLaunch30RequestsOnNewThreads_WhenTheManagedHt
 	pointerCount := make(map[string]int)
 
 	createdClients.Range(func(k, v interface{}) bool {
-		pointerAddress := v.(string)
+		pointerAddress, ok := v.(string)
+		if !ok {
+			panic("Error in type assertion")
+		}
 		if entry, found := pointerCount[pointerAddress]; found {
 			pointerCount[pointerAddress] = entry + 1
 		} else {
