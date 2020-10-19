@@ -31,21 +31,38 @@ type tokenJSON struct {
 func Test_Given30ThreadsAndEachWillLaunch30RequestsOnNewThreads_WhenTheManagedHttpClientsAreInstantiated_ThenExpect30HttpClientsToBeCreated(t *testing.T) {
 	// Given
 	clientsToCreate := 30
-	callsPerClient := 30
+	callsPerClient := 20
 
 	var createdClients sync.Map
 
 	// When
-	async(clientsToCreate, callsPerClient, func(_, j int) {
-		c := client.NewWithSecret(fmt.Sprintf("clientID-%d", j), fmt.Sprintf("clientSecret-%d", j),
+	async(clientsToCreate, callsPerClient, func(i, j int) {
+		c := client.NewWithSecret(fmt.Sprintf("clientID-%d", i), fmt.Sprintf("clientSecret-%d", i),
 			client.WithTokenURL("https://google.com")).ManagedHTTPClient()
 
+		pointerKey := fmt.Sprintf("%d,%d", i, j)
 		pointerAddress := fmt.Sprintf("%p", c)
-		createdClients.Store(pointerAddress, c)
+		createdClients.Store(pointerKey, pointerAddress)
+	})
+
+	pointerCount := make(map[string]int)
+
+	createdClients.Range(func(k, v interface{}) bool {
+		pointerAddress := v.(string)
+		if entry, found := pointerCount[pointerAddress]; found {
+			pointerCount[pointerAddress] = entry + 1
+		} else {
+			pointerCount[pointerAddress] = 1
+		}
+		return true
 	})
 
 	// Then
-	assert.Equal(t, clientsToCreate, syncMapLen(&createdClients))
+	pointerCountLength := len(pointerCount)
+	assert.Equal(t, clientsToCreate, pointerCountLength)
+	for _, v := range pointerCount {
+		assert.Equal(t, callsPerClient, v)
+	}
 }
 
 func syncMapLen(sm *sync.Map) int {
