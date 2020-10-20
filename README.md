@@ -38,7 +38,9 @@ Implements the `AuthProvider` interface. This class is used to gain an authentic
 The package offers wide configurability using Options. You can easily override any parameter by passing the desired Option(s) as constructor arguments. Not only the `AuthProvider` itself has Options, but each use-case has their own Options as well, offering further configuration possibilities.
 
 #### Option
-- `WithTokenURL(tokenURL string) Option` overrides the URL of the authentication service that provides an access token.
+- `WithBaseURL(baseURL string) Option` overrides the base URL of the authentication service.
+
+- `WithRealm(realm string) ValidatorOption` overrides the realm.
 
 #### HTTPClientOption
 - `WithContext(ctx context.Context) HTTPClientOption` overrides the HTTP context of the client.
@@ -107,7 +109,7 @@ The package offers wide configurability using Options. You can easily override a
 #### ValidatorOption
 You can customize the `Validator` during instantiation with Options. It's as easy as passing them as constructor parameters, separated by a comma:
 ```go
-service.NewValidator(service.WithJWKSURL("https://authservice.bitrise.io"), service.WithRealm("master"))
+service.NewValidator(service.WithBaseURL("https://authservice.bitrise.io"), service.WithRealm("master"))
 ```
 
 The available `ValidatorOption`s are the following:
@@ -118,10 +120,6 @@ The available `ValidatorOption`s are the following:
 - `WithRealm(realm string) ValidatorOption` overrides the realm.
 
 - `WithKeyCacher(kc auth0.KeyCacher) ValidatorOption` overrides the *JWK* cacher.
-
-- `WithRealmURL(realmURL string) ValidatorOption` overrides the realm URL.
-
-- `WithJWKSURL(jwksURL string) ValidatorOption` overrides the keystore URL.
 
 - `WithValidator(validator JWTValidator) ValidatorOption` overrides the Auth0 `auth0.JWTValidator`.
 
