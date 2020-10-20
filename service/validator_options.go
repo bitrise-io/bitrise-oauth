@@ -36,20 +36,6 @@ func WithKeyCacher(kc auth0.KeyCacher) ValidatorOption {
 	}
 }
 
-// WithRealmURL ...
-func WithRealmURL(realmURL string) ValidatorOption {
-	return func(c *ValidatorConfig) {
-		c.realmURL = realmURL
-	}
-}
-
-// WithJWKSURL ...
-func WithJWKSURL(jwksURL string) ValidatorOption {
-	return func(c *ValidatorConfig) {
-		c.jwksURL = jwksURL
-	}
-}
-
 // WithValidator ...
 func WithValidator(validator JWTValidator) ValidatorOption {
 	return func(c *ValidatorConfig) {

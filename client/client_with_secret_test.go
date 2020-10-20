@@ -38,7 +38,7 @@ func Test_Given30ThreadsAndEachWillLaunch30RequestsOnNewThreads_WhenTheManagedHt
 	// When
 	async(clientsToCreate, callsPerClient, func(i, j int) {
 		c := client.NewWithSecret(fmt.Sprintf("clientID-%d", i), fmt.Sprintf("clientSecret-%d", i),
-			client.WithTokenURL("https://google.com")).ManagedHTTPClient()
+			client.WithBaseURL("https://google.com"), client.WithRealm("myrealm")).ManagedHTTPClient()
 
 		pointerKey := fmt.Sprintf("%d,%d", i, j)
 		pointerAddress := fmt.Sprintf("%p", c)
@@ -112,11 +112,11 @@ func Test_GivenATokenThatWillExpireAfter1Second_WhenANewTokenIsAcquired_ThenExpe
 
 	// When
 	c := client.NewWithSecret("my-client-id", "my-secret",
-		client.WithTokenURL(ts.URL+"/token")).ManagedHTTPClient()
+		client.WithBaseURL(ts.URL)).ManagedHTTPClient()
 
 	// Then
 	for i := 0; i < 6; i++ {
-		resp, err := c.Get(ts.URL + "/test")
+		resp, err := c.Get(ts.URL)
 		assert.NoError(t, err)
 		assert.Equal(t, resp.StatusCode, http.StatusOK)
 		time.Sleep(time.Millisecond * 400)
@@ -150,9 +150,9 @@ func Test_GivenAnExistingHTTPContext_WhenItIsPassedAsAnOptionDuringInstantiation
 	defer ts.Close()
 
 	// When
-	client := client.NewWithSecret("test-id", "test-secret", client.WithTokenURL(ts.URL+"/token")).HTTPClient(client.WithContext(baseCtx))
+	client := client.NewWithSecret("test-id", "test-secret", client.WithBaseURL(ts.URL)).HTTPClient(client.WithContext(baseCtx))
 
-	url := ts.URL + "/token"
+	url := ts.URL
 
 	// Then
 	_, err := client.Get(url)
@@ -163,7 +163,7 @@ func Test_GivenAnExistingHTTPContext_WhenItIsPassedAsAnOptionDuringInstantiation
 func startMockServer(t *testing.T, mockedAuthService *mocks.AuthService, mockedClient *mocks.Client, accessToken string) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case "/token":
+		case "/auth/realms/master/protocol/openid-connect/token":
 			w.Header().Add("content-type", "application/json")
 
 			assert.NoError(t, json.NewEncoder(w).Encode(tokenJSON{
@@ -200,7 +200,7 @@ func Test_GivenTokenSourceWithTokenThatWillNotExpireBetweenRequests_WhenTokenSto
 		Once()
 
 	tokenSource := client.NewWithSecret("my-client-id", "my-secret",
-		client.WithTokenURL(ts.URL+"/token")).TokenSource()
+		client.WithBaseURL(ts.URL)).TokenSource()
 
 	// When
 	token, err := tokenSource.Token()

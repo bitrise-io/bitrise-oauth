@@ -3,9 +3,16 @@ package client
 // Option ...
 type Option func(c *WithSecret)
 
-// WithTokenURL ...
-func WithTokenURL(tokenURL string) Option {
+// WithBaseURL for example: https://auth.services.bitrise.io
+func WithBaseURL(baseURL string) Option {
 	return func(c *WithSecret) {
-		c.tokenURL = tokenURL
+		c.baseURL = baseURL
+	}
+}
+
+// WithRealm for example: master
+func WithRealm(realm string) Option {
+	return func(c *WithSecret) {
+		c.realm = realm
 	}
 }
