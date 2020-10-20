@@ -173,8 +173,9 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 			mockAuthService.On("Certs").Return().Times(testCase.want)
 
 			testAuthServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				fmt.Println(r.URL.Path)
 				switch r.URL.Path {
-				case "/certs":
+				case "/auth/realms/master/protocol/openid-connect/certs":
 					mockAuthService.Certs()
 					addContentTypeAndTokenToResponse(w)
 				default:
@@ -184,7 +185,7 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 			}))
 			defer testAuthServer.Close()
 
-			validator := service.NewValidator(service.WithJWKSURL(testAuthServer.URL+"/certs"), service.WithKeyCacher(auth0.NewMemoryKeyCacher(testCase.expiryInSecs*time.Millisecond, 5)))
+			validator := service.NewValidator(service.WithBaseURL(testAuthServer.URL), service.WithKeyCacher(auth0.NewMemoryKeyCacher(testCase.expiryInSecs*time.Millisecond, 5)))
 
 			request1 := createRequestWithToken(testCase.token1)
 			request2 := createRequestWithToken(testCase.token2)

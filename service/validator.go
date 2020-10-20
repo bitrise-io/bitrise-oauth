@@ -2,6 +2,7 @@ package service
 
 import (
 	"net/http"
+	"path"
 	"time"
 
 	auth0 "github.com/auth0-community/go-auth0"
@@ -30,8 +31,6 @@ type ValidatorConfig struct {
 	baseURL            string
 	realm              string
 	keyCacher          auth0.KeyCacher
-	jwksURL            string
-	realmURL           string
 	signatureAlgorithm jose.SignatureAlgorithm
 }
 
@@ -41,8 +40,6 @@ func NewValidator(opts ...ValidatorOption) Validator {
 		baseURL:            config.BaseURL,
 		realm:              config.Realm,
 		keyCacher:          auth0.NewMemoryKeyCacher(3*time.Minute, 5),
-		jwksURL:            config.JWKSURL,
-		realmURL:           config.RealmURL,
 		signatureAlgorithm: jose.RS256,
 	}
 
@@ -52,9 +49,9 @@ func NewValidator(opts ...ValidatorOption) Validator {
 
 	if serviceValidator.jwtValidator == nil {
 		serviceValidator.jwtValidator = createDefaultJWTValidator(
-			serviceValidator.jwksURL,
+			serviceValidator.jwksURL(),
 			serviceValidator.keyCacher,
-			serviceValidator.realmURL,
+			serviceValidator.realmURL(),
 			serviceValidator.signatureAlgorithm,
 		)
 	}
@@ -72,6 +69,14 @@ func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmU
 	configuration := auth0.NewConfiguration(client, nil, realmURL, signatureAlgorithm)
 
 	return auth0.NewValidator(configuration, nil)
+}
+
+func (sv ValidatorConfig) realmURL() string {
+	return sv.baseURL + "/" + path.Join("auth/realms", sv.realm)
+}
+
+func (sv ValidatorConfig) jwksURL() string {
+	return sv.realmURL() + "/protocol/openid-connect/certs"
 }
 
 // ValidateRequest to validate if the request is authenticated and has active token.

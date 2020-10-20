@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"net/http"
+	"path"
 	"strings"
 	"sync"
 
@@ -24,14 +25,16 @@ var clients sync.Map
 type WithSecret struct {
 	clientID     string
 	clientSecret string
-	tokenURL     string
+	realm        string
+	baseURL      string
 	credentials  clientcredentials.Config
 }
 
 // NewWithSecret will return the preconfigured model.
 func NewWithSecret(clientID, clientSecret string, opts ...Option) AuthProvider {
 	cws := &WithSecret{
-		tokenURL:     config.TokenURL,
+		baseURL:      config.BaseURL,
+		realm:        config.Realm,
 		clientID:     clientID,
 		clientSecret: clientSecret,
 	}
@@ -43,14 +46,18 @@ func NewWithSecret(clientID, clientSecret string, opts ...Option) AuthProvider {
 	cws.credentials = clientcredentials.Config{
 		ClientID:     cws.clientID,
 		ClientSecret: cws.clientSecret,
-		TokenURL:     cws.tokenURL,
+		TokenURL:     cws.tokenURL(),
 	}
 
 	return cws
 }
 
+func (cws *WithSecret) tokenURL() string {
+	return cws.baseURL + "/" + path.Join("auth/realms", cws.realm, "protocol/openid-connect/token")
+}
+
 func (cws *WithSecret) uid() string {
-	return strings.Join([]string{cws.clientID, cws.clientSecret, cws.tokenURL}, "-")
+	return strings.Join([]string{cws.clientID, cws.clientSecret, cws.tokenURL()}, "-")
 }
 
 // TokenSource returns a token source that refreshes the token only when expires
@@ -71,7 +78,7 @@ func (cws *WithSecret) HTTPClient(opts ...HTTPClientOption) *http.Client {
 	creds := clientcredentials.Config{
 		ClientID:     cws.clientID,
 		ClientSecret: cws.clientSecret,
-		TokenURL:     cws.tokenURL,
+		TokenURL:     cws.tokenURL(),
 	}
 
 	clientOpts := &HTTPClientConfig{
