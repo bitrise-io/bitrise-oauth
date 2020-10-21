@@ -2,8 +2,8 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"net/http"
-	"path"
 	"strings"
 	"sync"
 
@@ -53,7 +53,7 @@ func NewWithSecret(clientID, clientSecret string, opts ...Option) AuthProvider {
 }
 
 func (cws *WithSecret) tokenURL() string {
-	return cws.baseURL + "/" + path.Join("auth/realms", cws.realm, "protocol/openid-connect/token")
+	return fmt.Sprintf("%s/auth/realms/%s/protocol/openid-connect/token", cws.baseURL, cws.realm)
 }
 
 func (cws *WithSecret) uid() string {

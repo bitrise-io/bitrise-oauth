@@ -1,6 +1,8 @@
 package service
 
 import (
+	"strings"
+
 	"github.com/auth0-community/go-auth0"
 	"gopkg.in/square/go-jose.v2"
 )
@@ -11,7 +13,7 @@ type ValidatorOption func(c *ValidatorConfig)
 // WithBaseURL ...
 func WithBaseURL(url string) ValidatorOption {
 	return func(c *ValidatorConfig) {
-		c.baseURL = url
+		c.baseURL = strings.TrimSuffix(url, "/")
 	}
 }
 
