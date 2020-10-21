@@ -2,8 +2,9 @@ package service
 
 import (
 	"net/http"
-	"path"
 	"time"
+
+	"github.com/bitrise-io/bitrise-oauth/util"
 
 	auth0 "github.com/auth0-community/go-auth0"
 	"github.com/bitrise-io/bitrise-oauth/config"
@@ -72,11 +73,11 @@ func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmU
 }
 
 func (sv ValidatorConfig) realmURL() string {
-	return sv.baseURL + "/" + path.Join("auth/realms", sv.realm)
+	return util.JoinURL(sv.baseURL, "auth/realms", sv.realm)
 }
 
 func (sv ValidatorConfig) jwksURL() string {
-	return sv.realmURL() + "/protocol/openid-connect/certs"
+	return util.JoinURL(sv.realmURL(), "/protocol/openid-connect/certs")
 }
 
 // ValidateRequest to validate if the request is authenticated and has active token.
