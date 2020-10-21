@@ -2,12 +2,12 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
 
 	"github.com/bitrise-io/bitrise-oauth/config"
-	"github.com/bitrise-io/bitrise-oauth/util"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
@@ -53,7 +53,7 @@ func NewWithSecret(clientID, clientSecret string, opts ...Option) AuthProvider {
 }
 
 func (cws *WithSecret) tokenURL() string {
-	return util.JoinURL(cws.baseURL, "auth/realms", cws.realm, "protocol/openid-connect/token")
+	return fmt.Sprintf("%s/auth/realms/%s/protocol/openid-connect/token", cws.baseURL, cws.realm)
 }
 
 func (cws *WithSecret) uid() string {
