@@ -100,7 +100,7 @@ func Test_GivenATokenThatWillExpireAfter1Second_WhenANewTokenIsAcquired_ThenExpe
 
 	accessToken := "initial-access-token"
 
-	ts := startMockServer(t, &mockedAuthService, &mockedClient, accessToken)
+	ts := startMockServer(t, &mockedAuthService, &mockedClient, accessToken, http.StatusOK, http.StatusOK)
 	defer ts.Close()
 
 	mockedAuthService.
@@ -160,7 +160,7 @@ func Test_GivenAnExistingHTTPContext_WhenItIsPassedAsAnOptionDuringInstantiation
 	assert.EqualError(t, err, fmt.Sprintf(`Get "%s": context canceled`, url))
 }
 
-func startMockServer(t *testing.T, mockedAuthService *mocks.AuthService, mockedClient *mocks.Client, accessToken string) *httptest.Server {
+func startMockServer(t *testing.T, mockedAuthService *mocks.AuthService, mockedClient *mocks.Client, accessToken string, tokenStatusCode, defaultStatusCode int) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/auth/realms/master/protocol/openid-connect/token":
@@ -174,13 +174,15 @@ func startMockServer(t *testing.T, mockedAuthService *mocks.AuthService, mockedC
 			}))
 
 			mockedAuthService.Token()
+
+			w.WriteHeader(tokenStatusCode)
 		default:
 			tokenHeaderSplit := strings.Split(r.Header.Get("Authorization"), " ")
 			assert.Len(t, tokenHeaderSplit, 2)
 
 			mockedClient.Test(tokenHeaderSplit[1])
 
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(defaultStatusCode)
 		}
 	}))
 }
@@ -192,7 +194,7 @@ func Test_GivenTokenSourceWithTokenThatWillNotExpireBetweenRequests_WhenTokenSto
 
 	accessToken := "initial-access-token"
 
-	ts := startMockServer(t, mockedAuthService, mockedClient, accessToken)
+	ts := startMockServer(t, mockedAuthService, mockedClient, accessToken, http.StatusOK, http.StatusOK)
 	defer ts.Close()
 
 	mockedAuthService.
@@ -214,4 +216,68 @@ func Test_GivenTokenSourceWithTokenThatWillNotExpireBetweenRequests_WhenTokenSto
 	// Then
 	mockedAuthService.AssertExpectations(t)
 	mockedClient.AssertExpectations(t)
+}
+
+func Test_GivenAServerThatRejectsHTTPCall_WhenAGetCallIsFired_ThenExpectTheClientToRenewAccessTokenOnce(t *testing.T) {
+	// Given
+	mockedAuthService := mocks.AuthService{}
+	mockedClient := mocks.Client{}
+
+	accessToken := "initial-access-token"
+
+	ts := startMockServer(t, &mockedAuthService, &mockedClient, accessToken, http.StatusOK, http.StatusUnauthorized)
+	defer ts.Close()
+
+	mockedAuthService.
+		On("Token").Return().
+		Twice()
+	mockedClient.
+		On("Test", "initial-access-token").Return().
+		Twice()
+
+	// When
+	c := client.NewWithSecret("my-client-id", "my-secret",
+		client.WithBaseURL(ts.URL)).HTTPClient()
+
+	// Then
+	resp, err := c.Get(ts.URL)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+
+	mockedAuthService.AssertExpectations(t)
+	mockedClient.AssertExpectations(t)
+	mockedAuthService.AssertNotCalled(t, "Token", "refresh_token")
+	mockedClient.AssertNotCalled(t, "Test", "refreshed-access-token")
+}
+
+func Test_GivenAServerThatDoesnotRejectHTTPCall_WhenAGetCallIsFired_ThenExpectTheClientToDoNotRenewAccessToken(t *testing.T) {
+	// Given
+	mockedAuthService := mocks.AuthService{}
+	mockedClient := mocks.Client{}
+
+	accessToken := "initial-access-token"
+
+	ts := startMockServer(t, &mockedAuthService, &mockedClient, accessToken, http.StatusOK, http.StatusOK)
+	defer ts.Close()
+
+	mockedAuthService.
+		On("Token").Return().
+		Once()
+	mockedClient.
+		On("Test", "initial-access-token").Return().
+		Once()
+
+	// When
+	c := client.NewWithSecret("my-client-id", "my-secret",
+		client.WithBaseURL(ts.URL)).HTTPClient()
+
+	// Then
+	resp, err := c.Get(ts.URL)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	mockedAuthService.AssertExpectations(t)
+	mockedClient.AssertExpectations(t)
+	mockedAuthService.AssertNotCalled(t, "Token", "refresh_token")
+	mockedClient.AssertNotCalled(t, "Test", "refreshed-access-token")
 }
