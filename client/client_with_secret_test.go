@@ -241,7 +241,7 @@ func Test_GivenAServerThatRejectsHTTPCall_WhenAGetCallIsFired_ThenExpectTheClien
 			On("Token").Return().
 			Times(testCase.expectedNoOfCalls)
 		mockedClient.
-			On("Test", "initial-access-token").Return().
+			On("Test", accessToken).Return().
 			Times(testCase.expectedNoOfCalls)
 
 		// When
