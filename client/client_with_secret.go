@@ -89,16 +89,26 @@ func (cws *WithSecret) HTTPClient(opts ...HTTPClientOption) *http.Client {
 		opt(clientOpts)
 	}
 
-	if clientOpts.baseClient == nil {
-		return creds.Client(clientOpts.context)
+	client := &http.Client{}
+	if clientOpts.baseClient != nil {
+		client = clientOpts.baseClient
 	}
 
-	oauth2Transport := &oauth2.Transport{
-		Source: creds.TokenSource(clientOpts.context),
-		Base:   clientOpts.baseClient.Transport,
+	origTransport := client.Transport
+
+	resettableTokenSrc := &resettableTokenSource{
+		ctx:   clientOpts.context,
+		src:   creds.TokenSource(clientOpts.context),
+		creds: creds}
+
+	invalidTokenRefresherTransport := &invalidTokenRefresherTransport{
+		base: &oauth2.Transport{
+			Source: resettableTokenSrc,
+			Base:   origTransport},
+		tokenSrc: resettableTokenSrc,
 	}
 
-	clientOpts.baseClient.Transport = oauth2Transport
+	client.Transport = invalidTokenRefresherTransport
 
-	return clientOpts.baseClient
+	return client
 }
