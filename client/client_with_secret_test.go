@@ -107,8 +107,11 @@ func Test_GivenATokenThatWillExpireAfter1Second_WhenANewTokenIsAcquired_ThenExpe
 		On("Token").Return().
 		Twice()
 	mockedClient.
-		On("Test", "initial-access-token").Return().
-		Times(6)
+		On("Test", accessToken+"-0").Return().
+		Times(3)
+	mockedClient.
+		On("Test", accessToken+"-1").Return().
+		Times(3)
 
 	// When
 	c := client.NewWithSecret("my-client-id", "my-secret",
@@ -124,8 +127,6 @@ func Test_GivenATokenThatWillExpireAfter1Second_WhenANewTokenIsAcquired_ThenExpe
 
 	mockedAuthService.AssertExpectations(t)
 	mockedClient.AssertExpectations(t)
-	mockedAuthService.AssertNotCalled(t, "Token", "refresh_token")
-	mockedClient.AssertNotCalled(t, "Test", "refreshed-access-token")
 }
 
 func Test_GivenAnExistingHTTPClient_WhenItIsPassedAsAnOptionDuringInstantiation_ThenExpectTheNewClientToBeAnExtendedCopyOfTheExistingOne(t *testing.T) {
@@ -161,17 +162,20 @@ func Test_GivenAnExistingHTTPContext_WhenItIsPassedAsAnOptionDuringInstantiation
 }
 
 func startMockServer(t *testing.T, mockedAuthService *mocks.AuthService, mockedClient *mocks.Client, accessToken string, tokenStatusCode, defaultStatusCode int) *httptest.Server {
+	counter := 0
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/auth/realms/master/protocol/openid-connect/token":
 			w.Header().Add("content-type", "application/json")
 
 			assert.NoError(t, json.NewEncoder(w).Encode(tokenJSON{
-				AccessToken:  accessToken,
+				AccessToken:  fmt.Sprintf("%s-%d", accessToken, counter),
 				RefreshToken: "refresh-token",
 				TokenType:    "Bearer",
 				ExpiresIn:    11, // go has a -10 seconds delta time gap - https://github.com/golang/oauth2/blob/master/token.go#L22
 			}))
+
+			counter++
 
 			mockedAuthService.Token()
 
@@ -207,11 +211,11 @@ func Test_GivenTokenSourceWithTokenThatWillNotExpireBetweenRequests_WhenTokenSto
 	// When
 	token, err := tokenSource.Token()
 	require.NoError(t, err)
-	require.Equal(t, token.AccessToken, accessToken)
+	require.Equal(t, token.AccessToken, accessToken+"-0")
 
 	token, err = tokenSource.Token()
 	require.NoError(t, err)
-	require.Equal(t, token.AccessToken, accessToken)
+	require.Equal(t, token.AccessToken, accessToken+"-0")
 
 	// Then
 	mockedAuthService.AssertExpectations(t)
@@ -240,9 +244,8 @@ func Test_GivenAServerThatRejectsHTTPCall_WhenAGetCallIsFired_ThenExpectTheClien
 		mockedAuthService.
 			On("Token").Return().
 			Times(testCase.expectedNoOfCalls)
-		mockedClient.
-			On("Test", accessToken).Return().
-			Times(testCase.expectedNoOfCalls)
+
+		expectAccessTokenChangeForTest(&mockedClient, accessToken, testCase.expectedNoOfCalls)
 
 		// When
 		c := client.NewWithSecret("my-client-id", "my-secret",
@@ -255,5 +258,13 @@ func Test_GivenAServerThatRejectsHTTPCall_WhenAGetCallIsFired_ThenExpectTheClien
 
 		mockedAuthService.AssertExpectations(t)
 		mockedClient.AssertExpectations(t)
+	}
+}
+
+func expectAccessTokenChangeForTest(m *mocks.Client, accessTokenPrefix string, expectedNoOfCalls int) {
+	for i := 0; i < expectedNoOfCalls; i++ {
+		fmt.Println("he", fmt.Sprintf("%s-%d", accessTokenPrefix, i))
+		m.On("Test", fmt.Sprintf("%s-%d", accessTokenPrefix, i)).Return().
+			Once()
 	}
 }
