@@ -219,65 +219,41 @@ func Test_GivenTokenSourceWithTokenThatWillNotExpireBetweenRequests_WhenTokenSto
 }
 
 func Test_GivenAServerThatRejectsHTTPCall_WhenAGetCallIsFired_ThenExpectTheClientToRenewAccessTokenOnce(t *testing.T) {
-	// Given
-	mockedAuthService := mocks.AuthService{}
-	mockedClient := mocks.Client{}
+	testCases := []struct {
+		expectedStatusCode int
+		expectedNoOfCalls  int
+	}{
+		{http.StatusUnauthorized, 2},
+		{http.StatusOK, 1},
+	}
 
-	accessToken := "initial-access-token"
+	for _, testCase := range testCases {
+		// Given
+		mockedAuthService := mocks.AuthService{}
+		mockedClient := mocks.Client{}
 
-	ts := startMockServer(t, &mockedAuthService, &mockedClient, accessToken, http.StatusOK, http.StatusUnauthorized)
-	defer ts.Close()
+		accessToken := "initial-access-token"
 
-	mockedAuthService.
-		On("Token").Return().
-		Twice()
-	mockedClient.
-		On("Test", "initial-access-token").Return().
-		Twice()
+		ts := startMockServer(t, &mockedAuthService, &mockedClient, accessToken, http.StatusOK, testCase.expectedStatusCode)
+		defer ts.Close()
 
-	// When
-	c := client.NewWithSecret("my-client-id", "my-secret",
-		client.WithBaseURL(ts.URL)).HTTPClient()
+		mockedAuthService.
+			On("Token").Return().
+			Times(testCase.expectedNoOfCalls)
+		mockedClient.
+			On("Test", "initial-access-token").Return().
+			Times(testCase.expectedNoOfCalls)
 
-	// Then
-	resp, err := c.Get(ts.URL)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+		// When
+		c := client.NewWithSecret("my-client-id", "my-secret",
+			client.WithBaseURL(ts.URL)).HTTPClient()
 
-	mockedAuthService.AssertExpectations(t)
-	mockedClient.AssertExpectations(t)
-	mockedAuthService.AssertNotCalled(t, "Token", "refresh_token")
-	mockedClient.AssertNotCalled(t, "Test", "refreshed-access-token")
-}
+		// Then
+		resp, err := c.Get(ts.URL)
+		assert.NoError(t, err)
+		assert.Equal(t, testCase.expectedStatusCode, resp.StatusCode)
 
-func Test_GivenAServerThatDoesnotRejectHTTPCall_WhenAGetCallIsFired_ThenExpectTheClientToDoNotRenewAccessToken(t *testing.T) {
-	// Given
-	mockedAuthService := mocks.AuthService{}
-	mockedClient := mocks.Client{}
-
-	accessToken := "initial-access-token"
-
-	ts := startMockServer(t, &mockedAuthService, &mockedClient, accessToken, http.StatusOK, http.StatusOK)
-	defer ts.Close()
-
-	mockedAuthService.
-		On("Token").Return().
-		Once()
-	mockedClient.
-		On("Test", "initial-access-token").Return().
-		Once()
-
-	// When
-	c := client.NewWithSecret("my-client-id", "my-secret",
-		client.WithBaseURL(ts.URL)).HTTPClient()
-
-	// Then
-	resp, err := c.Get(ts.URL)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-	mockedAuthService.AssertExpectations(t)
-	mockedClient.AssertExpectations(t)
-	mockedAuthService.AssertNotCalled(t, "Token", "refresh_token")
-	mockedClient.AssertNotCalled(t, "Test", "refreshed-access-token")
+		mockedAuthService.AssertExpectations(t)
+		mockedClient.AssertExpectations(t)
+	}
 }

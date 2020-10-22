@@ -89,12 +89,12 @@ func (cws *WithSecret) HTTPClient(opts ...HTTPClientOption) *http.Client {
 		opt(clientOpts)
 	}
 
-	c := &http.Client{}
+	client := &http.Client{}
 	if clientOpts.baseClient != nil {
-		c = clientOpts.baseClient
+		client = clientOpts.baseClient
 	}
 
-	origTransport := c.Transport
+	origTransport := client.Transport
 
 	resettableTokenSrc := &resettableTokenSource{
 		ctx:   clientOpts.context,
@@ -108,7 +108,7 @@ func (cws *WithSecret) HTTPClient(opts ...HTTPClientOption) *http.Client {
 		tokenSrc: resettableTokenSrc,
 	}
 
-	c.Transport = invalidTokenRefresherTransport
+	client.Transport = invalidTokenRefresherTransport
 
-	return c
+	return client
 }
