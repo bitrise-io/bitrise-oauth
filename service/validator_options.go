@@ -10,9 +10,7 @@ import (
 // ValidatorOption ...
 type ValidatorOption func(c *ValidatorConfig)
 
-var defaultExternalErrorHandler = func(err error) error {
-	return err
-}
+var defaultInternalErrorHandler = func(err error) {}
 
 // WithBaseURL ...
 func WithBaseURL(url string) ValidatorOption {
@@ -49,9 +47,9 @@ func WithValidator(validator JWTValidator) ValidatorOption {
 	}
 }
 
-// WithExternalErrorHandler ...
-func WithExternalErrorHandler(handler ExternalErrorHandler) ValidatorOption {
+// WithInternalErrorHandler ...
+func WithInternalErrorHandler(handler InternalErrorHandler) ValidatorOption {
 	return func(c *ValidatorConfig) {
-		c.externalErrorHandler = handler
+		c.internalErrorHandler = handler
 	}
 }
