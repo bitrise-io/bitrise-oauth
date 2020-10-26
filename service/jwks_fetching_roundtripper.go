@@ -9,7 +9,6 @@ type InternalErrorHandler func(error)
 // JWKSFetchingRoundTripper ...
 type JWKSFetchingRoundTripper struct {
 	ErrorHandler InternalErrorHandler
-	Base         http.RoundTripper
 }
 
 // RoundTrip ...
