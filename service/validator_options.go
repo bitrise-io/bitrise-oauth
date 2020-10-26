@@ -10,8 +10,6 @@ import (
 // ValidatorOption ...
 type ValidatorOption func(c *ValidatorConfig)
 
-var defaultInternalErrorHandler = func(err error) {}
-
 // WithBaseURL ...
 func WithBaseURL(url string) ValidatorOption {
 	return func(c *ValidatorConfig) {
