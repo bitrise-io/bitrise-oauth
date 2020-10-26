@@ -38,11 +38,10 @@ type ValidatorConfig struct {
 // NewValidator returns the prepared JWK model. All input arguments are optional.
 func NewValidator(opts ...ValidatorOption) Validator {
 	serviceValidator := &ValidatorConfig{
-		baseURL:              config.BaseURL,
-		realm:                config.Realm,
-		keyCacher:            auth0.NewMemoryKeyCacher(3*time.Minute, 5),
-		signatureAlgorithm:   jose.RS256,
-		internalErrorHandler: defaultInternalErrorHandler,
+		baseURL:            config.BaseURL,
+		realm:              config.Realm,
+		keyCacher:          auth0.NewMemoryKeyCacher(3*time.Minute, 5),
+		signatureAlgorithm: jose.RS256,
 	}
 
 	for _, opt := range opts {

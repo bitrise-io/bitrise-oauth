@@ -17,7 +17,9 @@ func (roundTripper *JWKSFetchingRoundTripper) RoundTrip(req *http.Request) (*htt
 	res, err := http.DefaultTransport.RoundTrip(req)
 
 	if err != nil {
-		roundTripper.ErrorHandler(err)
+		if roundTripper.ErrorHandler != nil {
+			roundTripper.ErrorHandler(err)
+		}
 	}
 
 	return res, err
