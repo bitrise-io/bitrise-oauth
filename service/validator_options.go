@@ -10,6 +10,10 @@ import (
 // ValidatorOption ...
 type ValidatorOption func(c *ValidatorConfig)
 
+var defaultExternalErrorHandler = func(err error) error {
+	return err
+}
+
 // WithBaseURL ...
 func WithBaseURL(url string) ValidatorOption {
 	return func(c *ValidatorConfig) {
@@ -42,5 +46,12 @@ func WithKeyCacher(kc auth0.KeyCacher) ValidatorOption {
 func WithValidator(validator JWTValidator) ValidatorOption {
 	return func(c *ValidatorConfig) {
 		c.jwtValidator = validator
+	}
+}
+
+// WithExternalErrorHandler ...
+func WithExternalErrorHandler(handler ExternalErrorHandler) ValidatorOption {
+	return func(c *ValidatorConfig) {
+		c.externalErrorHandler = handler
 	}
 }

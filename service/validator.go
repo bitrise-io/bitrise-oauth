@@ -27,20 +27,22 @@ type Validator interface {
 
 // ValidatorConfig ...
 type ValidatorConfig struct {
-	jwtValidator       JWTValidator
-	baseURL            string
-	realm              string
-	keyCacher          auth0.KeyCacher
-	signatureAlgorithm jose.SignatureAlgorithm
+	jwtValidator         JWTValidator
+	baseURL              string
+	realm                string
+	keyCacher            auth0.KeyCacher
+	signatureAlgorithm   jose.SignatureAlgorithm
+	externalErrorHandler ExternalErrorHandler
 }
 
 // NewValidator returns the prepared JWK model. All input arguments are optional.
 func NewValidator(opts ...ValidatorOption) Validator {
 	serviceValidator := &ValidatorConfig{
-		baseURL:            config.BaseURL,
-		realm:              config.Realm,
-		keyCacher:          auth0.NewMemoryKeyCacher(3*time.Minute, 5),
-		signatureAlgorithm: jose.RS256,
+		baseURL:              config.BaseURL,
+		realm:                config.Realm,
+		keyCacher:            auth0.NewMemoryKeyCacher(3*time.Minute, 5),
+		signatureAlgorithm:   jose.RS256,
+		externalErrorHandler: defaultExternalErrorHandler,
 	}
 
 	for _, opt := range opts {
@@ -53,15 +55,17 @@ func NewValidator(opts ...ValidatorOption) Validator {
 			serviceValidator.keyCacher,
 			serviceValidator.realmURL(),
 			serviceValidator.signatureAlgorithm,
+			serviceValidator.externalErrorHandler,
 		)
 	}
 
 	return serviceValidator
 }
 
-func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmURL string, signatureAlgorithm jose.SignatureAlgorithm) JWTValidator {
+func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmURL string, signatureAlgorithm jose.SignatureAlgorithm, errorHandler ExternalErrorHandler) JWTValidator {
 	clientOpts := auth0.JWKClientOptions{
-		URI: jwksURL,
+		URI:    jwksURL,
+		Client: createDefaultHTTPClientForJWTValidator(errorHandler),
 	}
 
 	client := auth0.NewJWKClientWithCache(clientOpts, nil, keyCacher)
@@ -69,6 +73,14 @@ func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmU
 	configuration := auth0.NewConfiguration(client, nil, realmURL, signatureAlgorithm)
 
 	return auth0.NewValidator(configuration, nil)
+}
+
+func createDefaultHTTPClientForJWTValidator(errorHandler ExternalErrorHandler) *http.Client {
+	return &http.Client{
+		Transport: &JWKSFetchingRoundTripper{
+			ErrorHandler: errorHandler,
+		},
+	}
 }
 
 func (sv ValidatorConfig) realmURL() string {
