@@ -2,7 +2,7 @@ package service
 
 import "net/http"
 
-// InternalErrorHandler is a type alias for a function that receives an error and returns an error.
+// InternalErrorHandler is a type alias for a function that receives an error.
 // The caller can be notified about the internal errors of the package.
 type InternalErrorHandler func(error)
 
