@@ -6,8 +6,7 @@ import (
 )
 
 const (
-	// BitriseOAuthInternalError is used to identify the package's internal errors
-	BitriseOAuthInternalError = "Bitrise OAuth internal error"
+	bitriseOAuthInternalError = "Bitrise OAuth internal error"
 )
 
 // InternalError ...
@@ -16,10 +15,10 @@ type InternalError struct {
 }
 
 func (e *InternalError) Error() string {
-	return fmt.Sprintf("%s: %v", BitriseOAuthInternalError, e.Err)
+	return fmt.Sprintf("%s: %v", bitriseOAuthInternalError, e.Err)
 }
 
 // IsInternalError returns TRUE if the error is an internal error
 func IsInternalError(err error) bool {
-	return strings.Contains(err.Error(), BitriseOAuthInternalError)
+	return strings.Contains(err.Error(), bitriseOAuthInternalError)
 }
