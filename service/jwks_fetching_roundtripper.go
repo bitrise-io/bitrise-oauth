@@ -12,7 +12,7 @@ func (roundTripper *JWKSFetchingRoundTripper) RoundTrip(req *http.Request) (*htt
 	res, err := http.DefaultTransport.RoundTrip(req)
 
 	if err != nil {
-		// mark error, custom error
+		err = &InternalError{Err: err}
 	}
 
 	return res, err
