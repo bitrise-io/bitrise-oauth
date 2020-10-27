@@ -27,12 +27,11 @@ type Validator interface {
 
 // ValidatorConfig ...
 type ValidatorConfig struct {
-	jwtValidator         JWTValidator
-	baseURL              string
-	realm                string
-	keyCacher            auth0.KeyCacher
-	signatureAlgorithm   jose.SignatureAlgorithm
-	internalErrorHandler InternalErrorHandler
+	jwtValidator       JWTValidator
+	baseURL            string
+	realm              string
+	keyCacher          auth0.KeyCacher
+	signatureAlgorithm jose.SignatureAlgorithm
 }
 
 // NewValidator returns the prepared JWK model. All input arguments are optional.
@@ -54,17 +53,16 @@ func NewValidator(opts ...ValidatorOption) Validator {
 			serviceValidator.keyCacher,
 			serviceValidator.realmURL(),
 			serviceValidator.signatureAlgorithm,
-			serviceValidator.internalErrorHandler,
 		)
 	}
 
 	return serviceValidator
 }
 
-func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmURL string, signatureAlgorithm jose.SignatureAlgorithm, errorHandler InternalErrorHandler) JWTValidator {
+func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmURL string, signatureAlgorithm jose.SignatureAlgorithm) JWTValidator {
 	clientOpts := auth0.JWKClientOptions{
 		URI:    jwksURL,
-		Client: createDefaultHTTPClientForJWTValidator(errorHandler),
+		Client: createDefaultHTTPClientForJWTValidator(),
 	}
 
 	client := auth0.NewJWKClientWithCache(clientOpts, nil, keyCacher)
@@ -74,12 +72,8 @@ func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmU
 	return auth0.NewValidator(configuration, nil)
 }
 
-func createDefaultHTTPClientForJWTValidator(errorHandler InternalErrorHandler) *http.Client {
-	return &http.Client{
-		Transport: &JWKSFetchingRoundTripper{
-			ErrorHandler: errorHandler,
-		},
-	}
+func createDefaultHTTPClientForJWTValidator() *http.Client {
+	return &http.Client{Transport: &JWKSFetchingRoundTripper{}}
 }
 
 func (sv ValidatorConfig) realmURL() string {

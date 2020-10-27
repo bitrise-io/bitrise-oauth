@@ -44,10 +44,3 @@ func WithValidator(validator JWTValidator) ValidatorOption {
 		c.jwtValidator = validator
 	}
 }
-
-// WithInternalErrorHandler ...
-func WithInternalErrorHandler(handler InternalErrorHandler) ValidatorOption {
-	return func(c *ValidatorConfig) {
-		c.internalErrorHandler = handler
-	}
-}

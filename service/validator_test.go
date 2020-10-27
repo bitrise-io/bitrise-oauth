@@ -202,18 +202,18 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 	}
 }
 
-func Test_GivenAnInvalidAuthServiceBaseUrlAndAnInternalErrorHandler_WhenTheRequestIsValidated_ThenExpectInternalErrorHandlertoBeCalled(t *testing.T) {
-	mockInternalErrorHandler := new(mocks.InternalErrorHandler)
-	mockInternalErrorHandler.On("HandlerFunction", mock.Anything).Return()
+// func Test_GivenAnInvalidAuthServiceBaseUrlAndAnInternalErrorHandler_WhenTheRequestIsValidated_ThenExpectInternalErrorHandlertoBeCalled(t *testing.T) {
+// 	mockInternalErrorHandler := new(mocks.InternalErrorHandler)
+// 	mockInternalErrorHandler.On("HandlerFunction", mock.Anything).Return()
 
-	validator := service.NewValidator(service.WithBaseURL(InvalidAuthServiceBaseURL), service.WithInternalErrorHandler(mockInternalErrorHandler.HandlerFunction))
+// 	validator := service.NewValidator(service.WithBaseURL(InvalidAuthServiceBaseURL), service.WithInternalErrorHandler(mockInternalErrorHandler.HandlerFunction))
 
-	request1 := createRequestWithToken(JWT_1)
+// 	request := createRequestWithToken(JWT_1)
 
-	validateRequest(validator, request1)
+// 	validateRequest(validator, request)
 
-	mockInternalErrorHandler.AssertCalled(t, "HandlerFunction", mock.Anything)
-}
+// 	mockInternalErrorHandler.AssertCalled(t, "HandlerFunction", mock.Anything)
+// }
 
 func givenSuccessfulJWTValidation() *mocks.JWTValidator {
 	return new(mocks.JWTValidator).GivenSuccessfulJWTValidation()

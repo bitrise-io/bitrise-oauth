@@ -4,23 +4,15 @@ import (
 	"net/http"
 )
 
-// InternalErrorHandler is a type alias for a function that receives an error.
-// The caller can be notified about the internal errors of the package.
-type InternalErrorHandler func(error)
-
 // JWKSFetchingRoundTripper ...
-type JWKSFetchingRoundTripper struct {
-	ErrorHandler InternalErrorHandler
-}
+type JWKSFetchingRoundTripper struct{}
 
 // RoundTrip ...
 func (roundTripper *JWKSFetchingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	res, err := http.DefaultTransport.RoundTrip(req)
 
 	if err != nil {
-		if roundTripper.ErrorHandler != nil {
-			roundTripper.ErrorHandler(err)
-		}
+		// mark error, custom error
 	}
 
 	return res, err
