@@ -19,10 +19,9 @@ import (
 const (
 	Authorization = "Authorization"
 	// You may find further information about generating signed JWT tokens here: https://bitrise.atlassian.net/wiki/spaces/~940361272/pages/828867013/Generate+JWT+for+testing
-	JWT_1                     = "BEARER eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldNVlkwcWVyZmJGUC0zcllLdW55NUFQaXJmcnk0OG5QZWVYcnlQNzk5RmsifQ.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.TG_KUN36-raydoUZH0IeF_-upVbRCLemD7Bt3BCWCrr51cJjsSKAkIKmnyFH4Ow_5pLzlaU4NRoQMeoAIF0VvH28P6hnQKvMmpEM-kQ0UMHnZvMfzuh7SvsvEAIaDhtEEOFfYNV5w0jWoQsAbrMw9vkKrPFqXatxBF1t_yvbW6x2SKEql_UmmN88oxfa_-DS2OrKWsyk2hakR6rnM-m8zTrqdsRndvAP25DeNiySHR_fyB53Dn7un-TO7KJENi5X_obGuXKjQY0C5JFkibR1RY4o9Rp04rdFQrv_PPBC2Ki0pIqDpKVaRbceNkC1BiMzz2zjNR2B6EWbdzPB24bgAA"
-	JWT_2                     = "BEARER eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldNVlkwcWVyZmJGUC0zcllLdW55NUFQaXJmcnk0OG5QZWVYcnlQNzk5RmsxIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.XLWuYJ3xb71XGh3XXH0xpX18_Q8RWQDIjUs6EKYD1mX2KXkJIWKj_1m4gNziEdTm03tXFKuDCXhdnFB7L7NJeOtT9dVNtIfqkBR0cYd2KU6HitPck9qd5wz_JcaaPQttHfrVBxJVIaK7ifZFCjjlGSukkYQ7aQalEv2ZjTycXP7FVs7bDq39f1OWdw2rM6XurrjWm65uEwC9m2z08DdgPnmyzCFh0NE5WyMHkezcIl2DDHxJjmb0AZkdIYW1q-AbYs0CIlAemOnxW_or7uzgtATZ-GWE_WEJp_bOeTkZK3BLnShXhlRdKNaHJXCuBzfBwdUY24-x6mEPRKNBYPGW3w"
-	RequestUrl                = "https://bitrise.io/protected_route"
-	InvalidAuthServiceBaseURL = "http://invalid.auth.service.bitrise.io"
+	JWT_1      = "BEARER eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldNVlkwcWVyZmJGUC0zcllLdW55NUFQaXJmcnk0OG5QZWVYcnlQNzk5RmsifQ.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.TG_KUN36-raydoUZH0IeF_-upVbRCLemD7Bt3BCWCrr51cJjsSKAkIKmnyFH4Ow_5pLzlaU4NRoQMeoAIF0VvH28P6hnQKvMmpEM-kQ0UMHnZvMfzuh7SvsvEAIaDhtEEOFfYNV5w0jWoQsAbrMw9vkKrPFqXatxBF1t_yvbW6x2SKEql_UmmN88oxfa_-DS2OrKWsyk2hakR6rnM-m8zTrqdsRndvAP25DeNiySHR_fyB53Dn7un-TO7KJENi5X_obGuXKjQY0C5JFkibR1RY4o9Rp04rdFQrv_PPBC2Ki0pIqDpKVaRbceNkC1BiMzz2zjNR2B6EWbdzPB24bgAA"
+	JWT_2      = "BEARER eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldNVlkwcWVyZmJGUC0zcllLdW55NUFQaXJmcnk0OG5QZWVYcnlQNzk5RmsxIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.XLWuYJ3xb71XGh3XXH0xpX18_Q8RWQDIjUs6EKYD1mX2KXkJIWKj_1m4gNziEdTm03tXFKuDCXhdnFB7L7NJeOtT9dVNtIfqkBR0cYd2KU6HitPck9qd5wz_JcaaPQttHfrVBxJVIaK7ifZFCjjlGSukkYQ7aQalEv2ZjTycXP7FVs7bDq39f1OWdw2rM6XurrjWm65uEwC9m2z08DdgPnmyzCFh0NE5WyMHkezcIl2DDHxJjmb0AZkdIYW1q-AbYs0CIlAemOnxW_or7uzgtATZ-GWE_WEJp_bOeTkZK3BLnShXhlRdKNaHJXCuBzfBwdUY24-x6mEPRKNBYPGW3w"
+	RequestUrl = "https://bitrise.io/protected_route"
 )
 
 func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenExpectTheNextMiddlewareToBeCalled(t *testing.T) {
@@ -201,19 +200,6 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 		})
 	}
 }
-
-// func Test_GivenAnInvalidAuthServiceBaseUrlAndAnInternalErrorHandler_WhenTheRequestIsValidated_ThenExpectInternalErrorHandlertoBeCalled(t *testing.T) {
-// 	mockInternalErrorHandler := new(mocks.InternalErrorHandler)
-// 	mockInternalErrorHandler.On("HandlerFunction", mock.Anything).Return()
-
-// 	validator := service.NewValidator(service.WithBaseURL(InvalidAuthServiceBaseURL), service.WithInternalErrorHandler(mockInternalErrorHandler.HandlerFunction))
-
-// 	request := createRequestWithToken(JWT_1)
-
-// 	validateRequest(validator, request)
-
-// 	mockInternalErrorHandler.AssertCalled(t, "HandlerFunction", mock.Anything)
-// }
 
 func givenSuccessfulJWTValidation() *mocks.JWTValidator {
 	return new(mocks.JWTValidator).GivenSuccessfulJWTValidation()
