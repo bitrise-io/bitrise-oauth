@@ -2,6 +2,7 @@ package service
 
 import (
 	"strings"
+	"time"
 
 	"github.com/auth0-community/go-auth0"
 	"gopkg.in/square/go-jose.v2"
@@ -14,6 +15,13 @@ type ValidatorOption func(c *ValidatorConfig)
 func WithBaseURL(url string) ValidatorOption {
 	return func(c *ValidatorConfig) {
 		c.baseURL = strings.TrimSuffix(url, "/")
+	}
+}
+
+// WithTimeout ...
+func WithTimeout(timeout time.Duration) ValidatorOption {
+	return func(c *ValidatorConfig) {
+		c.timeout = timeout
 	}
 }
 
