@@ -80,13 +80,15 @@ You can use `ValidatorOption`s to configure.
 
 - `realm string` holds the realm.
 
-- `keyCacher auth0.KeyCacher` holds the *JWK* cacher. By default it can hold **5 keys** at max, for no longer than **3 minutes**.
+- `keyCacher auth0.KeyCacher` holds the *JWK* cacher. By default it can hold **5 keys** at max, for no longer than **2 hours**.
 
 - `jwksURL string` holds the keystore URL.
 
 - `realmURL string` holds the realm URL.
 
 - `signatureAlgorithm jose.SignatureAlgorithm` holds the encryption/decription algorithm of the *JWT*. By default this is `RS256`.
+
+- `timeout time.Duration` holds the timeout duration. By default this is **30 seconds**.
 
 ##### Methods
 - `NewValidator(opts ...ValidatorOption) ValidatorIntf` returns a new instance of `Validator`. It might receive `ValidatorOption`s as a parameter.
@@ -122,6 +124,8 @@ The available `ValidatorOption`s are the following:
 - `WithKeyCacher(kc auth0.KeyCacher) ValidatorOption` overrides the *JWK* cacher.
 
 - `WithValidator(validator JWTValidator) ValidatorOption` overrides the Auth0 `auth0.JWTValidator`.
+
+- `WithTimeout(timeout time.Duration) ValidatorOption` overrides the timeout for validation networking.
 
 #### HTTPMiddlewareOption
 You can configure the *Handler Function* and *Middleware* use-cases via passing these Options either to `Validator`'s `HandlerFunc` or `Middleware` function. The available `HTTPMiddlewareOption`s are the following:
