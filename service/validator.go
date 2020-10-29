@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	auth0 "github.com/auth0-community/go-auth0"
@@ -67,13 +66,9 @@ func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmU
 
 	client := auth0.NewJWKClientWithCache(clientOpts, nil, keyCacher)
 
-	configuration := auth0.NewConfiguration(client, nil, issuerWithHTTPPrefix(realmURL), signatureAlgorithm)
+	configuration := auth0.NewConfiguration(client, nil, realmURL, signatureAlgorithm)
 
 	return auth0.NewValidator(configuration, nil)
-}
-
-func issuerWithHTTPPrefix(realmURL string) string {
-	return strings.Replace(realmURL, "https://", "http://", 1)
 }
 
 func (sv ValidatorConfig) realmURL() string {
