@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bitrise-io/bitrise-oauth/config"
+
 	"github.com/bitrise-io/bitrise-oauth/client"
 	"github.com/bitrise-io/bitrise-oauth/mocks"
 	"github.com/stretchr/testify/assert"
@@ -162,10 +164,12 @@ func Test_GivenAnExistingHTTPContext_WhenItIsPassedAsAnOptionDuringInstantiation
 }
 
 func startMockServer(t *testing.T, mockedAuthService *mocks.AuthService, mockedClient *mocks.Client, accessToken string, tokenStatusCode, defaultStatusCode int) *httptest.Server {
+	tokenEndpointURL := "/auth/realms/" + config.Realm + "/protocol/openid-connect/token"
+
 	counter := 0
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case "/auth/realms/master/protocol/openid-connect/token":
+		case tokenEndpointURL:
 			w.Header().Add("content-type", "application/json")
 
 			assert.NoError(t, json.NewEncoder(w).Encode(tokenJSON{
