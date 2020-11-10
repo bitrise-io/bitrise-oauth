@@ -9,6 +9,7 @@ import (
 	"time"
 
 	auth0 "github.com/auth0-community/go-auth0"
+	"github.com/bitrise-io/bitrise-oauth/config"
 	"github.com/bitrise-io/bitrise-oauth/mocks"
 	"github.com/bitrise-io/bitrise-oauth/service"
 	"github.com/c2fo/testify/assert"
@@ -166,6 +167,8 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 		},
 	}
 
+	certsEndpointURL := "/auth/realms/" + config.Realm + "/protocol/openid-connect/certs"
+
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			// Given
@@ -175,7 +178,7 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 			testAuthServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				fmt.Println(r.URL.Path)
 				switch r.URL.Path {
-				case "/auth/realms/master/protocol/openid-connect/certs":
+				case certsEndpointURL:
 					mockAuthService.Certs()
 					addContentTypeAndTokenToResponse(w)
 				default:

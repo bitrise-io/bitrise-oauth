@@ -3,5 +3,5 @@ package config
 // ...
 const (
 	BaseURL = `https://auth.services.bitrise.io`
-	Realm   = `master`
+	Realm   = `bitrise-services`
 )
