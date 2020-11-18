@@ -25,8 +25,8 @@ func WithRealm(realm string) Option {
 type ScopeOption func(c *WithSecret)
 
 // WithScope ...
-func WithScope(aud0 string, auds ...string) ScopeOption {
+func WithScope(aud string, auds ...string) ScopeOption {
 	return func(c *WithSecret) {
-		c.scopes = append(auds, aud0)
+		c.scopes = append(auds, aud)
 	}
 }
