@@ -28,10 +28,11 @@ type WithSecret struct {
 	realm        string
 	baseURL      string
 	credentials  clientcredentials.Config
+	scopes       []string
 }
 
 // NewWithSecret will return the preconfigured model.
-func NewWithSecret(clientID, clientSecret string, opts ...Option) AuthProvider {
+func NewWithSecret(clientID, clientSecret string, scopeOption ScopeOption, opts ...Option) AuthProvider {
 	cws := &WithSecret{
 		baseURL:      config.BaseURL,
 		realm:        config.Realm,
@@ -43,10 +44,13 @@ func NewWithSecret(clientID, clientSecret string, opts ...Option) AuthProvider {
 		opt(cws)
 	}
 
+	scopeOption(cws)
+
 	cws.credentials = clientcredentials.Config{
 		ClientID:     cws.clientID,
 		ClientSecret: cws.clientSecret,
 		TokenURL:     cws.tokenURL(),
+		Scopes:       cws.scopes,
 	}
 
 	return cws

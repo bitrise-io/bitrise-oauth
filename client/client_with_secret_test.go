@@ -20,7 +20,7 @@ import (
 )
 
 func Example() {
-	client.NewWithSecret("my_client_id", "my_client_secret").ManagedHTTPClient()
+	client.NewWithSecret("my_client_id", "my_client_secret", client.WithScope("")).ManagedHTTPClient()
 }
 
 type tokenJSON struct {
@@ -39,7 +39,7 @@ func Test_Given30ThreadsAndEachWillLaunch30RequestsOnNewThreads_WhenTheManagedHt
 
 	// When
 	async(clientsToCreate, callsPerClient, func(i, j int) {
-		c := client.NewWithSecret(fmt.Sprintf("clientID-%d", i), fmt.Sprintf("clientSecret-%d", i),
+		c := client.NewWithSecret(fmt.Sprintf("clientID-%d", i), fmt.Sprintf("clientSecret-%d", i), client.WithScope(""),
 			client.WithBaseURL("https://google.com"), client.WithRealm("myrealm")).ManagedHTTPClient()
 
 		pointerKey := fmt.Sprintf("%d,%d", i, j)
@@ -116,7 +116,7 @@ func Test_GivenATokenThatWillExpireAfter1Second_WhenANewTokenIsAcquired_ThenExpe
 		Times(3)
 
 	// When
-	c := client.NewWithSecret("my-client-id", "my-secret",
+	c := client.NewWithSecret("my-client-id", "my-secret", client.WithScope(""),
 		client.WithBaseURL(ts.URL)).ManagedHTTPClient()
 
 	// Then
@@ -136,7 +136,7 @@ func Test_GivenAnExistingHTTPClient_WhenItIsPassedAsAnOptionDuringInstantiation_
 	baseClient := &http.Client{}
 
 	// When
-	client := client.NewWithSecret("test-id", "test-secret").HTTPClient(client.WithBaseClient(baseClient))
+	client := client.NewWithSecret("test-id", "test-secret", client.WithScope("")).HTTPClient(client.WithBaseClient(baseClient))
 
 	// Then
 	assert.Equal(t, baseClient, client)
@@ -153,7 +153,7 @@ func Test_GivenAnExistingHTTPContext_WhenItIsPassedAsAnOptionDuringInstantiation
 	defer ts.Close()
 
 	// When
-	client := client.NewWithSecret("test-id", "test-secret", client.WithBaseURL(ts.URL)).HTTPClient(client.WithContext(baseCtx))
+	client := client.NewWithSecret("test-id", "test-secret", client.WithScope(""), client.WithBaseURL(ts.URL)).HTTPClient(client.WithContext(baseCtx))
 
 	url := ts.URL
 
@@ -209,7 +209,7 @@ func Test_GivenTokenSourceWithTokenThatWillNotExpireBetweenRequests_WhenTokenSto
 		On("Token").Return().
 		Once()
 
-	tokenSource := client.NewWithSecret("my-client-id", "my-secret",
+	tokenSource := client.NewWithSecret("my-client-id", "my-secret", client.WithScope(""),
 		client.WithBaseURL(ts.URL)).TokenSource()
 
 	// When
@@ -252,7 +252,7 @@ func Test_GivenAServerThatRejectsHTTPCall_WhenAGetCallIsFired_ThenExpectTheClien
 		expectAccessTokenChangeForTest(&mockedClient, accessToken, testCase.expectedNoOfCalls)
 
 		// When
-		c := client.NewWithSecret("my-client-id", "my-secret",
+		c := client.NewWithSecret("my-client-id", "my-secret", client.WithScope(""),
 			client.WithBaseURL(ts.URL)).HTTPClient()
 
 		// Then
