@@ -1,4 +1,4 @@
-package service_test
+package service
 
 import (
 	"errors"
@@ -11,18 +11,17 @@ import (
 	auth0 "github.com/auth0-community/go-auth0"
 	"github.com/bitrise-io/bitrise-oauth/config"
 	"github.com/bitrise-io/bitrise-oauth/mocks"
-	"github.com/bitrise-io/bitrise-oauth/service"
 	"github.com/c2fo/testify/assert"
 	"github.com/c2fo/testify/mock"
 	"github.com/labstack/echo"
 )
 
 const (
-	Authorization = "Authorization"
+	authorization = "Authorization"
 	// You may find further information about generating signed JWT tokens here: https://bitrise.atlassian.net/wiki/spaces/~940361272/pages/828867013/Generate+JWT+for+testing
-	JWT_1      = "BEARER eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldNVlkwcWVyZmJGUC0zcllLdW55NUFQaXJmcnk0OG5QZWVYcnlQNzk5RmsifQ.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.TG_KUN36-raydoUZH0IeF_-upVbRCLemD7Bt3BCWCrr51cJjsSKAkIKmnyFH4Ow_5pLzlaU4NRoQMeoAIF0VvH28P6hnQKvMmpEM-kQ0UMHnZvMfzuh7SvsvEAIaDhtEEOFfYNV5w0jWoQsAbrMw9vkKrPFqXatxBF1t_yvbW6x2SKEql_UmmN88oxfa_-DS2OrKWsyk2hakR6rnM-m8zTrqdsRndvAP25DeNiySHR_fyB53Dn7un-TO7KJENi5X_obGuXKjQY0C5JFkibR1RY4o9Rp04rdFQrv_PPBC2Ki0pIqDpKVaRbceNkC1BiMzz2zjNR2B6EWbdzPB24bgAA"
-	JWT_2      = "BEARER eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldNVlkwcWVyZmJGUC0zcllLdW55NUFQaXJmcnk0OG5QZWVYcnlQNzk5RmsxIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.XLWuYJ3xb71XGh3XXH0xpX18_Q8RWQDIjUs6EKYD1mX2KXkJIWKj_1m4gNziEdTm03tXFKuDCXhdnFB7L7NJeOtT9dVNtIfqkBR0cYd2KU6HitPck9qd5wz_JcaaPQttHfrVBxJVIaK7ifZFCjjlGSukkYQ7aQalEv2ZjTycXP7FVs7bDq39f1OWdw2rM6XurrjWm65uEwC9m2z08DdgPnmyzCFh0NE5WyMHkezcIl2DDHxJjmb0AZkdIYW1q-AbYs0CIlAemOnxW_or7uzgtATZ-GWE_WEJp_bOeTkZK3BLnShXhlRdKNaHJXCuBzfBwdUY24-x6mEPRKNBYPGW3w"
-	RequestUrl = "https://bitrise.io/protected_route"
+	jwt1       = "BEARER eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldNVlkwcWVyZmJGUC0zcllLdW55NUFQaXJmcnk0OG5QZWVYcnlQNzk5RmsifQ.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.TG_KUN36-raydoUZH0IeF_-upVbRCLemD7Bt3BCWCrr51cJjsSKAkIKmnyFH4Ow_5pLzlaU4NRoQMeoAIF0VvH28P6hnQKvMmpEM-kQ0UMHnZvMfzuh7SvsvEAIaDhtEEOFfYNV5w0jWoQsAbrMw9vkKrPFqXatxBF1t_yvbW6x2SKEql_UmmN88oxfa_-DS2OrKWsyk2hakR6rnM-m8zTrqdsRndvAP25DeNiySHR_fyB53Dn7un-TO7KJENi5X_obGuXKjQY0C5JFkibR1RY4o9Rp04rdFQrv_PPBC2Ki0pIqDpKVaRbceNkC1BiMzz2zjNR2B6EWbdzPB24bgAA"
+	jwt2       = "BEARER eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldNVlkwcWVyZmJGUC0zcllLdW55NUFQaXJmcnk0OG5QZWVYcnlQNzk5RmsxIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.XLWuYJ3xb71XGh3XXH0xpX18_Q8RWQDIjUs6EKYD1mX2KXkJIWKj_1m4gNziEdTm03tXFKuDCXhdnFB7L7NJeOtT9dVNtIfqkBR0cYd2KU6HitPck9qd5wz_JcaaPQttHfrVBxJVIaK7ifZFCjjlGSukkYQ7aQalEv2ZjTycXP7FVs7bDq39f1OWdw2rM6XurrjWm65uEwC9m2z08DdgPnmyzCFh0NE5WyMHkezcIl2DDHxJjmb0AZkdIYW1q-AbYs0CIlAemOnxW_or7uzgtATZ-GWE_WEJp_bOeTkZK3BLnShXhlRdKNaHJXCuBzfBwdUY24-x6mEPRKNBYPGW3w"
+	requestURL = "https://bitrise.io/protected_route"
 )
 
 func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenExpectTheNextMiddlewareToBeCalled(t *testing.T) {
@@ -31,7 +30,7 @@ func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenEx
 	mockErrorWriter := givenMockErrorWriter()
 
 	validator := createValidator(givenSuccessfulJWTValidation())
-	testServer := startServerWithMiddleware(mockHandler, validator, service.WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
+	testServer := startServerWithMiddleware(mockHandler, validator, WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
 	sendGetRequest(testServer.URL)
@@ -48,7 +47,7 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_Then
 	mockErrorWriter := givenMockErrorWriter()
 
 	validator := createValidator(givenUnsuccessfulJWTValidation())
-	testServer := startServerWithMiddleware(mockHandler, validator, service.WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
+	testServer := startServerWithMiddleware(mockHandler, validator, WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
 	sendGetRequest(testServer.URL)
@@ -65,7 +64,7 @@ func Test_GivenSuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenRequestI
 	mockErrorWriter := givenMockErrorWriter()
 
 	validator := createValidator(givenSuccessfulJWTValidation())
-	validatorMiddlewareFunction := validator.MiddlewareFunc(service.WithContextErrorWriter(mockErrorWriter.EchoHandlerFunc))(mockMiddlewareHandlerFunction.HandlerFunction)
+	validatorMiddlewareFunction := validator.MiddlewareFunc(WithContextErrorWriter(mockErrorWriter.EchoHandlerFunc))(mockMiddlewareHandlerFunction.HandlerFunction)
 
 	context := createContext()
 
@@ -83,7 +82,7 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenReques
 	mockErrorWriter := givenMockEchoErrorWriter(errors.New("error"))
 
 	validator := createValidator(givenUnsuccessfulJWTValidation())
-	validatorMiddlewareFunction := validator.MiddlewareFunc(service.WithContextErrorWriter(mockErrorWriter.EchoHandlerFunc))(mockMiddlewareHandlerFunction.HandlerFunction)
+	validatorMiddlewareFunction := validator.MiddlewareFunc(WithContextErrorWriter(mockErrorWriter.EchoHandlerFunc))(mockMiddlewareHandlerFunction.HandlerFunction)
 
 	context := createContext()
 
@@ -101,7 +100,7 @@ func Test_GivenSuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_T
 	mockErrorWriter := givenMockErrorWriter()
 
 	validator := createValidator(givenSuccessfulJWTValidation())
-	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator, service.WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
+	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator, WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
 	sendGetRequest(testServer.URL)
@@ -118,7 +117,7 @@ func Test_GivenUnsuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled
 	mockErrorWriter := givenMockErrorWriter()
 
 	validator := createValidator(givenUnsuccessfulJWTValidation())
-	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator, service.WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
+	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator, WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
 	sendGetRequest(testServer.URL)
@@ -139,29 +138,29 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 	}{
 		{
 			"1. Given two requests with the same token and JWKS will NOT expire when the requests are validated then expect /certs endpoint to be called ONCE",
-			JWT_1,
-			JWT_1,
+			jwt1,
+			jwt1,
 			60,
 			1,
 		},
 		{
 			"2. Given two requests with different tokens and JWKS will NOT expire when the requests are validated then expect /certs endpoint to be called TWICE",
-			JWT_1,
-			JWT_2,
+			jwt1,
+			jwt2,
 			60,
 			2,
 		},
 		{
 			"3. Given two requests with the same token and JWKS will expire when the requests are validated then expect /certs endpoint to be called TWICE",
-			JWT_1,
-			JWT_1,
+			jwt1,
+			jwt1,
 			1,
 			2,
 		},
 		{
 			"4. Given two requests with different token and JWKS will expire when the requests are validated then expect /certs endpoint to be called TWICE",
-			JWT_1,
-			JWT_2,
+			jwt1,
+			jwt2,
 			1,
 			2,
 		},
@@ -188,7 +187,7 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 			}))
 			defer testAuthServer.Close()
 
-			validator := service.NewValidator(service.WithBaseURL(testAuthServer.URL), service.WithKeyCacher(auth0.NewMemoryKeyCacher(testCase.expiryInSecs*time.Millisecond, 5)))
+			validator := NewValidator(WithBaseURL(testAuthServer.URL), WithKeyCacher(auth0.NewMemoryKeyCacher(testCase.expiryInSecs*time.Millisecond, 5)))
 
 			request1 := createRequestWithToken(testCase.token1)
 			request2 := createRequestWithToken(testCase.token2)
@@ -242,19 +241,19 @@ func givenMockEchoErrorWriter(err error) *mocks.ErrorWriter {
 	return mockErrorWriter
 }
 
-func createValidator(mockJWTValidator service.JWTValidator) service.Validator {
-	validator := service.NewValidator(
-		service.WithValidator(mockJWTValidator),
+func createValidator(mockJWTValidator jwtValidator) Validator {
+	validator := NewValidator(
+		withValidator(mockJWTValidator),
 	)
 	return validator
 }
 
-func startServerWithMiddleware(mockHandler *mocks.Handler, validator service.Validator, opts ...service.HTTPMiddlewareOption) *httptest.Server {
+func startServerWithMiddleware(mockHandler *mocks.Handler, validator Validator, opts ...HTTPMiddlewareOption) *httptest.Server {
 	testServer := httptest.NewServer(validator.Middleware(mockHandler, opts...))
 	return testServer
 }
 
-func startServerWithHandlerFunction(mockHandlerFunction func(http.ResponseWriter, *http.Request), validator service.Validator, opt service.HTTPMiddlewareOption) *httptest.Server {
+func startServerWithHandlerFunction(mockHandlerFunction func(http.ResponseWriter, *http.Request), validator Validator, opt HTTPMiddlewareOption) *httptest.Server {
 	testServer := httptest.NewServer(validator.HandlerFunc(mockHandlerFunction, opt))
 	return testServer
 }
@@ -285,18 +284,18 @@ func addContentTypeAndTokenToResponse(w http.ResponseWriter) {
 }
 
 func createRequestWithToken(jwt string) *http.Request {
-	request, err := http.NewRequest(http.MethodGet, RequestUrl, nil)
+	request, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
 		panic("Can't create request.")
 	}
 
-	request.Header.Add(Authorization, jwt)
+	request.Header.Add(authorization, jwt)
 	return request
 }
 
-func validateRequest(validator service.Validator, request *http.Request) {
+func validateRequest(validator Validator, request *http.Request) {
 	err := validator.ValidateRequest(request)
 	if err != nil {
-		fmt.Println("Can't validate request! JWT_1 and JWT_2 just formally valid.")
+		fmt.Println("Can't validate request! jwt1 and jwt2 just formally valid.")
 	}
 }

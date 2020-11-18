@@ -46,8 +46,7 @@ func WithKeyCacher(kc auth0.KeyCacher) ValidatorOption {
 	}
 }
 
-// WithValidator ...
-func WithValidator(validator JWTValidator) ValidatorOption {
+func withValidator(validator jwtValidator) ValidatorOption {
 	return func(c *ValidatorConfig) {
 		c.jwtValidator = validator
 	}

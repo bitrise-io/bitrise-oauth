@@ -12,8 +12,7 @@ import (
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
-// JWTValidator ...
-type JWTValidator interface {
+type jwtValidator interface {
 	ValidateRequest(r *http.Request) (*jwt.JSONWebToken, error)
 }
 
@@ -27,7 +26,7 @@ type Validator interface {
 
 // ValidatorConfig ...
 type ValidatorConfig struct {
-	jwtValidator       JWTValidator
+	jwtValidator       jwtValidator
 	baseURL            string
 	realm              string
 	keyCacher          auth0.KeyCacher
@@ -62,7 +61,7 @@ func NewValidator(opts ...ValidatorOption) Validator {
 	return serviceValidator
 }
 
-func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmURL string, signatureAlgorithm jose.SignatureAlgorithm, timeout time.Duration) JWTValidator {
+func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmURL string, signatureAlgorithm jose.SignatureAlgorithm, timeout time.Duration) jwtValidator {
 	clientOpts := auth0.JWKClientOptions{
 		URI:    jwksURL,
 		Client: &http.Client{Timeout: timeout},
