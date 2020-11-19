@@ -32,16 +32,18 @@ type ValidatorConfig struct {
 	keyCacher          auth0.KeyCacher
 	signatureAlgorithm jose.SignatureAlgorithm
 	timeout            time.Duration
+	audience           AudienceConfig
 }
 
 // NewValidator returns the prepared JWK model. All input arguments are optional.
-func NewValidator(opts ...ValidatorOption) Validator {
+func NewValidator(audienceConfig AudienceConfig, opts ...ValidatorOption) Validator {
 	serviceValidator := &ValidatorConfig{
 		baseURL:            config.BaseURL,
 		realm:              config.Realm,
 		keyCacher:          auth0.NewMemoryKeyCacher(2*time.Hour, 5),
 		signatureAlgorithm: jose.RS256,
 		timeout:            30 * time.Second,
+		audience:           audienceConfig,
 	}
 
 	for _, opt := range opts {
@@ -55,13 +57,14 @@ func NewValidator(opts ...ValidatorOption) Validator {
 			serviceValidator.realmURL(),
 			serviceValidator.signatureAlgorithm,
 			serviceValidator.timeout,
+			serviceValidator.audience.all(),
 		)
 	}
 
 	return serviceValidator
 }
 
-func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmURL string, signatureAlgorithm jose.SignatureAlgorithm, timeout time.Duration) jwtValidator {
+func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmURL string, signatureAlgorithm jose.SignatureAlgorithm, timeout time.Duration, audience []string) jwtValidator {
 	clientOpts := auth0.JWKClientOptions{
 		URI:    jwksURL,
 		Client: &http.Client{Timeout: timeout},
@@ -69,7 +72,7 @@ func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmU
 
 	client := auth0.NewJWKClientWithCache(clientOpts, nil, keyCacher)
 
-	configuration := auth0.NewConfiguration(client, nil, realmURL, signatureAlgorithm)
+	configuration := auth0.NewConfiguration(client, audience, realmURL, signatureAlgorithm)
 
 	return auth0.NewValidator(configuration, nil)
 }

@@ -187,7 +187,7 @@ func Test_Auth0_JWKS_Caching(t *testing.T) {
 			}))
 			defer testAuthServer.Close()
 
-			validator := NewValidator(WithBaseURL(testAuthServer.URL), WithKeyCacher(auth0.NewMemoryKeyCacher(testCase.expiryInSecs*time.Millisecond, 5)))
+			validator := NewValidator(NewAudienceConfig("test_audience"), WithBaseURL(testAuthServer.URL), WithKeyCacher(auth0.NewMemoryKeyCacher(testCase.expiryInSecs*time.Millisecond, 5)))
 
 			request1 := createRequestWithToken(testCase.token1)
 			request2 := createRequestWithToken(testCase.token2)
@@ -243,6 +243,7 @@ func givenMockEchoErrorWriter(err error) *mocks.ErrorWriter {
 
 func createValidator(mockJWTValidator jwtValidator) Validator {
 	validator := NewValidator(
+		NewAudienceConfig("test_audience"),
 		withValidator(mockJWTValidator),
 	)
 	return validator
