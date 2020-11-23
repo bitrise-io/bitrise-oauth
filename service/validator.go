@@ -33,6 +33,8 @@ type ValidatorConfig struct {
 	signatureAlgorithm jose.SignatureAlgorithm
 	timeout            time.Duration
 	audience           AudienceConfig
+	issuer             string
+	secretProvider     auth0.SecretProvider
 }
 
 // NewValidator returns the prepared JWK model. All input arguments are optional.
@@ -51,30 +53,28 @@ func NewValidator(audienceConfig AudienceConfig, opts ...ValidatorOption) Valida
 	}
 
 	if serviceValidator.jwtValidator == nil {
-		serviceValidator.jwtValidator = createDefaultJWTValidator(
-			serviceValidator.jwksURL(),
-			serviceValidator.keyCacher,
-			serviceValidator.realmURL(),
-			serviceValidator.signatureAlgorithm,
-			serviceValidator.timeout,
-			serviceValidator.audience.all(),
-		)
+		serviceValidator.jwtValidator = createDefaultJWTValidator(serviceValidator)
 	}
 
 	return serviceValidator
 }
 
-func createDefaultJWTValidator(jwksURL string, keyCacher auth0.KeyCacher, realmURL string, signatureAlgorithm jose.SignatureAlgorithm, timeout time.Duration, audience []string) jwtValidator {
-	clientOpts := auth0.JWKClientOptions{
-		URI:    jwksURL,
-		Client: &http.Client{Timeout: timeout},
+func createDefaultJWTValidator(validatorConfig *ValidatorConfig) jwtValidator {
+	configuration := auth0.NewConfiguration(getSecretProvider(validatorConfig), validatorConfig.audience.all(), validatorConfig.realmURL(), validatorConfig.signatureAlgorithm)
+	return auth0.NewValidator(configuration, nil)
+}
+
+func getSecretProvider(validatorConfig *ValidatorConfig) auth0.SecretProvider {
+	if validatorConfig.secretProvider == nil {
+		secretProvderClientOptions := auth0.JWKClientOptions{
+			URI:    validatorConfig.jwksURL(),
+			Client: &http.Client{Timeout: validatorConfig.timeout},
+		}
+
+		return auth0.NewJWKClientWithCache(secretProvderClientOptions, nil, validatorConfig.keyCacher)
 	}
 
-	client := auth0.NewJWKClientWithCache(clientOpts, nil, keyCacher)
-
-	configuration := auth0.NewConfiguration(client, audience, realmURL, signatureAlgorithm)
-
-	return auth0.NewValidator(configuration, nil)
+	return validatorConfig.secretProvider
 }
 
 func (sv ValidatorConfig) realmURL() string {

@@ -51,3 +51,15 @@ func withValidator(validator jwtValidator) ValidatorOption {
 		c.jwtValidator = validator
 	}
 }
+
+func withIssuer(issuer string) ValidatorOption {
+	return func(c *ValidatorConfig) {
+		c.issuer = issuer
+	}
+}
+
+func withSecretProvider(secretProvider auth0.SecretProvider) ValidatorOption {
+	return func(c *ValidatorConfig) {
+		c.secretProvider = secretProvider
+	}
+}
