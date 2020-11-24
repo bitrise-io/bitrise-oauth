@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,6 +12,7 @@ import (
 	"github.com/c2fo/testify/mock"
 	"github.com/labstack/echo"
 	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
 )
 
 func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenExpectTheNextMiddlewareToBeCalled(t *testing.T) {
@@ -192,17 +192,42 @@ func createContext() echo.Context {
 	return context
 }
 
-func Test_qwe(t *testing.T) {
-	token := getTestTokenWithKid(defaultAudience, defaultIssuer, time.Now().Add(24*time.Hour), jose.RS256, defaultSecret, defaultKid)
-	req := createRequestWithToken(token)
+func Test_AudienceClaimValidation(t *testing.T) {
+	testCases := []struct {
+		name               string
+		otherAudienceIndex int
+		want               error
+	}{
+		{
+			"1. Given a request and a validator with the SAME audience when the request is vaidated then expect no error",
+			0,
+			nil,
+		},
+		{
+			"2. Given a request and a validator with DIFFERENT audience when the request is vaidated then expect an invalid audience error",
+			1,
+			jwt.ErrInvalidAudience,
+		},
+	}
 
-	validator := NewValidator(
-		NewAudienceConfig(defaultAudience[0]),
-		withIssuer(defaultIssuer),
-		withSecretProvider(defaultSecretProvider),
-	)
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			// Given
+			expectedAudience := []string{defaultAudience[0], "other"}
+			token := getTestTokenWithKid(defaultAudience, defaultIssuer, time.Now().Add(24*time.Hour), jose.RS256, defaultSecret, defaultKid)
+			request := createRequestWithToken(token)
 
-	err := validator.ValidateRequest(req)
+			validator := NewValidator(
+				NewAudienceConfig(expectedAudience[0], expectedAudience[testCase.otherAudienceIndex]),
+				withIssuer(defaultIssuer),
+				withSecretProvider(defaultSecretProvider),
+			)
 
-	fmt.Println(err)
+			// When
+			err := validator.ValidateRequest(request)
+
+			// Then
+			assert.Equal(t, testCase.want, err)
+		})
+	}
 }
