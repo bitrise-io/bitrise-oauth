@@ -48,6 +48,8 @@ func NewValidator(audienceConfig AudienceConfig, opts ...ValidatorOption) Valida
 		audience:           audienceConfig,
 	}
 
+	serviceValidator.issuer = serviceValidator.realmURL()
+
 	for _, opt := range opts {
 		opt(serviceValidator)
 	}
@@ -60,7 +62,7 @@ func NewValidator(audienceConfig AudienceConfig, opts ...ValidatorOption) Valida
 }
 
 func createDefaultJWTValidator(validatorConfig *ValidatorConfig) jwtValidator {
-	configuration := auth0.NewConfiguration(getSecretProvider(validatorConfig), validatorConfig.audience.all(), validatorConfig.realmURL(), validatorConfig.signatureAlgorithm)
+	configuration := auth0.NewConfiguration(getSecretProvider(validatorConfig), validatorConfig.audience.all(), validatorConfig.issuer, validatorConfig.signatureAlgorithm)
 	return auth0.NewValidator(configuration, nil)
 }
 
