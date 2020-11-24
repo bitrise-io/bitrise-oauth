@@ -58,7 +58,10 @@ func genRSASSAJWK(sigAlg jose.SignatureAlgorithm, kid string) jose.JSONWebKey {
 		bits = 4096
 	}
 
-	key, _ := rsa.GenerateKey(rand.Reader, bits)
+	key, err := rsa.GenerateKey(rand.Reader, bits)
+	if err != nil {
+		panic(err)
+	}
 
 	jsonWebKey := jose.JSONWebKey{
 		Key:       key,
