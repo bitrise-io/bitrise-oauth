@@ -73,7 +73,7 @@ func (cws *WithSecret) TokenSource() oauth2.TokenSource {
 // UMATokenSource returns a token source that returns a new token each time the Token()
 // method is called.
 func (cws *WithSecret) UMATokenSource() UMATokenSource {
-	return umaTokenSource{}
+	return NewUMATokenSource(cws.credentials)
 }
 
 // ManagedHTTPClient is a preconfigured http client using in-memory client storage
