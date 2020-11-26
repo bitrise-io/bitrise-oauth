@@ -32,13 +32,13 @@ type ValidatorConfig struct {
 	keyCacher          auth0.KeyCacher
 	signatureAlgorithm jose.SignatureAlgorithm
 	timeout            time.Duration
-	audience           AudienceConfig
+	audience           config.AudienceConfig
 	issuer             string
 	secretProvider     auth0.SecretProvider
 }
 
 // NewValidator returns the prepared JWK model. All input arguments are optional.
-func NewValidator(audienceConfig AudienceConfig, opts ...ValidatorOption) Validator {
+func NewValidator(audienceConfig config.AudienceConfig, opts ...ValidatorOption) Validator {
 	serviceValidator := &ValidatorConfig{
 		baseURL:            config.BaseURL,
 		realm:              config.Realm,
@@ -62,7 +62,7 @@ func NewValidator(audienceConfig AudienceConfig, opts ...ValidatorOption) Valida
 }
 
 func createDefaultJWTValidator(validatorConfig *ValidatorConfig) jwtValidator {
-	configuration := auth0.NewConfiguration(getSecretProvider(validatorConfig), validatorConfig.audience.all(), validatorConfig.issuer, validatorConfig.signatureAlgorithm)
+	configuration := auth0.NewConfiguration(getSecretProvider(validatorConfig), validatorConfig.audience.All(), validatorConfig.issuer, validatorConfig.signatureAlgorithm)
 	return auth0.NewValidator(configuration, nil)
 }
 

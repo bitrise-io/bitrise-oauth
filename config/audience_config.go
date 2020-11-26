@@ -1,4 +1,4 @@
-package service
+package config
 
 // AudienceConfig ...
 type AudienceConfig struct {
@@ -12,6 +12,7 @@ func NewAudienceConfig(audience string, audiences ...string) AudienceConfig {
 	}
 }
 
-func (audienceConfig AudienceConfig) all() []string {
+// All() ...
+func (audienceConfig AudienceConfig) All() []string {
 	return audienceConfig.audience
 }
