@@ -13,13 +13,13 @@ import (
 )
 
 const (
-	authorization        = "Authorization"
+	authorizationHeader  = "Authorization"
 	bearer               = "Bearer"
 	defaultRequestURL    = "http://localhost"
 	defaultRequestMethod = http.MethodGet
 
 	defaultIssuer = "issuer"
-	defaultKid    = ""
+	defaultKid    = "kid"
 )
 
 var (
@@ -47,6 +47,21 @@ func getTestTokenWithKid(audience []string, issuer string, expTime time.Time, al
 	}
 
 	return tokenStr
+}
+
+func getUMAToken(claims interface{}, alg jose.SignatureAlgorithm, key interface{}, kid string) (*jwt.JSONWebToken, interface{}) {
+	actKey := jose.SigningKey{Algorithm: alg, Key: key}
+	signer, err := jose.NewSigner(actKey, (&jose.SignerOptions{ExtraHeaders: map[jose.HeaderKey]interface{}{"kid": kid}}).WithType("JWT"))
+	if err != nil {
+		panic(err)
+	}
+
+	token, err := jwt.Signed(signer).Claims(claims).Token()
+	if err != nil {
+		panic(err)
+	}
+
+	return token, actKey
 }
 
 func genRSASSAJWK(sigAlg jose.SignatureAlgorithm, kid string) jose.JSONWebKey {
@@ -80,6 +95,6 @@ func createRequestWithToken(token string) *http.Request {
 	}
 
 	authHeader := fmt.Sprintf("%s %s", bearer, token)
-	request.Header.Add(authorization, authHeader)
+	request.Header.Add(authorizationHeader, authHeader)
 	return request
 }
