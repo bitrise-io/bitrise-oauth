@@ -17,8 +17,19 @@ import (
 )
 
 const (
-	umaGrantType     = "urn:ietf:params:oauth:grant-type:uma-ticket"
-	claimTokenFormat = "urn:ietf:params:oauth:token-type:jwt"
+	umaGrantType        = "urn:ietf:params:oauth:grant-type:uma-ticket"
+	umaClaimTokenFormat = "urn:ietf:params:oauth:token-type:jwt"
+
+	grantType        = "grant_type"
+	claimToken       = "claim_token"
+	claimTokenFormat = "claim_token_format"
+	clientID         = "client_id"
+	clientSecret     = "client_secret"
+	permission       = "permission"
+	audience         = "audience"
+
+	contentType    = "Content-Type"
+	formURLEncoded = "application/x-www-form-urlencoded"
 )
 
 type tokenJSON struct {
@@ -35,8 +46,7 @@ func (e *tokenJSON) expiry() (t time.Time) {
 	return
 }
 
-// UMATokenSource returns a token source that returns a new token each time the Token()
-// method is called.
+// UMATokenSource represents an UMA token source.
 type UMATokenSource interface {
 	Token(claim interface{}, permisson []Permission, audienceConfig config.AudienceConfig) (*oauth2.Token, error)
 }
@@ -46,7 +56,7 @@ type umaTokenSource struct {
 }
 
 // NewUMATokenSource returns a new UMA token source.
-func NewUMATokenSource(config clientcredentials.Config) UMATokenSource {
+func newUMATokenSource(config clientcredentials.Config) umaTokenSource {
 	return umaTokenSource{
 		config: config,
 	}
@@ -94,26 +104,26 @@ func encodeClaim(claim interface{}) (string, error) {
 func newTokenRequest(config clientcredentials.Config, encodedClaim string, permisson []Permission, audienceConfig config.AudienceConfig) (*http.Request, error) {
 	v := url.Values{}
 
-	v.Set("grant_type", umaGrantType)
-	v.Set("claim_token", encodedClaim)
-	v.Set("claim_token_format", claimTokenFormat)
-	v.Set("client_id", config.ClientID)
-	v.Set("client_secret", config.ClientSecret)
+	v.Set(grantType, umaGrantType)
+	v.Set(claimToken, encodedClaim)
+	v.Set(claimTokenFormat, umaClaimTokenFormat)
+	v.Set(clientID, config.ClientID)
+	v.Set(clientSecret, config.ClientSecret)
 
 	for _, p := range permisson {
-		v.Set("permission", p.requestParam())
+		v.Set(permission, p.requestParam())
 	}
 
 	for _, a := range audienceConfig.All() {
-		v.Set("audience", a)
+		v.Set(audience, a)
 	}
 
-	request, err := http.NewRequest("POST", config.TokenURL, strings.NewReader(v.Encode()))
+	request, err := http.NewRequest(http.MethodPost, config.TokenURL, strings.NewReader(v.Encode()))
 	if err != nil {
 		return nil, err
 	}
 
-	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	request.Header.Set(contentType, formURLEncoded)
 
 	return request, nil
 }
