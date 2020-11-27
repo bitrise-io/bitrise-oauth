@@ -79,12 +79,12 @@ func (tokenSource umaTokenSource) Token(claim interface{}, permisson []Permissio
 		return nil, err
 	}
 
-	body, err := responseBody(response)
+	body, err := extractResponseBody(response)
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := tokenFromBody(body)
+	token, err := extractTokenFromBody(body)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func sendRequest(request *http.Request) (*http.Response, error) {
 	return client.Do(request)
 }
 
-func responseBody(response *http.Response) ([]byte, error) {
+func extractResponseBody(response *http.Response) ([]byte, error) {
 	body, err := ioutil.ReadAll(io.LimitReader(response.Body, 1<<20))
 	if err != nil {
 		return nil, fmt.Errorf("oauth2: cannot fetch token: %v", err)
@@ -154,7 +154,7 @@ func responseBody(response *http.Response) ([]byte, error) {
 	return body, nil
 }
 
-func tokenFromBody(body []byte) (*oauth2.Token, error) {
+func extractTokenFromBody(body []byte) (*oauth2.Token, error) {
 	var tj tokenJSON
 
 	if err := json.Unmarshal(body, &tj); err != nil {
