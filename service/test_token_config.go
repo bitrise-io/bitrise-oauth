@@ -28,17 +28,37 @@ var (
 	defaultSecretProvider = auth0.NewKeyProvider(defaultSecret.Public())
 )
 
-func getTestTokenWithKid(audience []string, issuer string, expTime time.Time, alg jose.SignatureAlgorithm, key interface{}, kid string) string {
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: alg, Key: key}, (&jose.SignerOptions{ExtraHeaders: map[jose.HeaderKey]interface{}{"kid": kid}}).WithType("JWT"))
+type testTokenConfig struct {
+	audience []string
+	issuer   string
+	expTime  time.Time
+	alg      jose.SignatureAlgorithm
+	key      interface{}
+	kid      string
+}
+
+func newTestTokenConfig() testTokenConfig {
+	return testTokenConfig{
+		defaultAudience,
+		defaultIssuer,
+		time.Now().Add(24 * time.Hour),
+		jose.RS256,
+		defaultSecret,
+		defaultKid,
+	}
+}
+
+func (testToken testTokenConfig) getTokenString() string {
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: testToken.alg, Key: testToken.key}, (&jose.SignerOptions{ExtraHeaders: map[jose.HeaderKey]interface{}{"kid": testToken.kid}}).WithType("JWT"))
 	if err != nil {
 		panic(err)
 	}
 
 	cl := jwt.Claims{
-		Issuer:   issuer,
-		Audience: audience,
+		Issuer:   testToken.issuer,
+		Audience: testToken.audience,
 		IssuedAt: jwt.NewNumericDate(time.Now().UTC()),
-		Expiry:   jwt.NewNumericDate(expTime),
+		Expiry:   jwt.NewNumericDate(testToken.expTime),
 	}
 
 	tokenStr, err := jwt.Signed(signer).Claims(cl).CompactSerialize()
@@ -49,9 +69,9 @@ func getTestTokenWithKid(audience []string, issuer string, expTime time.Time, al
 	return tokenStr
 }
 
-func getUMAToken(claims interface{}, alg jose.SignatureAlgorithm, key interface{}, kid string) (*jwt.JSONWebToken, interface{}) {
-	actKey := jose.SigningKey{Algorithm: alg, Key: key}
-	signer, err := jose.NewSigner(actKey, (&jose.SignerOptions{ExtraHeaders: map[jose.HeaderKey]interface{}{"kid": kid}}).WithType("JWT"))
+func (testToken testTokenConfig) newTokenWithClaims(claims interface{}) (*jwt.JSONWebToken, interface{}) {
+	actKey := jose.SigningKey{Algorithm: testToken.alg, Key: testToken.key}
+	signer, err := jose.NewSigner(actKey, (&jose.SignerOptions{ExtraHeaders: map[jose.HeaderKey]interface{}{"kid": testToken.kid}}).WithType("JWT"))
 	if err != nil {
 		panic(err)
 	}
@@ -88,13 +108,14 @@ func genRSASSAJWK(sigAlg jose.SignatureAlgorithm, kid string) jose.JSONWebKey {
 	return jsonWebKey
 }
 
-func createRequestWithToken(token string) *http.Request {
+func (testToken testTokenConfig) newRequest() *http.Request {
 	request, err := http.NewRequest(defaultRequestMethod, defaultRequestURL, nil)
 	if err != nil {
 		panic("Can't create request.")
 	}
 
-	authHeader := fmt.Sprintf("%s %s", bearer, token)
+	tokenString := testToken.getTokenString()
+	authHeader := fmt.Sprintf("%s %s", bearer, tokenString)
 	request.Header.Add(authorizationHeader, authHeader)
 	return request
 }

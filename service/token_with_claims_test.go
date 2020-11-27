@@ -7,7 +7,6 @@ import (
 
 	"github.com/c2fo/testify/assert"
 	"github.com/c2fo/testify/require"
-	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
@@ -115,7 +114,7 @@ func Test_GivenResourceWithClaim_WhenClaimsCalledWithInvalidResourceName_ThenExp
 // Helpers
 
 func givenTokenWithClaims(claims interface{}) TokenWithClaims {
-	token, _ := getUMAToken(claims, jose.RS256, defaultSecret, defaultKid)
+	token, _ := newTestTokenConfig().newTokenWithClaims(claims)
 	return TokenWithClaims{
 		key:   defaultSecret.Public(),
 		token: token,
