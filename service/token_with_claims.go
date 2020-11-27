@@ -78,11 +78,13 @@ func (tokenWithClaim *TokenWithClaims) Claim(resourceName string, claim interfac
 
 	for _, permission := range token.Authorization.Permissions {
 		if permission.Rsname == resourceName {
+			// First we have to serialize to json
 			jsonClaims, err := json.Marshal(permission.Claims)
 			if err != nil {
 				return err
 			}
 
+			// Deserialize from json
 			if err := json.Unmarshal(jsonClaims, &claim); err != nil {
 				return err
 			}
