@@ -113,7 +113,11 @@ func sendRequest(request *http.Request) (*oauth2.Token, error) {
 	resp, err := client.Do(request)
 
 	body, err := ioutil.ReadAll(io.LimitReader(resp.Body, 1<<20))
-	resp.Body.Close()
+	if err != nil {
+		return nil, fmt.Errorf("oauth2: cannot fetch token: %v", err)
+	}
+
+	err = resp.Body.Close()
 	if err != nil {
 		return nil, fmt.Errorf("oauth2: cannot fetch token: %v", err)
 	}
