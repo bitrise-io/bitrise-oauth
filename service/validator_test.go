@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bitrise-io/bitrise-oauth/config"
 	"github.com/bitrise-io/bitrise-oauth/mocks"
 	"github.com/c2fo/testify/assert"
 	"github.com/c2fo/testify/mock"
@@ -159,7 +160,7 @@ func givenMockEchoErrorWriter(err error) *mocks.ErrorWriter {
 
 func createValidator(mockJWTValidator jwtValidator) Validator {
 	validator := NewValidator(
-		NewAudienceConfig("test_audience"),
+		config.NewAudienceConfig("test_audience"),
 		withValidator(mockJWTValidator),
 	)
 	return validator
@@ -218,7 +219,7 @@ func Test_AudienceClaimValidation(t *testing.T) {
 			request := createRequestWithToken(token)
 
 			validator := NewValidator(
-				NewAudienceConfig(expectedAudience[0], expectedAudience[testCase.otherAudienceIndex]),
+				config.NewAudienceConfig(expectedAudience[0], expectedAudience[testCase.otherAudienceIndex]),
 				withIssuer(defaultIssuer),
 				withSecretProvider(defaultSecretProvider),
 			)
