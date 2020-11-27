@@ -64,7 +64,17 @@ func (tokenSource umaTokenSource) Token(claim interface{}, permisson []Permissio
 		return nil, err
 	}
 
-	token, err := sendRequest(request)
+	response, err := sendRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := responseBody(response)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := tokenFromBody(body)
 	if err != nil {
 		return nil, err
 	}
@@ -108,29 +118,36 @@ func newTokenRequest(config clientcredentials.Config, encodedClaim string, permi
 	return request, nil
 }
 
-func sendRequest(request *http.Request) (*oauth2.Token, error) {
+func sendRequest(request *http.Request) (*http.Response, error) {
 	client := http.Client{}
-	resp, err := client.Do(request)
+	return client.Do(request)
+}
 
-	body, err := ioutil.ReadAll(io.LimitReader(resp.Body, 1<<20))
+func responseBody(response *http.Response) ([]byte, error) {
+	body, err := ioutil.ReadAll(io.LimitReader(response.Body, 1<<20))
 	if err != nil {
 		return nil, fmt.Errorf("oauth2: cannot fetch token: %v", err)
 	}
 
-	err = resp.Body.Close()
+	err = response.Body.Close()
 	if err != nil {
 		return nil, fmt.Errorf("oauth2: cannot fetch token: %v", err)
 	}
 
-	if code := resp.StatusCode; code < 200 || code > 299 {
+	if response.StatusCode < 200 || response.StatusCode > 299 {
 		return nil, &oauth2.RetrieveError{
-			Response: resp,
+			Response: response,
 			Body:     body,
 		}
 	}
 
+	return body, nil
+}
+
+func tokenFromBody(body []byte) (*oauth2.Token, error) {
 	var tj tokenJSON
-	if err = json.Unmarshal(body, &tj); err != nil {
+
+	if err := json.Unmarshal(body, &tj); err != nil {
 		return nil, err
 	}
 
