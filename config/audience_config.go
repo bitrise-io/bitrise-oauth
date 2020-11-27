@@ -12,7 +12,7 @@ func NewAudienceConfig(audience string, audiences ...string) AudienceConfig {
 	}
 }
 
-// All() ...
+// All ...
 func (audienceConfig AudienceConfig) All() []string {
 	return audienceConfig.audience
 }
