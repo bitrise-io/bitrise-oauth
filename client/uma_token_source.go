@@ -69,7 +69,7 @@ func (tokenSource umaTokenSource) Token(claim interface{}, permisson []Permissio
 		return nil, err
 	}
 
-	request, err := newTokenRequest(tokenSource.config, encodedClaim, permisson, audienceConfig)
+	request, err := tokenSource.newTokenRequest(encodedClaim, permisson, audienceConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -101,14 +101,14 @@ func encodeClaim(claim interface{}) (string, error) {
 	return b64.StdEncoding.EncodeToString(bytes), nil
 }
 
-func newTokenRequest(config clientcredentials.Config, encodedClaim string, permisson []Permission, audienceConfig config.AudienceConfig) (*http.Request, error) {
+func (tokenSource umaTokenSource) newTokenRequest(encodedClaim string, permisson []Permission, audienceConfig config.AudienceConfig) (*http.Request, error) {
 	v := url.Values{}
 
 	v.Set(grantType, umaGrantType)
 	v.Set(claimToken, encodedClaim)
 	v.Set(claimTokenFormat, umaClaimTokenFormat)
-	v.Set(clientID, config.ClientID)
-	v.Set(clientSecret, config.ClientSecret)
+	v.Set(clientID, tokenSource.config.ClientID)
+	v.Set(clientSecret, tokenSource.config.ClientSecret)
 
 	for _, p := range permisson {
 		v.Set(permission, p.requestParam())
@@ -118,7 +118,7 @@ func newTokenRequest(config clientcredentials.Config, encodedClaim string, permi
 		v.Set(audience, a)
 	}
 
-	request, err := http.NewRequest(http.MethodPost, config.TokenURL, strings.NewReader(v.Encode()))
+	request, err := http.NewRequest(http.MethodPost, tokenSource.config.TokenURL, strings.NewReader(v.Encode()))
 	if err != nil {
 		return nil, err
 	}
