@@ -107,6 +107,8 @@ You can use `ValidatorOption`s to configure.
 
 - `ValidateRequest(r *http.Request) error` calls the `ValidateRequest` function of `auth0.JWTValidator` instance to validate a request. It returns `nil` if the validation has succeeded, otherwise returns an `error`.
 
+- `ValidateRequestAndReturnToken(r *http.Request) (*TokenWithClaims, error)` calls the `ValidateRequest` function of `auth0.JWTValidator` instance to validate a request. It returns the validated `TokenWithClaims` token, that can be used to get the claims if the validation has succeeded, otherwise returns an `error`.
+
 - `Middleware(next http.Handler, opts ...HTTPMiddlewareOption) http.Handler` returns an `http.Handler` instance. It calls `ValidateRequest` to validate the request. Calls the next middleware if the validation has succeeded, otherwise sends an error using an error writer. It might receive `HTTPMiddlewareOption`s as a parameter.
 
 - `MiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc` returns an `echo.MiddlewareFunc` instance. It calls `ValidateRequest` to validate the request. Calls the next `echo.HandlerFunc` if the validation has succeeded, otherwise returns an `error`. It might receive `EchoMiddlewareOption`s as a parameter. 
@@ -131,6 +133,16 @@ You can set the expceted audience via passing an `AudienceConfig` instance as a 
 ```go
 service.NewValidator(config.NewAudienceConfig("audience1", "audience2"))
 ```
+
+#### `TokenWithClaims`
+Represents an UMA token that holds certain claims.
+
+##### Methods
+- `Payload() (map[string]interface{}, error)` returns the  contents of the token.
+
+- `Permissions() ([]interface{}, error)` returns the persmissions part of the token.
+
+- `Claim(resourceName string, claim interface{}) error` returns the claim for the provided resource's name.
 
 
 ### Options
