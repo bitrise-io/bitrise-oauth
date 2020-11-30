@@ -39,11 +39,12 @@ type tokenJSON struct {
 	ExpiresIn    int32  `json:"expires_in"`
 }
 
-func (e *tokenJSON) expiry() (t time.Time) {
+func (e *tokenJSON) expiry(baseTime time.Time) time.Time {
 	if v := e.ExpiresIn; v != 0 {
-		return time.Now().Add(time.Duration(v) * time.Second)
+		return baseTime.Add(time.Duration(v) * time.Second)
 	}
-	return
+
+	return time.Now()
 }
 
 // UMATokenSource represents an UMA token source.
@@ -84,7 +85,7 @@ func (tokenSource umaTokenSource) Token(claim interface{}, permisson []Permissio
 		return nil, err
 	}
 
-	token, err := extractTokenFromBody(body)
+	token, err := extractTokenFromBody(body, time.Now())
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +155,7 @@ func extractResponseBody(response *http.Response) ([]byte, error) {
 	return body, nil
 }
 
-func extractTokenFromBody(body []byte) (*oauth2.Token, error) {
+func extractTokenFromBody(body []byte, baseTime time.Time) (*oauth2.Token, error) {
 	var tj tokenJSON
 
 	if err := json.Unmarshal(body, &tj); err != nil {
@@ -165,7 +166,7 @@ func extractTokenFromBody(body []byte) (*oauth2.Token, error) {
 		AccessToken:  tj.AccessToken,
 		TokenType:    tj.TokenType,
 		RefreshToken: tj.RefreshToken,
-		Expiry:       tj.expiry(),
+		Expiry:       tj.expiry(baseTime),
 	}
 
 	return token, nil
