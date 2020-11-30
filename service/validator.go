@@ -22,6 +22,7 @@ type Validator interface {
 	Middleware(http.Handler, ...HTTPMiddlewareOption) http.Handler
 	MiddlewareFunc(...EchoMiddlewareOption) echo.MiddlewareFunc
 	ValidateRequest(r *http.Request) error
+	ValidateRequestAndReturnToken(r *http.Request) (*TokenWithClaims, error)
 }
 
 // ValidatorConfig ...
@@ -54,6 +55,10 @@ func NewValidator(audienceConfig config.AudienceConfig, opts ...ValidatorOption)
 		opt(serviceValidator)
 	}
 
+	if serviceValidator.secretProvider == nil {
+		serviceValidator.secretProvider = createDefaultSecretProvider(serviceValidator)
+	}
+
 	if serviceValidator.jwtValidator == nil {
 		serviceValidator.jwtValidator = createDefaultJWTValidator(serviceValidator)
 	}
@@ -61,22 +66,18 @@ func NewValidator(audienceConfig config.AudienceConfig, opts ...ValidatorOption)
 	return serviceValidator
 }
 
-func createDefaultJWTValidator(validatorConfig *ValidatorConfig) jwtValidator {
-	configuration := auth0.NewConfiguration(getSecretProvider(validatorConfig), validatorConfig.audience.All(), validatorConfig.issuer, validatorConfig.signatureAlgorithm)
-	return auth0.NewValidator(configuration, nil)
-}
-
-func getSecretProvider(validatorConfig *ValidatorConfig) auth0.SecretProvider {
-	if validatorConfig.secretProvider == nil {
-		secretProvderClientOptions := auth0.JWKClientOptions{
-			URI:    validatorConfig.jwksURL(),
-			Client: &http.Client{Timeout: validatorConfig.timeout},
-		}
-
-		return auth0.NewJWKClientWithCache(secretProvderClientOptions, nil, validatorConfig.keyCacher)
+func createDefaultSecretProvider(validatorConfig *ValidatorConfig) auth0.SecretProvider {
+	secretProvderClientOptions := auth0.JWKClientOptions{
+		URI:    validatorConfig.jwksURL(),
+		Client: &http.Client{Timeout: validatorConfig.timeout},
 	}
 
-	return validatorConfig.secretProvider
+	return auth0.NewJWKClientWithCache(secretProvderClientOptions, nil, validatorConfig.keyCacher)
+}
+
+func createDefaultJWTValidator(validatorConfig *ValidatorConfig) jwtValidator {
+	configuration := auth0.NewConfiguration(validatorConfig.secretProvider, validatorConfig.audience.All(), validatorConfig.issuer, validatorConfig.signatureAlgorithm)
+	return auth0.NewValidator(configuration, nil)
 }
 
 func (sv ValidatorConfig) realmURL() string {
@@ -91,6 +92,26 @@ func (sv ValidatorConfig) jwksURL() string {
 func (sv ValidatorConfig) ValidateRequest(r *http.Request) error {
 	_, err := sv.jwtValidator.ValidateRequest(r)
 	return err
+}
+
+// ValidateRequestAndReturnToken ...
+func (sv ValidatorConfig) ValidateRequestAndReturnToken(r *http.Request) (*TokenWithClaims, error) {
+	token, err := sv.jwtValidator.ValidateRequest(r)
+	if err != nil {
+		return nil, err
+	}
+
+	key, err := sv.secretProvider.GetSecret(r)
+	if err != nil {
+		return nil, err
+	}
+
+	tokenWithClaims := &TokenWithClaims{
+		key:   key,
+		token: token,
+	}
+
+	return tokenWithClaims, nil
 }
 
 // Middleware used as http package's middleware, in http.Handle.

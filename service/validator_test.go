@@ -5,14 +5,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/bitrise-io/bitrise-oauth/config"
 	"github.com/bitrise-io/bitrise-oauth/mocks"
 	"github.com/c2fo/testify/assert"
 	"github.com/c2fo/testify/mock"
 	"github.com/labstack/echo"
-	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
@@ -215,8 +213,8 @@ func Test_AudienceClaimValidation(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			// Given
 			expectedAudience := []string{defaultAudience[0], "other"}
-			token := getTestTokenWithKid(defaultAudience, defaultIssuer, time.Now().Add(24*time.Hour), jose.RS256, defaultSecret, defaultKid)
-			request := createRequestWithToken(token)
+			testtoken := newTestTokenConfig()
+			request := testtoken.newRequest()
 
 			validator := NewValidator(
 				config.NewAudienceConfig(expectedAudience[0], expectedAudience[testCase.otherAudienceIndex]),
