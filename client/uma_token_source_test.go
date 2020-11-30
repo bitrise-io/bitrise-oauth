@@ -32,7 +32,7 @@ const (
 )
 
 var (
-	testClaim = testClaim{
+	testClaims = testClaim{
 		Param1: []string{"value1"},
 		Param2: []string{"value2"},
 	}
@@ -69,7 +69,7 @@ type testClaim struct {
 
 func Test_GivenClaim_WhenEncodeClaimCalled_ThenExpectTheEncodedClaimToBeReturned(t *testing.T) {
 	// When
-	encodedClaim, err := encodeClaim(&testClaim)
+	encodedClaim, err := encodeClaim(&testClaims)
 
 	// Then
 	require.NoError(t, err)
