@@ -32,7 +32,7 @@ const (
 )
 
 var (
-	testClaim = TestClaim{
+	testClaim = testClaim{
 		Param1: []string{"value1"},
 		Param2: []string{"value2"},
 	}
@@ -62,7 +62,7 @@ var (
 	}
 )
 
-type TestClaim struct {
+type testClaim struct {
 	Param1 []string `json:"param1"`
 	Param2 []string `json:"param2"`
 }
