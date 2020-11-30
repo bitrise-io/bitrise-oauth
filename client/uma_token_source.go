@@ -112,11 +112,11 @@ func (tokenSource umaTokenSource) newTokenRequest(encodedClaim string, permisson
 	v.Set(clientSecret, tokenSource.config.ClientSecret)
 
 	for _, p := range permisson {
-		v.Set(permission, p.requestParam())
+		v.Add(permission, p.requestParam())
 	}
 
 	for _, a := range audienceConfig.All() {
-		v.Set(audience, a)
+		v.Add(audience, a)
 	}
 
 	request, err := http.NewRequest(http.MethodPost, tokenSource.config.TokenURL, strings.NewReader(v.Encode()))
