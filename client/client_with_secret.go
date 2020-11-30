@@ -17,6 +17,7 @@ type AuthProvider interface {
 	ManagedHTTPClient(...HTTPClientOption) *http.Client
 	HTTPClient(...HTTPClientOption) *http.Client
 	TokenSource() oauth2.TokenSource
+	UMATokenSource() UMATokenSource
 }
 
 var clients sync.Map
@@ -67,6 +68,11 @@ func (cws *WithSecret) uid() string {
 // TokenSource returns a token source that refreshes the token only when expires
 func (cws *WithSecret) TokenSource() oauth2.TokenSource {
 	return cws.credentials.TokenSource(context.Background())
+}
+
+// UMATokenSource returns an UMA token source.
+func (cws *WithSecret) UMATokenSource() UMATokenSource {
+	return newUMATokenSource(cws.credentials)
 }
 
 // ManagedHTTPClient is a preconfigured http client using in-memory client storage
