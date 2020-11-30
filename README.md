@@ -25,13 +25,24 @@ Implements the `AuthProvider` interface. This class is used to gain an authentic
 - `credentials clientcredentials.Config` holds the parameters above in an `oauth.clientcredentials.Config` instance, used by the underlying *OAuth* library.
 
 ##### Methods
-- `NewWithSecret(clientID, clientSecret string, opts ...Option) AuthProvider` returns a new instance of `AuthProvider`. It might receive `Option`s as a parameter.
+- `NewWithSecret(clientID, clientSecret string, scopeOption ScopeOption, opts ...Option) AuthProvider` returns a new instance of `AuthProvider`. Setting the authentication scope is mandatory. Furthermore, it might receive `Option`s as a parameter.
 
 - `TokenSource() oauth2.TokenSource` returns an `oauth.clientcredentials.TokenSource` that returns the token until it expires, automatically refreshing it as necessary using the provided context and the client ID and client secret.
+
+- `UMATokenSource() UMATokenSource` returns an `UMATokenSource` that returns a new token upon everytime a new token is acquired. You might want to use it for authorization purposes.
 
 - `HTTPClient(opts ...HTTPClientOption) *http.Client` returns a preconfigured `http.Client`.
 
 - `ManagedHTTPClient(opts ...HTTPClientOption) *http.Client` returns a preconfigured `http.Client`. Uses a thread-safe map to store the created clients, using the `clientID` + `clientSecret` + `tokenURL` combination as a key. When the function is called, it will try to retrieve an existing instance from the map by the credentials. If found, the instance will be returned. Otherwise, a new instance will be created, saved in the map, and returned.
+
+#### `UMATokenSource`
+This is responsible for providing authorization purposes. Similarly to the regular `ouath2.TokenSource`, it has a `Token()` method that returns a new token upon each invocation.
+
+##### Methods
+- `Token(claim interface{}, permisson []Permission, audienceConfig config.AudienceConfig) (*oauth2.Token, error)` returns a new token upon each invocation.
+
+#### `Permission`
+It represents an authorization permission.
 
 
 ### Options
@@ -40,13 +51,14 @@ The package offers wide configurability using Options. You can easily override a
 #### Option
 - `WithBaseURL(baseURL string) Option` overrides the base URL of the authentication service.
 
-- `WithRealm(realm string) ValidatorOption` overrides the realm.
+- `WithRealm(realm string) VOption` overrides the realm.
+
+- `WithScope(aud string, auds ...string) ScopeOption` sets the authentication scope.
 
 #### HTTPClientOption
 - `WithContext(ctx context.Context) HTTPClientOption` overrides the HTTP context of the client.
 
 - `WithBaseClient(bc *http.Client) HTTPClientOption` can extend an already existing HTTP client.
-
 
 ### Usage
 ```go
@@ -91,9 +103,11 @@ You can use `ValidatorOption`s to configure.
 - `timeout time.Duration` holds the timeout duration. By default this is **30 seconds**.
 
 ##### Methods
-- `NewValidator(opts ...ValidatorOption) ValidatorIntf` returns a new instance of `Validator`. It might receive `ValidatorOption`s as a parameter.
+- `NewValidator(audienceConfig AudienceConfig, opts ...ValidatorOption) ValidatorIntf` returns a new instance of `Validator`. Setting the expected audience is mandatory. Furthermore, it might receive `ValidatorOption`s as a parameter.
 
 - `ValidateRequest(r *http.Request) error` calls the `ValidateRequest` function of `auth0.JWTValidator` instance to validate a request. It returns `nil` if the validation has succeeded, otherwise returns an `error`.
+
+- `ValidateRequestAndReturnToken(r *http.Request) (*TokenWithClaims, error)` calls the `ValidateRequest` function of `auth0.JWTValidator` instance to validate a request. It returns the validated `TokenWithClaims` token, that can be used to get the claims if the validation has succeeded, otherwise returns an `error`.
 
 - `Middleware(next http.Handler, opts ...HTTPMiddlewareOption) http.Handler` returns an `http.Handler` instance. It calls `ValidateRequest` to validate the request. Calls the next middleware if the validation has succeeded, otherwise sends an error using an error writer. It might receive `HTTPMiddlewareOption`s as a parameter.
 
@@ -103,6 +117,32 @@ You can use `ValidatorOption`s to configure.
 
 #### `JWTValidator`
 Since `auth0.JWTValidator` is not an interface, it was necessary to create an interface to loosen the coupling and making it exchangeable and mockable in tests.
+
+#### `AudienceConfig`
+You can set the expceted audience via passing an `AudienceConfig` instance as a parameter upon instantiating the validator. One or more audience have to passed.
+
+##### Fields
+- `audience []string` holds the audiences.
+
+##### Methods
+- `NewAudienceConfig(audience string, audiences ...string) AudienceConfig` returns a new `AudienceConfig`. One or more audiences have to be set.
+
+- `All() []string` returns all of the audiences.
+
+##### Usage
+```go
+service.NewValidator(config.NewAudienceConfig("audience1", "audience2"))
+```
+
+#### `TokenWithClaims`
+Represents an UMA token that holds certain claims.
+
+##### Methods
+- `Payload() (map[string]interface{}, error)` returns the  contents of the token.
+
+- `Permissions() ([]interface{}, error)` returns the persmissions part of the token.
+
+- `Claim(resourceName string, claim interface{}) error` returns the claim for the provided resource's name.
 
 
 ### Options
@@ -122,8 +162,6 @@ The available `ValidatorOption`s are the following:
 - `WithRealm(realm string) ValidatorOption` overrides the realm.
 
 - `WithKeyCacher(kc auth0.KeyCacher) ValidatorOption` overrides the *JWK* cacher.
-
-- `WithValidator(validator JWTValidator) ValidatorOption` overrides the Auth0 `auth0.JWTValidator`.
 
 - `WithTimeout(timeout time.Duration) ValidatorOption` overrides the timeout for validation networking.
 
