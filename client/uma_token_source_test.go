@@ -2,9 +2,11 @@ package client
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
@@ -29,6 +31,7 @@ const (
 		"token_type":"Bearer",
 		"not-before-policy":0
 	}`
+	realm  = "testRealm"
 )
 
 var (
@@ -144,4 +147,109 @@ func Test_GivenSuccessfulTokenResponse_WhenTokenIsExtractedFromBody_ThenExpectTo
 
 func urlEncodedBodyParam(key, value string) string {
 	return fmt.Sprintf("%s=%s", url.QueryEscape(key), url.QueryEscape(value))
+}
+
+func Test_GivenUMATokenSource_WhenTokenAsked_NoErrors(t *testing.T){
+	ts := newAssertingMockServer(t, realm, func(t *testing.T, r *http.Request) {
+
+	})
+	defer ts.Close()
+	authProvider := NewWithSecret(
+		"test-client-id",
+		"test-client-secret",
+		WithScope("test"),
+		WithBaseURL(ts.URL),
+		WithRealm(realm))
+	tokenSource := authProvider.UMATokenSource()
+	_, err := tokenSource.Token(nil, nil, audienceConfig)
+	require.NoError(t, err)
+}
+
+func Test_GivenAudienceConfiguration_WhenUMATokenSourceIsInstantiated_ThenTokenCallsWithAudience(t *testing.T){
+	cases := map[string] struct{
+		AudienceFromSourceOptions string
+		AudienceFromTokenOptions string
+		ExpectedOptionsSent []string
+	}{
+		"No audience" : {
+			AudienceFromTokenOptions: "",
+			AudienceFromSourceOptions: "",
+			ExpectedOptionsSent: []string{},
+		},
+		"Different audiences are provided from each" : {
+			AudienceFromTokenOptions: "aud-cof-from-token-method",
+			AudienceFromSourceOptions: "aud-conf-from-options",
+			ExpectedOptionsSent: []string{"aud-cof-from-token-method", "aud-conf-from-options"},
+		},
+		"Only token option provided" : {
+		AudienceFromTokenOptions: "aud-cof-from-token-method",
+		AudienceFromSourceOptions: "",
+		ExpectedOptionsSent: []string{"aud-cof-from-token-method"},
+		},
+		"Only source option provided" : {
+			AudienceFromTokenOptions: "",
+			AudienceFromSourceOptions: "aud-conf-from-options",
+			ExpectedOptionsSent: []string{"aud-conf-from-options"},
+		},
+		"Both provides same audience" : {
+			AudienceFromTokenOptions: "test-aud",
+			AudienceFromSourceOptions: "test-aud",
+			ExpectedOptionsSent: []string{"test-aud"},
+		},
+	}
+
+	for _, c := range cases {
+		runAudiencesTestCase(
+			t,
+			c.AudienceFromTokenOptions,
+			c.AudienceFromSourceOptions,
+			c.ExpectedOptionsSent)
+	}
+}
+
+func runAudiencesTestCase(
+	t *testing.T,
+	audFromToken string,
+	audFromOptions string,
+	expectedOptionsSet []string ) {
+	ts := newAssertingMockServer(t, realm, func(t *testing.T, r *http.Request) {
+		b, err := ioutil.ReadAll(r.Body)
+		require.NoError(t, err)
+		body := string(b)
+		for _, expected := range expectedOptionsSet {
+			assert.Contains(t, body, urlEncodedBodyParam(audience, expected))
+		}
+	})
+	defer ts.Close()
+
+	authProvider := NewWithSecret(
+		"test-client-id",
+		"test-client-secret",
+		WithScope("test"),
+		WithBaseURL(ts.URL),
+		WithRealm(realm))
+	audConfOpt := WithAudienceConfig(config.NewAudienceConfig(audFromOptions))
+	tokenSource := authProvider.UMATokenSource(audConfOpt)
+	_ ,err := tokenSource.Token(nil, nil, config.NewAudienceConfig(audFromToken))
+	require.NoError(t, err)
+}
+
+func newAssertingMockServer(
+	t *testing.T,
+	realm string,
+	assertFunc func(t *testing.T,  r *http.Request)) *httptest.Server{
+	tokenEndpointURL := "/auth/realms/" + realm +"/protocol/openid-connect/token"
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case tokenEndpointURL:
+			assertFunc(t, r)
+			json.NewEncoder(w).Encode(tokenJSON{
+				AccessToken:  "my-test-token",
+				RefreshToken: "refresh-token",
+				TokenType:    "Bearer",
+				ExpiresIn:    3600, 
+			})
+			w.WriteHeader(http.StatusOK)
+		}
+	}))
 }

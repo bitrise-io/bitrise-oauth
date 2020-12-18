@@ -53,21 +53,32 @@ type UMATokenSource interface {
 }
 
 type umaTokenSource struct {
-	config clientcredentials.Config
+	config  clientcredentials.Config
+	options []UMATokenSourceOption
 }
 
 // NewUMATokenSource returns a new UMA token source.
-func newUMATokenSource(config clientcredentials.Config) umaTokenSource {
+func newUMATokenSource(config clientcredentials.Config, options ...UMATokenSourceOption) umaTokenSource {
 	return umaTokenSource{
-		config: config,
+		config:  config,
+		options: options,
 	}
 }
 
 // Token returns a new UMA token upon each invocation.
 func (tokenSource umaTokenSource) Token(claim interface{}, permisson []Permission, audienceConfig config.AudienceConfig) (*oauth2.Token, error) {
+	tokenSourceConfig := &UMATokenSourceConfig{}
+	for _, opt := range tokenSource.options {
+		opt(tokenSourceConfig)
+	}
+
 	encodedClaim, err := encodeClaim(claim)
 	if err != nil {
 		return nil, err
+	}
+
+	if tokenSourceConfig.audience != nil {
+		audienceConfig = mergeAudienceConfigs(*tokenSourceConfig.audience, audienceConfig)
 	}
 
 	request, err := tokenSource.newTokenRequest(encodedClaim, permisson, audienceConfig)
@@ -91,6 +102,20 @@ func (tokenSource umaTokenSource) Token(claim interface{}, permisson []Permissio
 	}
 
 	return token, nil
+}
+
+func mergeAudienceConfigs(a, b config.AudienceConfig) config.AudienceConfig {
+	if len(b.All()) == 0 {
+		b = a
+	} else {
+		allAudiences := append(b.All(), a.All()...)
+		if len(allAudiences) > 1 {
+			b = config.NewAudienceConfig(allAudiences[0], allAudiences[1:]...)
+		} else {
+			b = config.NewAudienceConfig(allAudiences[0])
+		}
+	}
+	return b
 }
 
 func encodeClaim(claim interface{}) (string, error) {
