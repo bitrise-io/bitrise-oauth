@@ -151,7 +151,7 @@ func urlEncodedBodyParam(key, value string) string {
 
 func Test_GivenUMATokenSource_WhenTokenAsked_NoErrors(t *testing.T){
 	ts := newAssertingMockServer(t, realm, func(t *testing.T, r *http.Request) {
-
+		// Skip asserting or validation on the request.
 	})
 	defer ts.Close()
 	authProvider := NewWithSecret(
@@ -166,6 +166,12 @@ func Test_GivenUMATokenSource_WhenTokenAsked_NoErrors(t *testing.T){
 }
 
 func Test_GivenAudienceConfiguration_WhenUMATokenSourceIsInstantiated_ThenTokenCallsWithAudience(t *testing.T){
+	const(
+		audienceFromTokenOptions = "aud-cof-from-token-method"
+		audienceFromSourceOptions = "aud-conf-from-options"
+		testAudience = "test-aud"
+	)
+
 	cases := map[string] struct{
 		AudienceFromSourceOptions string
 		AudienceFromTokenOptions string
@@ -177,24 +183,24 @@ func Test_GivenAudienceConfiguration_WhenUMATokenSourceIsInstantiated_ThenTokenC
 			ExpectedOptionsSent: []string{},
 		},
 		"Different audiences are provided from each" : {
-			AudienceFromTokenOptions: "aud-cof-from-token-method",
-			AudienceFromSourceOptions: "aud-conf-from-options",
-			ExpectedOptionsSent: []string{"aud-cof-from-token-method", "aud-conf-from-options"},
+			AudienceFromTokenOptions: audienceFromTokenOptions,
+			AudienceFromSourceOptions: audienceFromSourceOptions,
+			ExpectedOptionsSent: []string{audienceFromSourceOptions, audienceFromTokenOptions},
 		},
 		"Only token option provided" : {
-		AudienceFromTokenOptions: "aud-cof-from-token-method",
+		AudienceFromTokenOptions: audienceFromTokenOptions,
 		AudienceFromSourceOptions: "",
-		ExpectedOptionsSent: []string{"aud-cof-from-token-method"},
+		ExpectedOptionsSent: []string{audienceFromTokenOptions},
 		},
 		"Only source option provided" : {
 			AudienceFromTokenOptions: "",
-			AudienceFromSourceOptions: "aud-conf-from-options",
-			ExpectedOptionsSent: []string{"aud-conf-from-options"},
+			AudienceFromSourceOptions: audienceFromSourceOptions,
+			ExpectedOptionsSent: []string{audienceFromSourceOptions},
 		},
 		"Both provides same audience" : {
-			AudienceFromTokenOptions: "test-aud",
-			AudienceFromSourceOptions: "test-aud",
-			ExpectedOptionsSent: []string{"test-aud"},
+			AudienceFromTokenOptions: testAudience,
+			AudienceFromSourceOptions: testAudience,
+			ExpectedOptionsSent: []string{testAudience},
 		},
 	}
 
