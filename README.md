@@ -63,7 +63,7 @@ The package offers wide configurability using Options. You can easily override a
 ### Usage
 ```go
 authProvider := client.NewWithSecret("my-client-id", "my-client-secret")
-resp, err := authProvider.ManagedHTTPClient().Get("https://authservice.bitrise.io/token-endpoint")
+resp, err := authProvider.ManagedHTTPClient().Get("https://myservice.services.bitrise.io/")
 ```
 
 ## Server
@@ -149,7 +149,7 @@ Represents an UMA token that holds certain claims.
 The package offers wide configurability using Options. You can easily override any parameter by passing the desired Option(s) as constructor arguments. Not only the `Validator` itself has Options, but each use-case has their own Options as well, offering further configuration possibilities.
 
 #### ValidatorOption
-You can customize the `Validator` during instantiation with Options. It's as easy as passing them as constructor parameters, separated by a comma:
+If you want to override the default options (like the auth service url, or the realm), you can customize the `Validator` during instantiation with Options. It's as easy as passing them as constructor parameters, separated by a comma:
 ```go
 service.NewValidator(service.WithBaseURL("https://authservice.bitrise.io"), service.WithRealm("master"))
 ```
