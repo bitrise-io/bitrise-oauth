@@ -49,10 +49,12 @@ func NewValidator(audienceConfig config.AudienceConfig, opts ...ValidatorOption)
 		audience:           audienceConfig,
 	}
 
-	serviceValidator.issuer = serviceValidator.realmURL()
-
 	for _, opt := range opts {
 		opt(serviceValidator)
+	}
+
+	if len(serviceValidator.issuer) == 0 {
+		serviceValidator.issuer = serviceValidator.realmURL()
 	}
 
 	if serviceValidator.secretProvider == nil {

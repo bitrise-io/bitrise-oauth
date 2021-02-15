@@ -151,7 +151,8 @@ The package offers wide configurability using Options. You can easily override a
 #### ValidatorOption
 If you want to override the default options (like the auth service url, or the realm), you can customize the `Validator` during instantiation with Options. It's as easy as passing them as constructor parameters, separated by a comma:
 ```go
-service.NewValidator(service.WithBaseURL("https://authservice.bitrise.io"), service.WithRealm("master"))
+service.NewValidator(config.NewAudienceConfig("audience"),
+  service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 ```
 
 The available `ValidatorOption`s are the following:
