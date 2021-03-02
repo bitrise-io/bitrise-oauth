@@ -77,6 +77,10 @@ type testBuildClaim struct {
 	BuildID string `json:"build_id"`
 }
 
+type testScopeClaim struct {
+	Scope string `json:"scope,omitempty"`
+}
+
 func Test_GivenResourceWithClaim_WhenClaimsCalledWithValidResourceName_ThenExpectClaimReturned(t *testing.T) {
 	// Given
 	resourceName := "resourceName"
@@ -109,6 +113,47 @@ func Test_GivenResourceWithClaim_WhenClaimsCalledWithInvalidResourceName_ThenExp
 
 	// Then
 	assert.EqualError(t, err, "permission for resource: invalid_resource_name not found")
+}
+
+func Test_ValidateScopes_WhenScopeClaimIsMissing_ThenExpectError(t *testing.T) {
+	// Given
+	tokenWithClaims := givenTokenWithClaims(struct{}{})
+
+	// When
+	err := tokenWithClaims.ValidateScopes([]string{"app:read", "missing:write"})
+
+	// Then
+	assert.EqualError(t, err, "no scope claim in token")
+}
+
+func Test_ValidateScopes_WhenGivenScopeIsMissing_ThenExpectError(t *testing.T) {
+	// Given
+	scopeClaim := testScopeClaim{
+		Scope: "app:read build:write",
+	}
+	tokenWithClaims := givenTokenWithClaims(scopeClaim)
+
+	// When
+	err := tokenWithClaims.ValidateScopes([]string{"app:read", "missing:write"})
+
+	// Then
+	assert.EqualError(t, err, "scope missing:write is missing from the token")
+}
+
+func Test_ValidateScopes_WhenAllScopesAreFound_ThenExpectNoError(t *testing.T) {
+	// Given
+	scopeClaim := testScopeClaim{
+		Scope: "app:read build:write",
+	}
+	tokenWithClaims := givenTokenWithClaims(scopeClaim)
+
+	// When
+	err1 := tokenWithClaims.ValidateScopes([]string{"build:write", "app:read"})
+	err2 := tokenWithClaims.ValidateScopes([]string{"build:write", "app:read"})
+
+	// Then
+	require.NoError(t, err1)
+	require.NoError(t, err2)
 }
 
 // Helpers
