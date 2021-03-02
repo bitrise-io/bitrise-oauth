@@ -137,10 +137,12 @@ func Test_ValidateScopes_WhenAllScopesAreFound_ThenExpectNoError(t *testing.T) {
 	tokenWithClaims := givenTokenWithClaims(scopeClaim)
 
 	// When
-	err := tokenWithClaims.ValidateScopes([]string{"build:write", "app:read"})
+	err1 := tokenWithClaims.ValidateScopes([]string{"build:write", "app:read"})
+	err2 := tokenWithClaims.ValidateScopes([]string{"build:write", "app:read"})
 
 	// Then
-	require.NoError(t, err)
+	require.NoError(t, err1)
+	require.NoError(t, err2)
 }
 
 // Helpers
