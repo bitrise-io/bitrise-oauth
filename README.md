@@ -138,12 +138,20 @@ service.NewValidator(config.NewAudienceConfig("audience1", "audience2"))
 Represents an UMA token that holds certain claims.
 
 ##### Methods
-- `Payload() (map[string]interface{}, error)` returns the  contents of the token.
+- `Payload() (map[string]interface{}, error)` returns the contents of the token (basically all the claims in the token)
 
 - `Permissions() ([]interface{}, error)` returns the persmissions part of the token.
 
 - `Claim(resourceName string, claim interface{}) error` returns the claim for the provided resource's name.
 
+- `ValidateScopes(scopes []string) error` check if the token has ALL the passed scopes in its scope claim
+
+```go
+err := tokenWithClaims.ValidateScopes([]string{"app:read", "missing:write"})
+if err != nil {
+	// scope validation failed
+}
+```
 
 ### Options
 The package offers wide configurability using Options. You can easily override any parameter by passing the desired Option(s) as constructor arguments. Not only the `Validator` itself has Options, but each use-case has their own Options as well, offering further configuration possibilities.
@@ -176,6 +184,24 @@ You can configure the *echo* use-case via passing these Options to `Validator`'s
 
 
 ### Usage
+
+#### Validating request/token and extracting claims
+```go
+func someHandler(w http.ResponseWriter, r *http.Request) {	
+	token, err := validator.ValidateRequestAndReturnToken(r)
+	if err != nil {
+		panic(err)
+	}
+
+	claims, err := token.Payload()
+	if err != nil {
+		panic(err)
+	}
+	claimsResponse := fmt.Sprintf("%v", claims)
+
+	w.Write([]byte(claimsResponse))
+}
+```
 
 #### Handler Function
 ```go
