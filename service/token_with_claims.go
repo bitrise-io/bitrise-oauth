@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"gopkg.in/square/go-jose.v2/jwt"
 )
@@ -35,8 +36,9 @@ type permisson struct {
 // TokenWithClaims is a wrapper over jwt.JSONWebToken to extract the
 // claims easily.
 type TokenWithClaims struct {
-	key   interface{}
-	token *jwt.JSONWebToken
+	key    interface{}
+	token  *jwt.JSONWebToken
+	scopes map[string]bool // lazily initialized map of scopes (keys are the scopes, values are just dummy structs)
 }
 
 // Payload returns the  contents of the token.
@@ -94,4 +96,34 @@ func (tokenWithClaim *TokenWithClaims) Claim(resourceName string, claim interfac
 	}
 
 	return fmt.Errorf("permission for resource: %s not found", resourceName)
+}
+
+// ValidateScopes check if the token has ALL the passed scopes in its scopes claim - returns an error if any of the scopes is missing
+func (tokenWithClaim *TokenWithClaims) ValidateScopes(scopes []string) error {
+	// initialize scopes map
+	if tokenWithClaim.scopes == nil {
+		claims, err := tokenWithClaim.Payload()
+		if err != nil {
+			return err
+		}
+
+		tokenScopesString, ok := claims["scope"].(string)
+		if !ok {
+			return errors.New("no scope claim in token")
+		}
+		tokenScopesSlice := strings.Split(tokenScopesString, " ")
+
+		tokenWithClaim.scopes = make(map[string]bool)
+		for _, scope := range tokenScopesSlice {
+			tokenWithClaim.scopes[scope] = true
+		}
+	}
+
+	for _, scope := range scopes {
+		if !tokenWithClaim.scopes[scope] { // returns false if key is not found
+			return fmt.Errorf("scope %s is missing from the token", scope)
+		}
+	}
+
+	return nil
 }
