@@ -38,7 +38,7 @@ type permisson struct {
 type TokenWithClaims struct {
 	key    interface{}
 	token  *jwt.JSONWebToken
-	scopes map[string]bool // lazily initialized map of scopes (keys are the scopes, values are just dummy structs)
+	scopes map[string]bool // lazily initialized map of scopes (keys are the scopes, values are just dummy bools)
 }
 
 // Payload returns the  contents of the token.
