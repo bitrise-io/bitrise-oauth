@@ -98,7 +98,7 @@ func (tokenWithClaim *TokenWithClaims) Claim(resourceName string, claim interfac
 	return fmt.Errorf("permission for resource: %s not found", resourceName)
 }
 
-// ValidateScopes check if the token has ALL the passed scopes in its scopes claim - returns an error if any of the scopes is missing
+// ValidateScopes check if the token has ALL the passed scopes in its scope claim - returns an error if any of the scopes is missing
 func (tokenWithClaim *TokenWithClaims) ValidateScopes(scopes []string) error {
 	// initialize scopes map
 	if tokenWithClaim.scopes == nil {
