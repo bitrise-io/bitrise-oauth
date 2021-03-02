@@ -115,7 +115,18 @@ func Test_GivenResourceWithClaim_WhenClaimsCalledWithInvalidResourceName_ThenExp
 	assert.EqualError(t, err, "permission for resource: invalid_resource_name not found")
 }
 
-func Test_ValidateScopes_WhenScopeIsMissing_ThenExpectError(t *testing.T) {
+func Test_ValidateScopes_WhenScopeClaimIsMissing_ThenExpectError(t *testing.T) {
+	// Given
+	tokenWithClaims := givenTokenWithClaims(struct{}{})
+
+	// When
+	err := tokenWithClaims.ValidateScopes([]string{"app:read", "missing:write"})
+
+	// Then
+	assert.EqualError(t, err, "no scope claim in token")
+}
+
+func Test_ValidateScopes_WhenGivenScopeIsMissing_ThenExpectError(t *testing.T) {
 	// Given
 	scopeClaim := testScopeClaim{
 		Scope: "app:read build:write",
