@@ -131,7 +131,8 @@ You can set the expceted audience via passing an `AudienceConfig` instance as a 
 
 ##### Usage
 ```go
-service.NewValidator(config.NewAudienceConfig("audience1", "audience2"))
+validator := service.NewValidator(config.NewAudienceConfig("audience1", "audience2"),
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 ```
 
 #### `TokenWithClaims`
@@ -209,7 +210,8 @@ handler := func(w http.ResponseWriter, r *http.Request) {}
 
 mux := http.NewServeMux()
 
-validator := service.NewValidator()
+validator := service.NewValidator(config.NewAudienceConfig("audience"),
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 
 mux.HandleFunc("/test_func", validator.HandlerFunc(handler))
 
@@ -222,7 +224,8 @@ handler := func(w http.ResponseWriter, r *http.Request) {}
 
 router := mux.NewRouter()
 
-validator := service.NewValidator()
+validator := service.NewValidator(config.NewAudienceConfig("audience"),
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 
 router.HandleFunc("/test_func", validator.HandlerFunc(handler)).Methods(http.MethodGet)
 
@@ -237,7 +240,8 @@ handler := func(w http.ResponseWriter, r *http.Request) {}
 
 mux := http.NewServeMux()
 
-validator := service.NewValidator()
+validator := service.NewValidator(config.NewAudienceConfig("audience"),
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 
 mux.Handle("/test", validator.Middleware(http.HandlerFunc(handler)))
 
@@ -250,7 +254,8 @@ handler := func(w http.ResponseWriter, r *http.Request) {}
 
 router := mux.NewRouter()
 
-validator := service.NewValidator()
+validator := service.NewValidator(config.NewAudienceConfig("audience"),
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 
 router.Handle("/test", validator.Middleware(http.HandlerFunc(handler))).Methods(http.MethodGet)
 
@@ -267,7 +272,8 @@ handler := func(c echo.Context) error {
 
 e := echo.New()
 
-validator := service.NewValidator()
+validator := service.NewValidator(config.NewAudienceConfig("audience"),
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 
 e.Use(validator.MiddlewareFunc())
 
@@ -278,7 +284,8 @@ e.Logger.Fatal(e.Start(":8080"))
 
 #### Echo Handler Function
 ```go
-validator := service.NewValidator()
+validator := service.NewValidator(config.NewAudienceConfig("audience"),
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 
 handler := func(c echo.Context) error {
 	if err := validator.ValidateRequest(c.Request()); err != nil {
