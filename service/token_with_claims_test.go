@@ -158,9 +158,9 @@ func Test_ValidateScopes_WhenAllScopesAreFound_ThenExpectNoError(t *testing.T) {
 
 // Helpers
 
-func givenTokenWithClaims(claims interface{}) TokenWithClaims {
+func givenTokenWithClaims(claims interface{}) tokenWithClaims {
 	token, _ := newTestTokenConfig().newTokenWithClaims(claims)
-	return TokenWithClaims{
+	return tokenWithClaims{
 		key:   defaultSecret.Public(),
 		token: token,
 	}
