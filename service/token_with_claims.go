@@ -41,6 +41,11 @@ type TokenWithClaims struct {
 	scopes map[string]bool // lazily initialized map of scopes (keys are the scopes, values are just dummy bools)
 }
 
+// NewTokenWithClaims ...
+func NewTokenWithClaims(key interface{}, token *jwt.JSONWebToken, scopes map[string]bool) *TokenWithClaims {
+	return &TokenWithClaims{key, token, scopes}
+}
+
 // Payload returns the  contents of the token.
 func (tokenWithClaim *TokenWithClaims) Payload() (map[string]interface{}, error) {
 	payload := make(map[string]interface{})
