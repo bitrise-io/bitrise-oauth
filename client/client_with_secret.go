@@ -89,6 +89,7 @@ func (cws *WithSecret) HTTPClient(opts ...HTTPClientOption) *http.Client {
 		ClientID:     cws.clientID,
 		ClientSecret: cws.clientSecret,
 		TokenURL:     cws.tokenURL(),
+		Scopes:       cws.scopes,
 	}
 
 	clientOpts := &HTTPClientConfig{
