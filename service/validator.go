@@ -22,7 +22,7 @@ type Validator interface {
 	Middleware(http.Handler, ...HTTPMiddlewareOption) http.Handler
 	MiddlewareFunc(...EchoMiddlewareOption) echo.MiddlewareFunc
 	ValidateRequest(r *http.Request) error
-	ValidateRequestAndReturnToken(r *http.Request) (*TokenWithClaims, error)
+	ValidateRequestAndReturnToken(r *http.Request) (TokenWithClaims, error)
 }
 
 // ValidatorConfig ...
@@ -97,7 +97,7 @@ func (sv ValidatorConfig) ValidateRequest(r *http.Request) error {
 }
 
 // ValidateRequestAndReturnToken ...
-func (sv ValidatorConfig) ValidateRequestAndReturnToken(r *http.Request) (*TokenWithClaims, error) {
+func (sv ValidatorConfig) ValidateRequestAndReturnToken(r *http.Request) (TokenWithClaims, error) {
 	token, err := sv.jwtValidator.ValidateRequest(r)
 	if err != nil {
 		return nil, err
@@ -108,7 +108,7 @@ func (sv ValidatorConfig) ValidateRequestAndReturnToken(r *http.Request) (*Token
 		return nil, err
 	}
 
-	tokenWithClaims := &TokenWithClaims{
+	tokenWithClaims := &tokenWithClaims{
 		key:   key,
 		token: token,
 	}

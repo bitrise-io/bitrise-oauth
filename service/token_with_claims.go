@@ -33,21 +33,24 @@ type permisson struct {
 	Rsname string      `json:"rsname,omitempty"`
 }
 
+// TokenWithClaims ...
+type TokenWithClaims interface {
+	Payload() (map[string]interface{}, error)
+	Permissions() ([]interface{}, error)
+	Claim(resourceName string, claim interface{}) error
+	ValidateScopes(scopes []string) error
+}
+
 // TokenWithClaims is a wrapper over jwt.JSONWebToken to extract the
 // claims easily.
-type TokenWithClaims struct {
+type tokenWithClaims struct {
 	key    interface{}
 	token  *jwt.JSONWebToken
 	scopes map[string]bool // lazily initialized map of scopes (keys are the scopes, values are just dummy bools)
 }
 
-// NewTokenWithClaims ...
-func NewTokenWithClaims(key interface{}, token *jwt.JSONWebToken, scopes map[string]bool) *TokenWithClaims {
-	return &TokenWithClaims{key, token, scopes}
-}
-
 // Payload returns the  contents of the token.
-func (tokenWithClaim *TokenWithClaims) Payload() (map[string]interface{}, error) {
+func (tokenWithClaim *tokenWithClaims) Payload() (map[string]interface{}, error) {
 	payload := make(map[string]interface{})
 	if err := tokenWithClaim.token.Claims(tokenWithClaim.key, &payload); err != nil {
 		return nil, err
@@ -57,7 +60,7 @@ func (tokenWithClaim *TokenWithClaims) Payload() (map[string]interface{}, error)
 }
 
 // Permissions returns the persmissions part of the token.
-func (tokenWithClaim *TokenWithClaims) Permissions() ([]interface{}, error) {
+func (tokenWithClaim *tokenWithClaims) Permissions() ([]interface{}, error) {
 	payload, err := tokenWithClaim.Payload()
 	if err != nil {
 		return nil, err
@@ -77,7 +80,7 @@ func (tokenWithClaim *TokenWithClaims) Permissions() ([]interface{}, error) {
 }
 
 // Claim returns the claim for the provided resource's name.
-func (tokenWithClaim *TokenWithClaims) Claim(resourceName string, claim interface{}) error {
+func (tokenWithClaim *tokenWithClaims) Claim(resourceName string, claim interface{}) error {
 	token := umaToken{}
 	if err := tokenWithClaim.token.Claims(tokenWithClaim.key, &token); err != nil {
 		return err
@@ -104,7 +107,7 @@ func (tokenWithClaim *TokenWithClaims) Claim(resourceName string, claim interfac
 }
 
 // ValidateScopes check if the token has ALL the passed scopes in its scope claim - returns an error if any of the scopes is missing
-func (tokenWithClaim *TokenWithClaims) ValidateScopes(scopes []string) error {
+func (tokenWithClaim *tokenWithClaims) ValidateScopes(scopes []string) error {
 	// initialize scopes map
 	if tokenWithClaim.scopes == nil {
 		claims, err := tokenWithClaim.Payload()
