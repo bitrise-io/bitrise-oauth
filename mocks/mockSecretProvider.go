@@ -14,7 +14,7 @@ type MockSecretProvider struct {
 	mock.Mock
 }
 
-// ValidateRequest ...
+// GetSecret ...
 func (m *MockSecretProvider) GetSecret(r *http.Request) (interface{}, error) {
 	args := m.Called(r)
 	return args.Get(0), args.Error(1)
