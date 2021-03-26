@@ -128,9 +128,13 @@ func (sv ValidatorConfig) Middleware(next http.Handler, opts ...HTTPMiddlewareOp
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := sv.ValidateRequest(r); err != nil {
+		token, err := sv.ValidateRequestAndReturnToken(r)
+		if err != nil {
 			handlerConfig.errorWriter(w, r, err)
 			return
+		}
+		if handlerConfig.tokenHandler != nil {
+			handlerConfig.tokenHandler(w, r, token)
 		}
 		next.ServeHTTP(w, r)
 	})

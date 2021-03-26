@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/auth0-community/go-auth0"
 	"github.com/bitrise-io/bitrise-oauth/config"
 	"github.com/bitrise-io/bitrise-oauth/mocks"
 	"github.com/c2fo/testify/assert"
@@ -18,8 +19,9 @@ func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenEx
 	// Given
 	mockHandler := givenMockHandler()
 	mockErrorWriter := givenMockErrorWriter()
+	mockSecretProvider := givenMockSecretProvider()
 
-	validator := createValidator(givenSuccessfulJWTValidation())
+	validator := createValidator(givenSuccessfulJWTValidation(), mockSecretProvider)
 	testServer := startServerWithMiddleware(mockHandler, validator, WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
@@ -36,7 +38,7 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_Then
 	mockHandler := givenMockHandler()
 	mockErrorWriter := givenMockErrorWriter()
 
-	validator := createValidator(givenUnsuccessfulJWTValidation())
+	validator := createValidator(givenUnsuccessfulJWTValidation(), nil)
 	testServer := startServerWithMiddleware(mockHandler, validator, WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
@@ -53,7 +55,7 @@ func Test_GivenSuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenRequestI
 	mockMiddlewareHandlerFunction := givenMockMiddlewareHandlerFunctionWithSuccess()
 	mockErrorWriter := givenMockErrorWriter()
 
-	validator := createValidator(givenSuccessfulJWTValidation())
+	validator := createValidator(givenSuccessfulJWTValidation(), nil)
 	validatorMiddlewareFunction := validator.MiddlewareFunc(WithContextErrorWriter(mockErrorWriter.EchoHandlerFunc))(mockMiddlewareHandlerFunction.HandlerFunction)
 
 	context := createContext()
@@ -71,7 +73,7 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenReques
 	mockMiddlewareHandlerFunction := givenMockMiddlewareHandlerFunctionWithSuccess()
 	mockErrorWriter := givenMockEchoErrorWriter(errors.New("error"))
 
-	validator := createValidator(givenUnsuccessfulJWTValidation())
+	validator := createValidator(givenUnsuccessfulJWTValidation(), nil)
 	validatorMiddlewareFunction := validator.MiddlewareFunc(WithContextErrorWriter(mockErrorWriter.EchoHandlerFunc))(mockMiddlewareHandlerFunction.HandlerFunction)
 
 	context := createContext()
@@ -89,7 +91,7 @@ func Test_GivenSuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_T
 	mockHandlerFunction := givenMockHandlerFunction()
 	mockErrorWriter := givenMockErrorWriter()
 
-	validator := createValidator(givenSuccessfulJWTValidation())
+	validator := createValidator(givenSuccessfulJWTValidation(), nil)
 	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator, WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
@@ -106,7 +108,7 @@ func Test_GivenUnsuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled
 	mockHandlerFunction := givenMockHandlerFunction()
 	mockErrorWriter := givenMockErrorWriter()
 
-	validator := createValidator(givenUnsuccessfulJWTValidation())
+	validator := createValidator(givenUnsuccessfulJWTValidation(), nil)
 	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator, WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
@@ -150,16 +152,23 @@ func givenMockErrorWriter() *mocks.ErrorWriter {
 	return mockErrorWriter
 }
 
+func givenMockSecretProvider() *mocks.MockSecretProvider {
+	mockSecretProvider := new(mocks.MockSecretProvider)
+	mockSecretProvider.On("GetSecret", mock.Anything).Return(mock.Anything, nil)
+	return mockSecretProvider
+}
+
 func givenMockEchoErrorWriter(err error) *mocks.ErrorWriter {
 	mockErrorWriter := new(mocks.ErrorWriter)
 	mockErrorWriter.On("EchoHandlerFunc", mock.Anything, mock.Anything).Return(err)
 	return mockErrorWriter
 }
 
-func createValidator(mockJWTValidator jwtValidator) Validator {
+func createValidator(mockJWTValidator jwtValidator, mockSecretProvider auth0.SecretProvider) Validator {
 	validator := NewValidator(
 		config.NewAudienceConfig("test_audience"),
 		withValidator(mockJWTValidator),
+		withSecretProvider(mockSecretProvider),
 	)
 	return validator
 }
