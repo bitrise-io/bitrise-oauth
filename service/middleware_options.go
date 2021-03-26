@@ -15,13 +15,21 @@ type HTTPMiddlewareOption func(c *HTTPMiddlewareConfig)
 
 // HTTPMiddlewareConfig ...
 type HTTPMiddlewareConfig struct {
-	errorWriter func(w http.ResponseWriter, r *http.Request, err error)
+	errorWriter  func(w http.ResponseWriter, r *http.Request, err error)
+	tokenHandler func(w http.ResponseWriter, r *http.Request, token TokenWithClaims)
 }
 
 // WithHTTPErrorWriter ...
 func WithHTTPErrorWriter(errorWriter func(w http.ResponseWriter, r *http.Request, err error)) HTTPMiddlewareOption {
 	return func(c *HTTPMiddlewareConfig) {
 		c.errorWriter = errorWriter
+	}
+}
+
+// WithTokenHandler ...
+func WithTokenHandler(tokenHandler func(w http.ResponseWriter, r *http.Request, token TokenWithClaims)) HTTPMiddlewareOption {
+	return func(c *HTTPMiddlewareConfig) {
+		c.tokenHandler = tokenHandler
 	}
 }
 
