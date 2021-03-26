@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
+	"gopkg.in/square/go-jose.v2/jwt"
 )
 
 var defaultHTTPErrorWriter = func(w http.ResponseWriter, r *http.Request, err error) {
@@ -16,7 +17,7 @@ type HTTPMiddlewareOption func(c *HTTPMiddlewareConfig)
 // HTTPMiddlewareConfig ...
 type HTTPMiddlewareConfig struct {
 	errorWriter  func(w http.ResponseWriter, r *http.Request, err error)
-	tokenHandler func(w http.ResponseWriter, r *http.Request, token TokenWithClaims)
+	tokenHandler func(w http.ResponseWriter, r *http.Request, token *jwt.JSONWebToken)
 }
 
 // WithHTTPErrorWriter ...
@@ -27,7 +28,7 @@ func WithHTTPErrorWriter(errorWriter func(w http.ResponseWriter, r *http.Request
 }
 
 // WithTokenHandler ...
-func WithTokenHandler(tokenHandler func(w http.ResponseWriter, r *http.Request, token TokenWithClaims)) HTTPMiddlewareOption {
+func WithTokenHandler(tokenHandler func(w http.ResponseWriter, r *http.Request, token *jwt.JSONWebToken)) HTTPMiddlewareOption {
 	return func(c *HTTPMiddlewareConfig) {
 		c.tokenHandler = tokenHandler
 	}
