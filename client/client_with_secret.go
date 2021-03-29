@@ -17,7 +17,7 @@ type AuthProvider interface {
 	ManagedHTTPClient(...HTTPClientOption) *http.Client
 	HTTPClient(...HTTPClientOption) *http.Client
 	TokenSource() oauth2.TokenSource
-	UMATokenSource() UMATokenSource
+	UMATokenSource(options ...UMATokenSourceOption) UMATokenSource
 }
 
 var clients sync.Map
@@ -71,8 +71,8 @@ func (cws *WithSecret) TokenSource() oauth2.TokenSource {
 }
 
 // UMATokenSource returns an UMA token source.
-func (cws *WithSecret) UMATokenSource() UMATokenSource {
-	return newUMATokenSource(cws.credentials)
+func (cws *WithSecret) UMATokenSource(options ...UMATokenSourceOption) UMATokenSource {
+	return newUMATokenSource(cws.credentials, options...)
 }
 
 // ManagedHTTPClient is a preconfigured http client using in-memory client storage
