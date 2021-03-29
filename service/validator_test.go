@@ -56,7 +56,7 @@ func Test_GivenSuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenRequestI
 	mockErrorWriter := givenMockErrorWriter()
 
 	validator := createValidator(givenSuccessfulJWTValidation(), nil)
-	validatorMiddlewareFunction := validator.MiddlewareFunc(WithContextErrorWriter(mockErrorWriter.EchoHandlerFunc))(mockMiddlewareHandlerFunction.HandlerFunction)
+	validatorMiddlewareFunction := validator.EchoMiddlewareFunc(WithContextErrorWriter(mockErrorWriter.EchoHandlerFunc))(mockMiddlewareHandlerFunction.HandlerFunction)
 
 	context := createContext()
 
@@ -74,7 +74,7 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenReques
 	mockErrorWriter := givenMockEchoErrorWriter(errors.New("error"))
 
 	validator := createValidator(givenUnsuccessfulJWTValidation(), nil)
-	validatorMiddlewareFunction := validator.MiddlewareFunc(WithContextErrorWriter(mockErrorWriter.EchoHandlerFunc))(mockMiddlewareHandlerFunction.HandlerFunction)
+	validatorMiddlewareFunction := validator.EchoMiddlewareFunc(WithContextErrorWriter(mockErrorWriter.EchoHandlerFunc))(mockMiddlewareHandlerFunction.HandlerFunction)
 
 	context := createContext()
 

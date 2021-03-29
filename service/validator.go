@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	auth0 "github.com/auth0-community/go-auth0"
+	"github.com/auth0-community/go-auth0"
 	"github.com/bitrise-io/bitrise-oauth/config"
 	"github.com/labstack/echo"
 	"gopkg.in/square/go-jose.v2"
@@ -20,7 +20,7 @@ type jwtValidator interface {
 type Validator interface {
 	HandlerFunc(http.HandlerFunc, ...HTTPMiddlewareOption) http.HandlerFunc
 	Middleware(http.Handler, ...HTTPMiddlewareOption) http.Handler
-	MiddlewareFunc(...EchoMiddlewareOption) echo.MiddlewareFunc
+	EchoMiddlewareFunc(...EchoMiddlewareOption) echo.MiddlewareFunc
 	ValidateRequest(r *http.Request) error
 	ValidateRequestAndReturnToken(r *http.Request) (TokenWithClaims, error)
 }
@@ -140,9 +140,9 @@ func (sv ValidatorConfig) Middleware(next http.Handler, opts ...HTTPMiddlewareOp
 	})
 }
 
-// MiddlewareFunc can be used with echo.Use.
+// EchoMiddlewareFunc can be used with echo.Use.
 // Calls out to ValidateRequest and returns an error for echo.
-func (sv ValidatorConfig) MiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc {
+func (sv ValidatorConfig) EchoMiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc {
 	handlerConfig := &EchoMiddlewareConfig{
 		errorWriter: defaultEchoErrorWriter,
 	}
