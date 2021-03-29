@@ -111,7 +111,7 @@ You can use `ValidatorOption`s to configure.
 
 - `Middleware(next http.Handler, opts ...HTTPMiddlewareOption) http.Handler` returns an `http.Handler` instance. It calls `ValidateRequest` to validate the request. Calls the next middleware if the validation has succeeded, otherwise sends an error using an error writer. It might receive `HTTPMiddlewareOption`s as a parameter.
 
-- `MiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc` returns an `echo.MiddlewareFunc` instance. It calls `ValidateRequest` to validate the request. Calls the next `echo.HandlerFunc` if the validation has succeeded, otherwise returns an `error`. It might receive `EchoMiddlewareOption`s as a parameter. 
+- `EchoMiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc` returns an `echo.MiddlewareFunc` instance. It calls `ValidateRequest` to validate the request. Calls the next `echo.HandlerFunc` if the validation has succeeded, otherwise returns an `error`. It might receive `EchoMiddlewareOption`s as a parameter. 
 
 - `HandlerFunc(hf http.HandlerFunc, opts ...HTTPMiddlewareOption) http.HandlerFunc` returns a `http.HandlerFunc` instance. It calls `ValidateRequest` to validate the request. Calls the next handler function if the validation has succeeded, otherwise sends an error using an error writer. It might receive `HTTPMiddlewareOption`s as a parameter.
 
