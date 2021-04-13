@@ -78,7 +78,7 @@ func createDefaultSecretProvider(validatorConfig *ValidatorConfig) auth0.SecretP
 }
 
 func createDefaultJWTValidator(validatorConfig *ValidatorConfig) jwtValidator {
-	configuration := auth0.NewConfiguration(validatorConfig.secretProvider, validatorConfig.audience.All(), validatorConfig.issuer, validatorConfig.signatureAlgorithm)
+	configuration := auth0.NewConfiguration(validatorConfig.secretProvider, []string{}, validatorConfig.issuer, validatorConfig.signatureAlgorithm)
 	return auth0.NewValidator(configuration, nil)
 }
 
@@ -111,6 +111,29 @@ func (sv ValidatorConfig) ValidateRequestAndReturnToken(r *http.Request) (TokenW
 	tokenWithClaims := &tokenWithClaims{
 		key:   key,
 		token: token,
+	}
+
+	payload, err := tokenWithClaims.Payload()
+	if err != nil {
+		return nil, err
+	}
+
+	audienceInterface := payload["aud"].([]interface{})
+	audiencesInToken := make([]string, len(audienceInterface))
+	for i, v := range audienceInterface {
+		audiencesInToken[i] = v.(string)
+	}
+	if len(audiencesInToken) > 0 {
+		found := false
+		for _, aud := range audiencesInToken {
+			if !found && sv.audience.Contains(aud) {
+				found = true
+			}
+		}
+
+		if !found {
+			return nil, jwt.ErrInvalidAudience
+		}
 	}
 
 	return tokenWithClaims, nil

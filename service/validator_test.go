@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/auth0-community/go-auth0"
 	"github.com/bitrise-io/bitrise-oauth/config"
@@ -12,6 +13,7 @@ import (
 	"github.com/c2fo/testify/assert"
 	"github.com/c2fo/testify/mock"
 	"github.com/labstack/echo"
+	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
@@ -154,7 +156,14 @@ func givenMockErrorWriter() *mocks.ErrorWriter {
 
 func givenMockSecretProvider() *mocks.MockSecretProvider {
 	mockSecretProvider := new(mocks.MockSecretProvider)
-	mockSecretProvider.On("GetSecret", mock.Anything).Return(mock.Anything, nil)
+	mockSecretProvider.On("GetSecret", mock.Anything).Return(createDefaultSecretProvider(&ValidatorConfig{
+		baseURL:            config.BaseURL,
+		realm:              config.Realm,
+		keyCacher:          auth0.NewMemoryKeyCacher(2*time.Hour, 5),
+		signatureAlgorithm: jose.RS256,
+		timeout:            30 * time.Second,
+		audience:           config.AudienceConfig{},
+	}), nil)
 	return mockSecretProvider
 }
 
