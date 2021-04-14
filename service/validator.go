@@ -147,27 +147,19 @@ func (sv ValidatorConfig) ValidateAudiences(tokenWithClaims tokenWithClaims, aud
 
 	var audiencesInToken []string
 
-	switch v := payload["aud"].(type) {
+	switch aud := payload["aud"].(type) {
 	default:
-		fmt.Printf("unexpected type %T", v)
+		panic("unexpected type for audience")
 	case string:
-		audience, ok := payload["aud"].(string)
-		if !ok {
-			panic("type assertion failed")
-		}
-		audiencesInToken = []string{audience}
+		audiencesInToken = []string{aud}
 	case []interface{}:
-		audienceInterface, ok := payload["aud"].([]interface{})
-		if !ok {
-			panic("type assertion failed")
-		}
-		audiencesInToken = make([]string, len(audienceInterface))
-		for i, v := range audienceInterface {
-			audience, ok := v.(string)
+		audiencesInToken = make([]string, len(aud))
+		for i, a := range aud {
+			var ok bool
+			audiencesInToken[i], ok = a.(string)
 			if !ok {
-				panic("type assertion failed")
+				panic("type assertion failed - string was expected for audience")
 			}
-			audiencesInToken[i] = audience
 		}
 	}
 
