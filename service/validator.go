@@ -138,6 +138,7 @@ func (sv ValidatorConfig) ValidateRequestAndReturnToken(r *http.Request) (TokenW
 	return tokenWithClaims, nil
 }
 
+// ValidateAudiences ...
 func (sv ValidatorConfig) ValidateAudiences(tokenWithClaims tokenWithClaims, audiences []string) error {
 	payload, err := tokenWithClaims.Payload()
 	if err != nil {
