@@ -23,7 +23,6 @@ type Validator interface {
 	EchoMiddlewareFunc(...EchoMiddlewareOption) echo.MiddlewareFunc
 	ValidateRequest(r *http.Request) error
 	ValidateRequestAndReturnToken(r *http.Request) (TokenWithClaims, error)
-	ValidateAudiences(tokenWithClaims tokenWithClaims, audiences []string) error
 }
 
 // ValidatorConfig ...
@@ -105,7 +104,7 @@ func (sv ValidatorConfig) ValidateRequest(r *http.Request) error {
 		token: token,
 	}
 
-	err = sv.ValidateAudiences(*tokenWithClaims, sv.audience.All())
+	err = sv.validateAudiences(*tokenWithClaims, sv.audience.All())
 	if err != nil {
 		return err
 	}
@@ -130,7 +129,7 @@ func (sv ValidatorConfig) ValidateRequestAndReturnToken(r *http.Request) (TokenW
 		token: token,
 	}
 
-	err = sv.ValidateAudiences(*tokenWithClaims, sv.audience.All())
+	err = sv.validateAudiences(*tokenWithClaims, sv.audience.All())
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +138,7 @@ func (sv ValidatorConfig) ValidateRequestAndReturnToken(r *http.Request) (TokenW
 }
 
 // ValidateAudiences ...
-func (sv ValidatorConfig) ValidateAudiences(tokenWithClaims tokenWithClaims, audiences []string) error {
+func (sv ValidatorConfig) validateAudiences(tokenWithClaims tokenWithClaims, audiences []string) error {
 	payload, err := tokenWithClaims.Payload()
 	if err != nil {
 		return err
