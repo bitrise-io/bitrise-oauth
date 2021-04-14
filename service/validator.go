@@ -23,6 +23,7 @@ type Validator interface {
 	EchoMiddlewareFunc(...EchoMiddlewareOption) echo.MiddlewareFunc
 	ValidateRequest(r *http.Request) error
 	ValidateRequestAndReturnToken(r *http.Request) (TokenWithClaims, error)
+	ValidateAudiences(tokenWithClaims tokenWithClaims, audiences []string) error
 }
 
 // ValidatorConfig ...
@@ -92,7 +93,23 @@ func (sv ValidatorConfig) jwksURL() string {
 
 // ValidateRequest to validate if the request is authenticated and has active token.
 func (sv ValidatorConfig) ValidateRequest(r *http.Request) error {
-	_, err := sv.jwtValidator.ValidateRequest(r)
+	token, err := sv.jwtValidator.ValidateRequest(r)
+
+	key, err := sv.secretProvider.GetSecret(r)
+	if err != nil {
+		return err
+	}
+
+	tokenWithClaims := &tokenWithClaims{
+		key:   key,
+		token: token,
+	}
+
+	err = sv.ValidateAudiences(*tokenWithClaims, sv.audience.All())
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 
@@ -113,9 +130,18 @@ func (sv ValidatorConfig) ValidateRequestAndReturnToken(r *http.Request) (TokenW
 		token: token,
 	}
 
-	payload, err := tokenWithClaims.Payload()
+	err = sv.ValidateAudiences(*tokenWithClaims, sv.audience.All())
 	if err != nil {
 		return nil, err
+	}
+
+	return tokenWithClaims, nil
+}
+
+func (sv ValidatorConfig) ValidateAudiences(tokenWithClaims tokenWithClaims, audiences []string) error {
+	payload, err := tokenWithClaims.Payload()
+	if err != nil {
+		return err
 	}
 
 	audienceInterface := payload["aud"].([]interface{})
@@ -132,11 +158,11 @@ func (sv ValidatorConfig) ValidateRequestAndReturnToken(r *http.Request) (TokenW
 		}
 
 		if !found {
-			return nil, jwt.ErrInvalidAudience
+			return jwt.ErrInvalidAudience
 		}
 	}
 
-	return tokenWithClaims, nil
+	return nil
 }
 
 // Middleware used as http package's middleware, in http.Handle.
