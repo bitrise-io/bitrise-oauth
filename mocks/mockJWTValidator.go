@@ -7,6 +7,10 @@ import (
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
+// token can be edited on jwt.io (use "secret" as the secret)
+var rawMockToken = `eyJhbGciOiJIUzI1NiJ9.eyJTY29wZXMiOlsiZm9vIiwiYmFyIl0sImlzcyI6Imlzc3VlciIsInN1YiI6InN1YmplY3QiLCJhdWQiOiJ0ZXN0X2F1ZGllbmNlIn0.jWFz6fxqVOWZOUEj50_FjKIvZZRjjAOxk5YgpXg0aLI`
+var mockToken, err = jwt.ParseSigned(rawMockToken)
+
 // JWTValidator ...
 type JWTValidator struct {
 	mock.Mock
@@ -20,7 +24,7 @@ func (m *JWTValidator) ValidateRequest(r *http.Request) (*jwt.JSONWebToken, erro
 
 // GivenSuccessfulJWTValidation ...
 func (m *JWTValidator) GivenSuccessfulJWTValidation() *JWTValidator {
-	m.On("ValidateRequest", mock.Anything).Return(&jwt.JSONWebToken{}, nil)
+	m.On("ValidateRequest", mock.Anything).Return(mockToken, nil)
 	return m
 }
 

@@ -78,7 +78,7 @@ func createDefaultSecretProvider(validatorConfig *ValidatorConfig) auth0.SecretP
 }
 
 func createDefaultJWTValidator(validatorConfig *ValidatorConfig) jwtValidator {
-	configuration := auth0.NewConfiguration(validatorConfig.secretProvider, validatorConfig.audience.All(), validatorConfig.issuer, validatorConfig.signatureAlgorithm)
+	configuration := auth0.NewConfiguration(validatorConfig.secretProvider, []string{}, validatorConfig.issuer, validatorConfig.signatureAlgorithm)
 	return auth0.NewValidator(configuration, nil)
 }
 
@@ -92,7 +92,23 @@ func (sv ValidatorConfig) jwksURL() string {
 
 // ValidateRequest to validate if the request is authenticated and has active token.
 func (sv ValidatorConfig) ValidateRequest(r *http.Request) error {
-	_, err := sv.jwtValidator.ValidateRequest(r)
+	token, err := sv.jwtValidator.ValidateRequest(r)
+
+	key, err := sv.secretProvider.GetSecret(r)
+	if err != nil {
+		return err
+	}
+
+	tokenWithClaims := &tokenWithClaims{
+		key:   key,
+		token: token,
+	}
+
+	err = sv.validateAudiences(*tokenWithClaims, sv.audience.All())
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 
@@ -113,7 +129,69 @@ func (sv ValidatorConfig) ValidateRequestAndReturnToken(r *http.Request) (TokenW
 		token: token,
 	}
 
+	err = sv.validateAudiences(*tokenWithClaims, sv.audience.All())
+	if err != nil {
+		return nil, err
+	}
+
 	return tokenWithClaims, nil
+}
+
+// ValidateAudiences ...
+func (sv ValidatorConfig) validateAudiences(tokenWithClaims tokenWithClaims, audiences []string) error {
+	payload, err := tokenWithClaims.Payload()
+	if err != nil {
+		return err
+	}
+
+	var audiencesInToken []string
+
+	switch aud := payload["aud"].(type) {
+	default:
+		panic("unexpected type for audience")
+	case nil:
+		audiencesInToken = []string{}
+	case string:
+		audiencesInToken = []string{aud}
+	case []interface{}:
+		audiencesInToken = make([]string, len(aud))
+		for i, a := range aud {
+			var ok bool
+			audiencesInToken[i], ok = a.(string)
+			if !ok {
+				panic("type assertion failed - string was expected for audience")
+			}
+		}
+	}
+
+	if len(sv.audience.All()) > 0 && len(audiencesInToken) == 0 {
+		return jwt.ErrInvalidAudience
+	}
+
+	if len(sv.audience.All()) > 0 {
+		found := false
+		for _, aud := range sv.audience.All() {
+			if !found && contains(audiencesInToken, aud) {
+				found = true
+			}
+		}
+
+		if !found {
+			return jwt.ErrInvalidAudience
+		}
+	}
+
+	return nil
+}
+
+func contains(array []string, element string) bool {
+	for _, aud := range array {
+		if aud == element {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Middleware used as http package's middleware, in http.Handle.
