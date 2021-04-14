@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/auth0-community/go-auth0"
 	"github.com/bitrise-io/bitrise-oauth/config"
@@ -12,6 +13,7 @@ import (
 	"github.com/c2fo/testify/assert"
 	"github.com/c2fo/testify/mock"
 	"github.com/labstack/echo"
+	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
@@ -54,8 +56,9 @@ func Test_GivenSuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenRequestI
 	// Given
 	mockMiddlewareHandlerFunction := givenMockMiddlewareHandlerFunctionWithSuccess()
 	mockErrorWriter := givenMockErrorWriter()
+	mockSecretProvider := givenMockSecretProvider()
 
-	validator := createValidator(givenSuccessfulJWTValidation(), nil)
+	validator := createValidator(givenSuccessfulJWTValidation(), mockSecretProvider)
 	validatorMiddlewareFunction := validator.EchoMiddlewareFunc(WithContextErrorWriter(mockErrorWriter.EchoHandlerFunc))(mockMiddlewareHandlerFunction.HandlerFunction)
 
 	context := createContext()
@@ -90,8 +93,9 @@ func Test_GivenSuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_T
 	//Given
 	mockHandlerFunction := givenMockHandlerFunction()
 	mockErrorWriter := givenMockErrorWriter()
+	mockSecretProvider := givenMockSecretProvider()
 
-	validator := createValidator(givenSuccessfulJWTValidation(), nil)
+	validator := createValidator(givenSuccessfulJWTValidation(), mockSecretProvider)
 	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator, WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
@@ -154,7 +158,7 @@ func givenMockErrorWriter() *mocks.ErrorWriter {
 
 func givenMockSecretProvider() *mocks.MockSecretProvider {
 	mockSecretProvider := new(mocks.MockSecretProvider)
-	mockSecretProvider.On("GetSecret", mock.Anything).Return(mock.Anything, nil)
+	mockSecretProvider.On("GetSecret", mock.Anything).Return([]byte("secret"), nil)
 	return mockSecretProvider
 }
 
@@ -202,31 +206,45 @@ func createContext() echo.Context {
 
 func Test_AudienceClaimValidation(t *testing.T) {
 	testCases := []struct {
-		name               string
-		otherAudienceIndex int
-		want               error
+		name           string
+		tokenAudiences []string
+		inputAudiences []string
+		expectedError  error
 	}{
 		{
-			"1. Given a request and a validator with the SAME audience when the request is vaidated then expect no error",
-			0,
-			nil,
+			name:           "Given a request and a validator with the SAME audience when the request is vaidated then expect no error",
+			tokenAudiences: []string{"aud1"},
+			inputAudiences: []string{"aud1"},
+			expectedError:  nil,
 		},
 		{
-			"2. Given a request and a validator with DIFFERENT audience when the request is vaidated then expect an invalid audience error",
-			1,
-			jwt.ErrInvalidAudience,
+			name:           "Given a request and a validator with a common subset of audiences",
+			tokenAudiences: []string{"aud1", "aud2", "aud3"},
+			inputAudiences: []string{"aud2", "aud3", "aud4"},
+			expectedError:  nil,
+		},
+		{
+			name:           "Given a request and a validator without a common subset of audiences",
+			tokenAudiences: []string{"aud1", "aud2", "aud3"},
+			inputAudiences: []string{"aud4", "aud5"},
+			expectedError:  jwt.ErrInvalidAudience,
+		},
+		{
+			name:           "Given a validator with expected audiences but there are no audiences in the token the it shoudl fail",
+			tokenAudiences: []string{},
+			inputAudiences: []string{"aud1", "aud2"},
+			expectedError:  jwt.ErrInvalidAudience,
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			// Given
-			expectedAudience := []string{defaultAudience[0], "other"}
-			testtoken := newTestTokenConfig()
-			request := testtoken.newRequest()
+			testToken := newTestTokenConfigWithAudiences(testCase.tokenAudiences)
+			request := testToken.newRequest()
 
 			validator := NewValidator(
-				config.NewAudienceConfig(expectedAudience[0], expectedAudience[testCase.otherAudienceIndex]),
+				config.NewAudienceConfig(testCase.inputAudiences[0], testCase.inputAudiences[1:]...),
 				withIssuer(defaultIssuer),
 				withSecretProvider(defaultSecretProvider),
 			)
@@ -235,7 +253,18 @@ func Test_AudienceClaimValidation(t *testing.T) {
 			err := validator.ValidateRequest(request)
 
 			// Then
-			assert.Equal(t, testCase.want, err)
+			assert.Equal(t, testCase.expectedError, err)
 		})
+	}
+}
+
+func newTestTokenConfigWithAudiences(audiences []string) testTokenConfig {
+	return testTokenConfig{
+		audiences,
+		defaultIssuer,
+		time.Now().Add(24 * time.Hour),
+		jose.RS256,
+		defaultSecret,
+		defaultKid,
 	}
 }
