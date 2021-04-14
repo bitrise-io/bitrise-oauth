@@ -144,11 +144,21 @@ func (sv ValidatorConfig) ValidateAudiences(tokenWithClaims tokenWithClaims, aud
 		return err
 	}
 
-	audienceInterface := payload["aud"].([]interface{})
-	audiencesInToken := make([]string, len(audienceInterface))
-	for i, v := range audienceInterface {
-		audiencesInToken[i] = v.(string)
+	var audiencesInToken []string
+
+	switch v := payload["aud"].(type) {
+	default:
+		fmt.Printf("unexpected type %T", v)
+	case string:
+		audiencesInToken = []string{payload["aud"].(string)}
+	case []string:
+		audienceInterface := payload["aud"].([]interface{})
+		audiencesInToken = make([]string, len(audienceInterface))
+		for i, v := range audienceInterface {
+			audiencesInToken[i] = v.(string)
+		}
 	}
+
 	if len(audiencesInToken) > 0 {
 		found := false
 		for _, aud := range audiencesInToken {

@@ -156,7 +156,7 @@ func givenMockErrorWriter() *mocks.ErrorWriter {
 
 func givenMockSecretProvider() *mocks.MockSecretProvider {
 	mockSecretProvider := new(mocks.MockSecretProvider)
-	mockSecretProvider.On("GetSecret", mock.Anything).Return(mock.Anything, nil)
+	mockSecretProvider.On("GetSecret", mock.Anything).Return([]byte("secret"), nil)
 	return mockSecretProvider
 }
 
@@ -166,34 +166,41 @@ func givenMockEchoErrorWriter(err error) *mocks.ErrorWriter {
 	return mockErrorWriter
 }
 
-type mockValidator struct{}
+// type mockValidator struct {
+// 	mock.Mock
+// }
 
-func (m *mockValidator) ValidateRequest(r *http.Request) error {
-	return nil
-}
+// func (m *mockValidator) ValidateRequest(r *http.Request) error {
+// 	return nil
+// }
 
-func (m *mockValidator) HandlerFunc(http.HandlerFunc, ...HTTPMiddlewareOption) http.HandlerFunc {
-	return nil
-}
-func (m *mockValidator) Middleware(http.Handler, ...HTTPMiddlewareOption) http.Handler {
-	return nil
-}
-func (m *mockValidator) EchoMiddlewareFunc(...EchoMiddlewareOption) echo.MiddlewareFunc {
-	return nil
-}
-func (m *mockValidator) ValidateRequestAndReturnToken(r *http.Request) (TokenWithClaims, error) {
-	return nil, nil
-}
-func (m *mockValidator) ValidateAudiences(tokenWithClaims tokenWithClaims, audiences []string) error {
-	return nil
-}
+// func (m *mockValidator) HandlerFunc(http.HandlerFunc, ...HTTPMiddlewareOption) http.HandlerFunc {
+// 	return nil
+// }
+// func (m *mockValidator) Middleware(http.Handler, ...HTTPMiddlewareOption) http.Handler {
+// 	return nil
+// }
+// func (m *mockValidator) EchoMiddlewareFunc(...EchoMiddlewareOption) echo.MiddlewareFunc {
+// 	return nil
+// }
+// func (m *mockValidator) ValidateRequestAndReturnToken(r *http.Request) (TokenWithClaims, error) {
+// 	return nil, nil
+// }
+// func (m *mockValidator) ValidateAudiences(tokenWithClaims tokenWithClaims, audiences []string) error {
+// 	return nil
+// }
+
+// func (m *mockValidator) GivenSuccessfulValidateRequest() {
+// 	m.On("ValidateRequest").Return(nil)
+// }
+
 func createValidator(mockJWTValidator jwtValidator, mockSecretProvider auth0.SecretProvider) Validator {
-	// validator := NewValidator(
-	// 	config.NewAudienceConfig("test_audience"),
-	// 	withValidator(mockJWTValidator),
-	// 	withSecretProvider(mockSecretProvider),
-	// )
-	return &mockValidator{}
+	validator := NewValidator(
+		config.NewAudienceConfig("test_audience"),
+		withValidator(mockJWTValidator),
+		withSecretProvider(mockSecretProvider),
+	)
+	return validator
 }
 
 func startServerWithMiddleware(mockHandler *mocks.Handler, validator Validator, opts ...HTTPMiddlewareOption) *httptest.Server {
