@@ -156,7 +156,7 @@ func (sv ValidatorConfig) ValidateAudiences(tokenWithClaims tokenWithClaims, aud
 			panic("type assertion failed")
 		}
 		audiencesInToken = []string{audience}
-	case []string:
+	case []interface{}:
 		audienceInterface, ok := payload["aud"].([]interface{})
 		if !ok {
 			panic("type assertion failed")
