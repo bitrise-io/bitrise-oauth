@@ -16,14 +16,3 @@ func NewAudienceConfig(audience string, audiences ...string) AudienceConfig {
 func (audienceConfig AudienceConfig) All() []string {
 	return audienceConfig.audience
 }
-
-// Contains ...
-func (audienceConfig AudienceConfig) Contains(audience string) bool {
-	for _, aud := range audienceConfig.audience {
-		if aud == audience {
-			return true
-		}
-	}
-
-	return false
-}

@@ -229,6 +229,12 @@ func Test_AudienceClaimValidation(t *testing.T) {
 			inputAudiences: []string{"aud4", "aud5"},
 			expectedError:  jwt.ErrInvalidAudience,
 		},
+		{
+			name:           "Given a validator with expected audiences but there are no audiences in the token the it shoudl fail",
+			tokenAudiences: []string{},
+			inputAudiences: []string{"aud1", "aud2"},
+			expectedError:  jwt.ErrInvalidAudience,
+		},
 	}
 
 	for _, testCase := range testCases {

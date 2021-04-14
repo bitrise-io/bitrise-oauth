@@ -149,6 +149,8 @@ func (sv ValidatorConfig) validateAudiences(tokenWithClaims tokenWithClaims, aud
 	switch aud := payload["aud"].(type) {
 	default:
 		panic("unexpected type for audience")
+	case nil:
+		audiencesInToken = []string{}
 	case string:
 		audiencesInToken = []string{aud}
 	case []interface{}:
@@ -162,10 +164,14 @@ func (sv ValidatorConfig) validateAudiences(tokenWithClaims tokenWithClaims, aud
 		}
 	}
 
-	if len(audiencesInToken) > 0 {
+	if len(sv.audience.All()) > 0 && len(audiencesInToken) == 0 {
+		return jwt.ErrInvalidAudience
+	}
+
+	if len(sv.audience.All()) > 0 {
 		found := false
-		for _, aud := range audiencesInToken {
-			if !found && sv.audience.Contains(aud) {
+		for _, aud := range sv.audience.All() {
+			if !found && contains(audiencesInToken, aud) {
 				found = true
 			}
 		}
@@ -176,6 +182,16 @@ func (sv ValidatorConfig) validateAudiences(tokenWithClaims tokenWithClaims, aud
 	}
 
 	return nil
+}
+
+func contains(array []string, element string) bool {
+	for _, aud := range array {
+		if aud == element {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Middleware used as http package's middleware, in http.Handle.
