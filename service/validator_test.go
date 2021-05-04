@@ -285,7 +285,8 @@ func Test_ValidatorConfig(t *testing.T) {
 		validator, err := NewValidator(config.NewAudienceConfig("test-audience"), testCase.opts...)
 		assert.NoError(t, err)
 
-		validatorConfig := validator.(*ValidatorConfig)
+		validatorConfig, ok := validator.(*ValidatorConfig)
+		assert.True(t, ok)
 
 		assert.Equal(t, testCase.expectedIssuer, validatorConfig.issuer)
 		assert.Equal(t, testCase.expectedBaseURL, validatorConfig.baseURL)

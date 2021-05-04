@@ -24,7 +24,8 @@ func Test_WithSecretConfig(t *testing.T) {
 		},
 	} {
 
-		validatorConfig := NewWithSecret("", "", WithScope(""), testCase.opts...).(*WithSecret)
+		validatorConfig, ok := NewWithSecret("", "", WithScope(""), testCase.opts...).(*WithSecret)
+		assert.True(t, ok)
 
 		assert.Equal(t, testCase.expectedTokenURL, validatorConfig.credentials.TokenURL)
 		assert.Equal(t, testCase.expectedBaseURL, validatorConfig.baseURL)
