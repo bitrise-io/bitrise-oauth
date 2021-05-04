@@ -47,6 +47,7 @@ func NewWithSecret(clientID, clientSecret string, scopeOption ScopeOption, opts 
 
 	scopeOption(cws)
 
+	// Keycloak requires this path prefix internally on auth.services.bitrise.io domain (for addons this service is available on app.bitrise.io)
 	if cws.realm != "addons" {
 		cws.baseURL += "/auth/realms"
 	}

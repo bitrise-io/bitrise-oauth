@@ -62,6 +62,7 @@ func NewValidator(audienceConfig config.AudienceConfig, opts ...ValidatorOption)
 		}
 	}
 
+	// Keycloak requires this path prefix internally on auth.services.bitrise.io domain (for addons this service is available on app.bitrise.io)
 	if serviceValidator.realm != "addons" {
 		serviceValidator.baseURL += "/auth/realms"
 	}
