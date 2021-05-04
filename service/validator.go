@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/auth0-community/go-auth0"
@@ -39,7 +40,7 @@ type ValidatorConfig struct {
 }
 
 // NewValidator returns the prepared JWK model. All input arguments are optional.
-func NewValidator(audienceConfig config.AudienceConfig, opts ...ValidatorOption) Validator {
+func NewValidator(audienceConfig config.AudienceConfig, opts ...ValidatorOption) (Validator, error) {
 	serviceValidator := &ValidatorConfig{
 		baseURL:            config.BaseURL,
 		realm:              config.Realm,
@@ -54,7 +55,16 @@ func NewValidator(audienceConfig config.AudienceConfig, opts ...ValidatorOption)
 	}
 
 	if len(serviceValidator.issuer) == 0 {
-		serviceValidator.issuer = serviceValidator.realmURL()
+		var err error
+		serviceValidator.issuer, err = serviceValidator.issuerURL()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Keycloak requires this path prefix internally on auth.services.bitrise.io domain (for addons this service is available on app.bitrise.io)
+	if serviceValidator.realm != "addons" {
+		serviceValidator.baseURL += "/auth/realms"
 	}
 
 	if serviceValidator.secretProvider == nil {
@@ -65,7 +75,7 @@ func NewValidator(audienceConfig config.AudienceConfig, opts ...ValidatorOption)
 		serviceValidator.jwtValidator = createDefaultJWTValidator(serviceValidator)
 	}
 
-	return serviceValidator
+	return serviceValidator, nil
 }
 
 func createDefaultSecretProvider(validatorConfig *ValidatorConfig) auth0.SecretProvider {
@@ -82,12 +92,17 @@ func createDefaultJWTValidator(validatorConfig *ValidatorConfig) jwtValidator {
 	return auth0.NewValidator(configuration, nil)
 }
 
-func (sv ValidatorConfig) realmURL() string {
-	return fmt.Sprintf("%s/auth/realms/%s", sv.baseURL, sv.realm)
+// fixed format expected by keycloak: <scheme>://<host>/auth/realms/<realm>
+func (sv ValidatorConfig) issuerURL() (string, error) {
+	u, err := url.Parse(sv.baseURL)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s://%s/auth/realms/%s", u.Scheme, u.Host, sv.realm), nil
 }
 
 func (sv ValidatorConfig) jwksURL() string {
-	return fmt.Sprintf("%s/protocol/openid-connect/certs", sv.realmURL())
+	return fmt.Sprintf("%s/%s/protocol/openid-connect/certs", sv.baseURL, sv.realm)
 }
 
 // ValidateRequest to validate if the request is authenticated and has active token.
