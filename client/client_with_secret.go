@@ -47,6 +47,10 @@ func NewWithSecret(clientID, clientSecret string, scopeOption ScopeOption, opts 
 
 	scopeOption(cws)
 
+	if cws.realm != "addons" {
+		cws.baseURL += "/auth/realms"
+	}
+
 	cws.credentials = clientcredentials.Config{
 		ClientID:     cws.clientID,
 		ClientSecret: cws.clientSecret,
@@ -58,7 +62,7 @@ func NewWithSecret(clientID, clientSecret string, scopeOption ScopeOption, opts 
 }
 
 func (cws *WithSecret) tokenURL() string {
-	return fmt.Sprintf("%s/auth/realms/%s/protocol/openid-connect/token", cws.baseURL, cws.realm)
+	return fmt.Sprintf("%s/%s/protocol/openid-connect/token", cws.baseURL, cws.realm)
 }
 
 func (cws *WithSecret) uid() string {
