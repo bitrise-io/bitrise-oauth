@@ -49,7 +49,7 @@ func (e *tokenJSON) expiry(baseTime time.Time) time.Time {
 
 // UMATokenSource represents an UMA token source.
 type UMATokenSource interface {
-	Token(claim interface{}, permisson []Permission, audienceConfig config.AudienceConfig) (*oauth2.Token, error)
+	Token(payload interface{}, permisson []Permission, audienceConfig config.AudienceConfig) (*oauth2.Token, error)
 }
 
 type umaTokenSource struct {
@@ -64,13 +64,13 @@ func newUMATokenSource(config clientcredentials.Config) umaTokenSource {
 }
 
 // Token returns a new UMA token upon each invocation.
-func (tokenSource umaTokenSource) Token(claim interface{}, permisson []Permission, audienceConfig config.AudienceConfig) (*oauth2.Token, error) {
-	encodedClaim, err := encodeClaim(claim)
+func (tokenSource umaTokenSource) Token(payload interface{}, permisson []Permission, audienceConfig config.AudienceConfig) (*oauth2.Token, error) {
+	encodedPayload, err := encodePayload(payload)
 	if err != nil {
 		return nil, err
 	}
 
-	request, err := tokenSource.newTokenRequest(encodedClaim, permisson, audienceConfig)
+	request, err := tokenSource.newTokenRequest(encodedPayload, permisson, audienceConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -93,8 +93,8 @@ func (tokenSource umaTokenSource) Token(claim interface{}, permisson []Permissio
 	return token, nil
 }
 
-func encodeClaim(claim interface{}) (string, error) {
-	bytes, err := json.Marshal(claim)
+func encodePayload(payload interface{}) (string, error) {
+	bytes, err := json.Marshal(payload)
 	if err != nil {
 		return "", err
 	}
@@ -102,11 +102,11 @@ func encodeClaim(claim interface{}) (string, error) {
 	return b64.StdEncoding.EncodeToString(bytes), nil
 }
 
-func (tokenSource umaTokenSource) newTokenRequest(encodedClaim string, permisson []Permission, audienceConfig config.AudienceConfig) (*http.Request, error) {
+func (tokenSource umaTokenSource) newTokenRequest(encodedPayload string, permisson []Permission, audienceConfig config.AudienceConfig) (*http.Request, error) {
 	v := url.Values{}
 
 	v.Set(grantType, umaGrantType)
-	v.Set(claimToken, encodedClaim)
+	v.Set(claimToken, encodedPayload)
 	v.Set(claimTokenFormat, umaClaimTokenFormat)
 	v.Set(clientID, tokenSource.config.ClientID)
 	v.Set(clientSecret, tokenSource.config.ClientSecret)
