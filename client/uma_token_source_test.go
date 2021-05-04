@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	expectedEncodedClaim   = "eyJwYXJhbTEiOlsidmFsdWUxIl0sInBhcmFtMiI6WyJ2YWx1ZTIiXX0="
+	expectedEncodedPayload = "eyJwYXJhbTEiOlsidmFsdWUxIl0sInBhcmFtMiI6WyJ2YWx1ZTIiXX0="
 	defaultAudience        = "audience"
 	responseBodyJSONString = `
 	{
@@ -32,7 +32,7 @@ const (
 )
 
 var (
-	testClaims = testClaim{
+	testPayloads = testPayload{
 		Param1: []string{"value1"},
 		Param2: []string{"value2"},
 	}
@@ -62,18 +62,18 @@ var (
 	}
 )
 
-type testClaim struct {
+type testPayload struct {
 	Param1 []string `json:"param1"`
 	Param2 []string `json:"param2"`
 }
 
-func Test_GivenClaim_WhenEncodeClaimCalled_ThenExpectTheEncodedClaimToBeReturned(t *testing.T) {
+func Test_GivenPayload_WhenEncodePayloadCalled_ThenExpectTheEncodedPayloadToBeReturned(t *testing.T) {
 	// When
-	encodedClaim, err := encodeClaim(&testClaims)
+	encodedPayload, err := encodePayload(&testPayloads)
 
 	// Then
 	require.NoError(t, err)
-	assert.Equal(t, expectedEncodedClaim, encodedClaim)
+	assert.Equal(t, expectedEncodedPayload, encodedPayload)
 }
 
 func Test_GivenTokenSource_WhenATokenRequestIsCreated_ThenExpectParamsToBeOnTheRequest(t *testing.T) {
@@ -86,7 +86,7 @@ func Test_GivenTokenSource_WhenATokenRequestIsCreated_ThenExpectParamsToBeOnTheR
 	})
 
 	// When
-	request, err := umaTokenSource.newTokenRequest(expectedEncodedClaim, testPermission, audienceConfig)
+	request, err := umaTokenSource.newTokenRequest(expectedEncodedPayload, testPermission, audienceConfig)
 	b, err := ioutil.ReadAll(request.Body)
 	body := string(b)
 
@@ -96,7 +96,7 @@ func Test_GivenTokenSource_WhenATokenRequestIsCreated_ThenExpectParamsToBeOnTheR
 	assert.Equal(t, formURLEncoded, request.Header[contentType][0])
 
 	assert.Contains(t, body, urlEncodedBodyParam(grantType, umaGrantType))
-	assert.Contains(t, body, urlEncodedBodyParam(claimToken, expectedEncodedClaim))
+	assert.Contains(t, body, urlEncodedBodyParam(claimToken, expectedEncodedPayload))
 	assert.Contains(t, body, urlEncodedBodyParam(claimTokenFormat, umaClaimTokenFormat))
 	assert.Contains(t, body, urlEncodedBodyParam(clientID, umaTokenSource.config.ClientID))
 	assert.Contains(t, body, urlEncodedBodyParam(clientSecret, umaTokenSource.config.ClientSecret))
