@@ -111,7 +111,7 @@ You can use `ValidatorOption`s to configure.
 
 - `Middleware(next http.Handler, opts ...HTTPMiddlewareOption) http.Handler` returns an `http.Handler` instance. It calls `ValidateRequest` to validate the request. Calls the next middleware if the validation has succeeded, otherwise sends an error using an error writer. It might receive `HTTPMiddlewareOption`s as a parameter.
 
-- `EchoMiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc` returns an `echo.MiddlewareFunc` instance. It calls `ValidateRequest` to validate the request. Calls the next `echo.HandlerFunc` if the validation has succeeded, otherwise returns an `error`. It might receive `EchoMiddlewareOption`s as a parameter.
+- `EchoMiddlewareFunc(opts ...EchoMiddlewareOption) echo.MiddlewareFunc` returns an `echo.MiddlewareFunc` instance. It calls `ValidateRequest` to validate the request. Calls the next `echo.HandlerFunc` if the validation has succeeded, otherwise returns an `error`. It might receive `EchoMiddlewareOption`s as a parameter. 
 
 - `HandlerFunc(hf http.HandlerFunc, opts ...HTTPMiddlewareOption) http.HandlerFunc` returns a `http.HandlerFunc` instance. It calls `ValidateRequest` to validate the request. Calls the next handler function if the validation has succeeded, otherwise sends an error using an error writer. It might receive `HTTPMiddlewareOption`s as a parameter.
 
@@ -132,7 +132,7 @@ You can set the expceted audience via passing an `AudienceConfig` instance as a 
 ##### Usage
 ```go
 validator := service.NewValidator(config.NewAudienceConfig("audience1", "audience2"),
-service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 ```
 
 #### `TokenWithClaims`
@@ -150,7 +150,7 @@ Represents an UMA token that holds certain claims.
 ```go
 err := tokenWithClaims.ValidateScopes([]string{"app:read", "missing:write"})
 if err != nil {
-// scope validation failed
+	// scope validation failed
 }
 ```
 
@@ -161,7 +161,7 @@ The package offers wide configurability using Options. You can easily override a
 If you want to override the default options (like the auth service url, or the realm), you can customize the `Validator` during instantiation with Options. It's as easy as passing them as constructor parameters, separated by a comma:
 ```go
 service.NewValidator(config.NewAudienceConfig("audience"),
-service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
+  service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 ```
 
 The available `ValidatorOption`s are the following:
@@ -188,19 +188,19 @@ You can configure the *echo* use-case via passing these Options to `Validator`'s
 
 #### Validating request/token and extracting claims
 ```go
-func someHandler(w http.ResponseWriter, r *http.Request) {
-token, err := validator.ValidateRequestAndReturnToken(r)
-if err != nil {
-panic(err)
-}
+func someHandler(w http.ResponseWriter, r *http.Request) {	
+	token, err := validator.ValidateRequestAndReturnToken(r)
+	if err != nil {
+		panic(err)
+	}
 
-claims, err := token.Payload()
-if err != nil {
-panic(err)
-}
-claimsResponse := fmt.Sprintf("%v", claims)
+	claims, err := token.Payload()
+	if err != nil {
+		panic(err)
+	}
+	claimsResponse := fmt.Sprintf("%v", claims)
 
-w.Write([]byte(claimsResponse))
+	w.Write([]byte(claimsResponse))
 }
 ```
 
@@ -211,7 +211,7 @@ handler := func(w http.ResponseWriter, r *http.Request) {}
 mux := http.NewServeMux()
 
 validator := service.NewValidator(config.NewAudienceConfig("audience"),
-service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 
 mux.HandleFunc("/test_func", validator.HandlerFunc(handler))
 
@@ -225,7 +225,7 @@ handler := func(w http.ResponseWriter, r *http.Request) {}
 router := mux.NewRouter()
 
 validator := service.NewValidator(config.NewAudienceConfig("audience"),
-service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 
 router.HandleFunc("/test_func", validator.HandlerFunc(handler)).Methods(http.MethodGet)
 
@@ -241,7 +241,7 @@ handler := func(w http.ResponseWriter, r *http.Request) {}
 mux := http.NewServeMux()
 
 validator := service.NewValidator(config.NewAudienceConfig("audience"),
-service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 
 mux.Handle("/test", validator.Middleware(http.HandlerFunc(handler)))
 
@@ -255,7 +255,7 @@ handler := func(w http.ResponseWriter, r *http.Request) {}
 router := mux.NewRouter()
 
 validator := service.NewValidator(config.NewAudienceConfig("audience"),
-service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 
 router.Handle("/test", validator.Middleware(http.HandlerFunc(handler))).Methods(http.MethodGet)
 
@@ -267,13 +267,13 @@ log.Fatal(http.ListenAndServe(":8080", router))
 #### Echo Middleware Function
 ```go
 handler := func(c echo.Context) error {
-return c.String(http.StatusOK, "Hello, World!")
+	return c.String(http.StatusOK, "Hello, World!")
 }
 
 e := echo.New()
 
 validator := service.NewValidator(config.NewAudienceConfig("audience"),
-service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 
 e.Use(validator.MiddlewareFunc())
 
@@ -285,13 +285,13 @@ e.Logger.Fatal(e.Start(":8080"))
 #### Echo Handler Function
 ```go
 validator := service.NewValidator(config.NewAudienceConfig("audience"),
-service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
+	service.WithBaseURL("https://auth.services.bitrise.io"), service.WithRealm("master"))
 
 handler := func(c echo.Context) error {
-if err := validator.ValidateRequest(c.Request()); err != nil {
-return err
-}
-return c.String(http.StatusOK, "Hello, World!")
+	if err := validator.ValidateRequest(c.Request()); err != nil {
+		return err
+	}
+	return c.String(http.StatusOK, "Hello, World!")
 }
 
 e := echo.New()
