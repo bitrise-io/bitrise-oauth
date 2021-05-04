@@ -265,6 +265,33 @@ func Test_AudienceClaimValidation(t *testing.T) {
 	}
 }
 
+func Test_ValidatorConfig(t *testing.T) {
+	for _, testCase := range []struct {
+		opts            []ValidatorOption
+		expectedIssuer  string
+		expectedBaseURL string
+	}{
+		{
+			opts:            []ValidatorOption{WithRealm("addons"), WithBaseURL("https://my-base.url")},
+			expectedIssuer:  "https://my-base.url/auth/realms/addons",
+			expectedBaseURL: "https://my-base.url",
+		},
+		{
+			opts:            []ValidatorOption{WithRealm("test"), WithBaseURL("https://my-base.url")},
+			expectedIssuer:  "https://my-base.url/auth/realms/test",
+			expectedBaseURL: "https://my-base.url/auth/realms",
+		},
+	} {
+		validator, err := NewValidator(config.NewAudienceConfig("test-audience"), testCase.opts...)
+		assert.NoError(t, err)
+
+		validatorConfig := validator.(*ValidatorConfig)
+
+		assert.Equal(t, testCase.expectedIssuer, validatorConfig.issuer)
+		assert.Equal(t, testCase.expectedBaseURL, validatorConfig.baseURL)
+	}
+}
+
 func newTestTokenConfigWithAudiences(audiences []string) testTokenConfig {
 	return testTokenConfig{
 		audiences,

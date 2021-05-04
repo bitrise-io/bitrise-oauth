@@ -62,16 +62,16 @@ func NewValidator(audienceConfig config.AudienceConfig, opts ...ValidatorOption)
 		}
 	}
 
+	if serviceValidator.realm != "addons" {
+		serviceValidator.baseURL += "/auth/realms"
+	}
+
 	if serviceValidator.secretProvider == nil {
 		serviceValidator.secretProvider = createDefaultSecretProvider(serviceValidator)
 	}
 
 	if serviceValidator.jwtValidator == nil {
 		serviceValidator.jwtValidator = createDefaultJWTValidator(serviceValidator)
-	}
-
-	if serviceValidator.realm != "addons" {
-		serviceValidator.baseURL += "/auth/realms"
 	}
 
 	return serviceValidator, nil
