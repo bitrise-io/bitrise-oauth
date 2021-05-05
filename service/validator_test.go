@@ -23,8 +23,7 @@ func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenEx
 	mockErrorWriter := givenMockErrorWriter()
 	mockSecretProvider := givenMockSecretProvider()
 
-	validator, err := createValidator(givenSuccessfulJWTValidation(), mockSecretProvider)
-	assert.NoError(t, err)
+	validator := createValidator(givenSuccessfulJWTValidation(), mockSecretProvider)
 	testServer := startServerWithMiddleware(mockHandler, validator, WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
@@ -41,8 +40,7 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_Then
 	mockHandler := givenMockHandler()
 	mockErrorWriter := givenMockErrorWriter()
 
-	validator, err := createValidator(givenUnsuccessfulJWTValidation(), nil)
-	assert.NoError(t, err)
+	validator := createValidator(givenUnsuccessfulJWTValidation(), nil)
 	testServer := startServerWithMiddleware(mockHandler, validator, WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
@@ -60,14 +58,13 @@ func Test_GivenSuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenRequestI
 	mockErrorWriter := givenMockErrorWriter()
 	mockSecretProvider := givenMockSecretProvider()
 
-	validator, err := createValidator(givenSuccessfulJWTValidation(), mockSecretProvider)
-	assert.NoError(t, err)
+	validator := createValidator(givenSuccessfulJWTValidation(), mockSecretProvider)
 	validatorMiddlewareFunction := validator.EchoMiddlewareFunc(WithContextErrorWriter(mockErrorWriter.EchoHandlerFunc))(mockMiddlewareHandlerFunction.HandlerFunction)
 
 	context := createContext()
 
 	// When
-	err = validatorMiddlewareFunction(context)
+	err := validatorMiddlewareFunction(context)
 
 	// Then
 	assert.NoError(t, err)
@@ -79,14 +76,13 @@ func Test_GivenUnsuccessfulJWTValidationWithMiddlewareHandlerFunction_WhenReques
 	mockMiddlewareHandlerFunction := givenMockMiddlewareHandlerFunctionWithSuccess()
 	mockErrorWriter := givenMockEchoErrorWriter(errors.New("error"))
 
-	validator, err := createValidator(givenUnsuccessfulJWTValidation(), nil)
-	assert.NoError(t, err)
+	validator := createValidator(givenUnsuccessfulJWTValidation(), nil)
 	validatorMiddlewareFunction := validator.EchoMiddlewareFunc(WithContextErrorWriter(mockErrorWriter.EchoHandlerFunc))(mockMiddlewareHandlerFunction.HandlerFunction)
 
 	context := createContext()
 
 	// When
-	err = validatorMiddlewareFunction(context)
+	err := validatorMiddlewareFunction(context)
 
 	// Then
 	assert.Error(t, err)
@@ -99,8 +95,7 @@ func Test_GivenSuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled_T
 	mockErrorWriter := givenMockErrorWriter()
 	mockSecretProvider := givenMockSecretProvider()
 
-	validator, err := createValidator(givenSuccessfulJWTValidation(), mockSecretProvider)
-	assert.NoError(t, err)
+	validator := createValidator(givenSuccessfulJWTValidation(), mockSecretProvider)
 	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator, WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
@@ -117,8 +112,7 @@ func Test_GivenUnsuccessfulJWTValidationWithHandlerFunction_WhenRequestIsHandled
 	mockHandlerFunction := givenMockHandlerFunction()
 	mockErrorWriter := givenMockErrorWriter()
 
-	validator, err := createValidator(givenUnsuccessfulJWTValidation(), nil)
-	assert.NoError(t, err)
+	validator := createValidator(givenUnsuccessfulJWTValidation(), nil)
 	testServer := startServerWithHandlerFunction(mockHandlerFunction.Handler, validator, WithHTTPErrorWriter(mockErrorWriter.ErrorHandler))
 
 	// When
@@ -174,13 +168,13 @@ func givenMockEchoErrorWriter(err error) *mocks.ErrorWriter {
 	return mockErrorWriter
 }
 
-func createValidator(mockJWTValidator jwtValidator, mockSecretProvider auth0.SecretProvider) (Validator, error) {
-	validator, err := NewValidator(
+func createValidator(mockJWTValidator jwtValidator, mockSecretProvider auth0.SecretProvider) Validator {
+	validator := NewValidator(
 		config.NewAudienceConfig("test_audience"),
 		withValidator(mockJWTValidator),
 		withSecretProvider(mockSecretProvider),
 	)
-	return validator, err
+	return validator
 }
 
 func startServerWithMiddleware(mockHandler *mocks.Handler, validator Validator, opts ...HTTPMiddlewareOption) *httptest.Server {
@@ -249,47 +243,18 @@ func Test_AudienceClaimValidation(t *testing.T) {
 			testToken := newTestTokenConfigWithAudiences(testCase.tokenAudiences)
 			request := testToken.newRequest()
 
-			validator, err := NewValidator(
+			validator := NewValidator(
 				config.NewAudienceConfig(testCase.inputAudiences[0], testCase.inputAudiences[1:]...),
 				withIssuer(defaultIssuer),
 				withSecretProvider(defaultSecretProvider),
 			)
-			assert.NoError(t, err)
 
 			// When
-			err = validator.ValidateRequest(request)
+			err := validator.ValidateRequest(request)
 
 			// Then
 			assert.Equal(t, testCase.expectedError, err)
 		})
-	}
-}
-
-func Test_ValidatorConfig(t *testing.T) {
-	for _, testCase := range []struct {
-		opts            []ValidatorOption
-		expectedIssuer  string
-		expectedBaseURL string
-	}{
-		{
-			opts:            []ValidatorOption{WithRealm("addons"), WithBaseURL("https://my-base.url")},
-			expectedIssuer:  "https://my-base.url/auth/realms/addons",
-			expectedBaseURL: "https://my-base.url",
-		},
-		{
-			opts:            []ValidatorOption{WithRealm("test"), WithBaseURL("https://my-base.url")},
-			expectedIssuer:  "https://my-base.url/auth/realms/test",
-			expectedBaseURL: "https://my-base.url/auth/realms",
-		},
-	} {
-		validator, err := NewValidator(config.NewAudienceConfig("test-audience"), testCase.opts...)
-		assert.NoError(t, err)
-
-		validatorConfig, ok := validator.(*ValidatorConfig)
-		assert.True(t, ok)
-
-		assert.Equal(t, testCase.expectedIssuer, validatorConfig.issuer)
-		assert.Equal(t, testCase.expectedBaseURL, validatorConfig.baseURL)
 	}
 }
 
