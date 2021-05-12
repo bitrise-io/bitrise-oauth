@@ -39,7 +39,7 @@ Implements the `AuthProvider` interface. This class is used to gain an authentic
 This is responsible for providing authorization purposes. Similarly to the regular `ouath2.TokenSource`, it has a `Token()` method that returns a new token upon each invocation.
 
 ##### Methods
-- `Token(claim interface{}, permisson []Permission, audienceConfig config.AudienceConfig) (*oauth2.Token, error)` returns a new token upon each invocation.
+- `Token(payload interface{}, permisson []Permission, audienceConfig config.AudienceConfig) (*oauth2.Token, error)` returns a new token upon each invocation.
 
 #### `Permission`
 It represents an authorization permission.
