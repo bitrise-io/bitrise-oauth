@@ -39,6 +39,7 @@ type TokenWithClaims interface {
 	Permissions() ([]interface{}, error)
 	Claim(resourceName string, claim interface{}) error
 	ValidateScopes(scopes []string) error
+	ValidatePermissionScopes(resourceName string, scopes []string) error
 }
 
 // TokenWithClaims is a wrapper over jwt.JSONWebToken to extract the
@@ -131,6 +132,39 @@ func (tokenWithClaim *tokenWithClaims) ValidateScopes(scopes []string) error {
 		if !tokenWithClaim.scopes[scope] { // returns false if key is not found
 			return fmt.Errorf("scope %s is missing from the token", scope)
 		}
+	}
+
+	return nil
+}
+
+// ValidatePermissionScopes check if the token has ALL the passed scopes in its permissions scope claim - returns an error if any of the scopes is missing
+func (tokenWithClaim *tokenWithClaims) ValidatePermissionScopes(resourceName string, scopes []string) error {
+	token := umaToken{}
+	if err := tokenWithClaim.token.Claims(tokenWithClaim.key, &token); err != nil {
+		return err
+	}
+
+	for _, permission := range token.Authorization.Permissions {
+		if permission.Rsname == resourceName {
+			permissionScopes := make(map[string]bool)
+			for _, scope := range permission.Scopes {
+				permissionScopes[scope] = true
+			}
+
+			if len(permissionScopes) == 0 {
+				return fmt.Errorf("no permission scope claim in token")
+			}
+
+			for _, scope := range scopes {
+				if !permissionScopes[scope] {
+					return fmt.Errorf("scope %s is missing from permissions", scope)
+				}
+			}
+
+			return nil
+		}
+
+		return errors.New(fmt.Sprintf("resource name %s does not match with any resources in the token", resourceName))
 	}
 
 	return nil

@@ -156,6 +156,98 @@ func Test_ValidateScopes_WhenAllScopesAreFound_ThenExpectNoError(t *testing.T) {
 	require.NoError(t, err2)
 }
 
+func Test_ValidatePermissionScopes_WhenResourceNameIsInvalid_ThenExpectError(t *testing.T) {
+	// Given
+	claims := givenClaimsWithAuthorization(
+		authorization{
+			Permissions: []permisson{
+				{
+					Scopes: nil,
+					Claims: nil,
+					Rsid:   "test-id",
+					Rsname: "builds",
+				},
+			},
+		},
+	)
+	tokenWithClaims := givenTokenWithClaims(claims)
+
+	// When
+	err := tokenWithClaims.ValidatePermissionScopes("invalid-resource-name", []string{"write"})
+
+	// Then
+	assert.EqualError(t, err, "resource name invalid-resource-name does not match with any resources in the token")
+}
+
+func Test_ValidatePermissionScopes_WhenScopesAreMissing_ThenExpectError(t *testing.T) {
+	// Given
+	claims := givenClaimsWithAuthorization(
+		authorization{
+			Permissions: []permisson{
+				{
+					Scopes: nil,
+					Claims: nil,
+					Rsid:   "test-id",
+					Rsname: "builds",
+				},
+			},
+		},
+	)
+	tokenWithClaims := givenTokenWithClaims(claims)
+
+	// When
+	err := tokenWithClaims.ValidatePermissionScopes("builds", []string{"write"})
+
+	// Then
+	assert.EqualError(t, err, "no permission scope claim in token")
+}
+
+func Test_ValidatePermissionScopes_WhenGivenScopeIsMissing_ThenExpectError(t *testing.T) {
+	// Given
+	claims := givenClaimsWithAuthorization(
+		authorization{
+			Permissions: []permisson{
+				{
+					Scopes: []string{"read"},
+					Claims: nil,
+					Rsid:   "test-id",
+					Rsname: "builds",
+				},
+			},
+		},
+	)
+	tokenWithClaims := givenTokenWithClaims(claims)
+
+	// When
+	err := tokenWithClaims.ValidatePermissionScopes("builds", []string{"write"})
+
+	// Then
+	assert.EqualError(t, err, "scope write is missing from permissions")
+}
+
+func Test_ValidatePermissionScopes_WhenAllScopesAreFound_ThenExpectError(t *testing.T) {
+	// Given
+	claims := givenClaimsWithAuthorization(
+		authorization{
+			Permissions: []permisson{
+				{
+					Scopes: []string{"read", "write"},
+					Claims: nil,
+					Rsid:   "test-id",
+					Rsname: "builds",
+				},
+			},
+		},
+	)
+	tokenWithClaims := givenTokenWithClaims(claims)
+
+	// When
+	err := tokenWithClaims.ValidatePermissionScopes("builds", []string{"read", "write"})
+
+	// Then
+	require.NoError(t, err)
+}
+
 // Helpers
 
 func givenTokenWithClaims(claims interface{}) tokenWithClaims {
