@@ -39,7 +39,7 @@ func Test_Given30ThreadsAndEachWillLaunch30RequestsOnNewThreads_WhenTheManagedHt
 
 	// When
 	async(clientsToCreate, callsPerClient, func(i, j int) {
-		c := client.NewWithSecret(fmt.Sprintf("clientID-%d", i), fmt.Sprintf("clientSecret-%d", i), client.WithScope(""),
+		c := client.NewWithSecret(fmt.Sprintf("clientID-%d", i), fmt.Sprintf("clientSecret-%d", i), client.WithScope("scope"),
 			client.WithBaseURL("https://google.com"), client.WithRealm("myrealm")).ManagedHTTPClient()
 
 		pointerKey := fmt.Sprintf("%d,%d", i, j)
@@ -70,13 +70,38 @@ func Test_Given30ThreadsAndEachWillLaunch30RequestsOnNewThreads_WhenTheManagedHt
 	}
 }
 
-func syncMapLen(sm *sync.Map) int {
-	len := 0
-	sm.Range(func(_, _ interface{}) bool {
-		len++
-		return true
-	})
-	return len
+func Test_GivenDifferentClientConfigs_WhenTheManagedHttpClientsAreInstantiated_ThenExpectNewClientsToBeCreated(t *testing.T) {
+	// Given
+	configs := []struct {
+		clientID     string
+		clientSecret string
+		scope        string
+		realm        string
+		baseURL      string
+	}{
+		{"id1", "secret1", "scope1", "realm1", "https://url1.com"},
+		{"id1", "secret1", "scope2", "realm1", "https://url1.com"},
+		{"id1", "secret1", "scope1", "realm2", "https://url1.com"},
+		{"id1", "secret1", "scope1", "realm1", "https://url2.com"},
+	}
+
+	// When
+	var createdClients []*http.Client
+	for _, conf := range configs {
+		c := client.NewWithSecret(conf.clientID,
+			conf.clientSecret,
+			client.WithScope(conf.scope),
+			client.WithBaseURL(conf.baseURL),
+			client.WithRealm(conf.realm)).ManagedHTTPClient()
+		createdClients = append(createdClients, c)
+	}
+
+	// Then
+	for i := 0; i < len(createdClients); i++ {
+		for j := i + 1; j < len(createdClients); j++ {
+			assert.NotEqual(t, createdClients[i], createdClients[j])
+		}
+	}
 }
 
 func async(iCount, jCount int, fn func(int, int)) {
