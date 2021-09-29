@@ -98,10 +98,7 @@ func Test_GivenDifferentClientConfigs_WhenTheManagedHttpClientsAreInstantiated_T
 
 	// Then
 	for i := 0; i < len(createdClients); i++ {
-		for j := 0; j < len(createdClients); j++ {
-			if i == j {
-				continue
-			}
+		for j := i + 1; j < len(createdClients); j++ {
 			assert.NotEqual(t, createdClients[i], createdClients[j])
 		}
 	}
