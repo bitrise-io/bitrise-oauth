@@ -62,7 +62,7 @@ func (cws *WithSecret) tokenURL() string {
 }
 
 func (cws *WithSecret) uid() string {
-	return strings.Join([]string{cws.clientID, cws.clientSecret, cws.tokenURL()}, "-")
+	return strings.Join([]string{cws.clientID, cws.clientSecret, cws.tokenURL(), cws.realm, strings.Join(cws.scopes, "/")}, "-")
 }
 
 // TokenSource returns a token source that refreshes the token only when expires
