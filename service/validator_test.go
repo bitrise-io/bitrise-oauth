@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/auth0-community/go-auth0"
 	"github.com/bitrise-io/bitrise-oauth/config"
 	"github.com/bitrise-io/bitrise-oauth/mocks"
+	"github.com/bitrise-io/go-auth0"
 	"github.com/c2fo/testify/assert"
 	"github.com/c2fo/testify/mock"
 	"github.com/labstack/echo"
@@ -195,11 +195,11 @@ func sendGetRequest(url string) {
 }
 
 func createContext() echo.Context {
-	echo := echo.New()
+	srv := echo.New()
 
 	request := httptest.NewRequest(http.MethodGet, "/", nil)
 	recorder := httptest.NewRecorder()
-	context := echo.NewContext(request, recorder)
+	context := srv.NewContext(request, recorder)
 
 	return context
 }

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/auth0-community/go-auth0"
+	"github.com/bitrise-io/go-auth0"
 	"gopkg.in/square/go-jose.v2"
 )
 
