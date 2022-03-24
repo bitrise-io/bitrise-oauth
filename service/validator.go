@@ -5,10 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/auth0-community/go-auth0"
-	"github.com/bitrise-io/bitrise-oauth/config"
+	"github.com/bitrise-io/go-auth0"
 	"github.com/labstack/echo"
-	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
 )
 
