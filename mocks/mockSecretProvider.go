@@ -3,6 +3,7 @@ package mocks
 import (
 	"net/http"
 
+	"github.com/bitrise-io/go-auth0"
 	"github.com/c2fo/testify/mock"
 )
 
