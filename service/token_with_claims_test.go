@@ -7,7 +7,7 @@ import (
 
 	"github.com/c2fo/testify/assert"
 	"github.com/c2fo/testify/require"
-	"gopkg.in/square/go-jose.v2/jwt"
+	"gopkg.in/go-jose/go-jose.v2/jwt"
 )
 
 // Payload
@@ -262,8 +262,8 @@ func givenClaimsWithoutAuthorization() interface{} {
 	return struct {
 		Issuer   string
 		Audience jwt.Audience
-		IssuedAt jwt.NumericDate
-		Expiry   jwt.NumericDate
+		IssuedAt *jwt.NumericDate
+		Expiry   *jwt.NumericDate
 	}{
 		Issuer:   defaultIssuer,
 		Audience: defaultAudience,

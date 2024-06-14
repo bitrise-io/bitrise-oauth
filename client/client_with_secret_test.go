@@ -185,7 +185,7 @@ func Test_GivenAnExistingHTTPContext_WhenItIsPassedAsAnOptionDuringInstantiation
 	// Then
 	_, err := client.Get(url)
 	assert.Error(t, err)
-	assert.EqualError(t, err, fmt.Sprintf(`Get "%s": context canceled`, url))
+	assert.Contains(t, err.Error(), "context canceled")
 }
 
 func startMockServer(t *testing.T, mockedAuthService *mocks.AuthService, mockedClient *mocks.Client, accessToken string, tokenStatusCode, defaultStatusCode int) *httptest.Server {

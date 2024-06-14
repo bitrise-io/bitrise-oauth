@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/c2fo/testify/mock"
-	"gopkg.in/square/go-jose.v2/jwt"
+	"gopkg.in/go-jose/go-jose.v2/jwt"
 )
 
 // token can be edited on jwt.io (use "secret" as the secret)

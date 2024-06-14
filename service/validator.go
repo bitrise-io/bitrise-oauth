@@ -8,8 +8,8 @@ import (
 	"github.com/bitrise-io/bitrise-oauth/config"
 	"github.com/bitrise-io/go-auth0"
 	"github.com/labstack/echo"
-	"gopkg.in/square/go-jose.v2"
-	"gopkg.in/square/go-jose.v2/jwt"
+	"gopkg.in/go-jose/go-jose.v2"
+	"gopkg.in/go-jose/go-jose.v2/jwt"
 )
 
 type jwtValidator interface {
