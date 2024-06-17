@@ -1,6 +1,6 @@
-format_version: 7
+format_version: 1.1.0
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
-
+project_type: ''
 meta:
   bitrise.io:
     stack: linux-docker-android-22.04
