@@ -17,6 +17,7 @@ workflows:
             set -euxo pipefail
             asdf install golang 1.22
             asdf global golang 1.22
+            go version
     - go-list: {}
     - golint: {}
     - errcheck: {}
