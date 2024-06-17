@@ -13,8 +13,8 @@ import (
 	"github.com/c2fo/testify/assert"
 	"github.com/c2fo/testify/mock"
 	"github.com/labstack/echo"
-	"gopkg.in/square/go-jose.v2"
-	"gopkg.in/square/go-jose.v2/jwt"
+	"gopkg.in/go-jose/go-jose.v2"
+	"gopkg.in/go-jose/go-jose.v2/jwt"
 )
 
 func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenExpectTheNextMiddlewareToBeCalled(t *testing.T) {

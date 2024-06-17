@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"gopkg.in/square/go-jose.v2/jwt"
+	"gopkg.in/go-jose/go-jose.v2/jwt"
 )
 
 const (
@@ -15,11 +15,11 @@ const (
 )
 
 type umaToken struct {
-	Issuer        string          `json:"iss,omitempty"`
-	Audience      jwt.Audience    `json:"aud,omitempty"`
-	IssuedAt      jwt.NumericDate `json:"iat,omitempty"`
-	Expiry        jwt.NumericDate `json:"exp,omitempty"`
-	Authorization authorization   `json:"authorization,omitempty"`
+	Issuer        string           `json:"iss,omitempty"`
+	Audience      jwt.Audience     `json:"aud,omitempty"`
+	IssuedAt      *jwt.NumericDate `json:"iat,omitempty"`
+	Expiry        *jwt.NumericDate `json:"exp,omitempty"`
+	Authorization authorization    `json:"authorization,omitempty"`
 }
 
 type authorization struct {
@@ -164,7 +164,7 @@ func (tokenWithClaim *tokenWithClaims) ValidatePermissionScopes(resourceName str
 			return nil
 		}
 
-		return fmt.Errorf("resource name %s does not match with any resources in the token", resourceName)
+		return fmt.Errorf("resource name %s does not match with any resources in the token", resourceName) //nolint: staticcheck
 	}
 
 	return nil

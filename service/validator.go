@@ -8,8 +8,8 @@ import (
 	"github.com/bitrise-io/bitrise-oauth/config"
 	"github.com/bitrise-io/go-auth0"
 	"github.com/labstack/echo"
-	"gopkg.in/square/go-jose.v2"
-	"gopkg.in/square/go-jose.v2/jwt"
+	"gopkg.in/go-jose/go-jose.v2"
+	"gopkg.in/go-jose/go-jose.v2/jwt"
 )
 
 type jwtValidator interface {
@@ -93,6 +93,9 @@ func (sv ValidatorConfig) jwksURL() string {
 // ValidateRequest to validate if the request is authenticated and has active token.
 func (sv ValidatorConfig) ValidateRequest(r *http.Request) error {
 	token, err := sv.jwtValidator.ValidateRequest(r)
+	if err != nil {
+		return err
+	}
 
 	key, err := sv.secretProvider.GetSecret(r)
 	if err != nil {

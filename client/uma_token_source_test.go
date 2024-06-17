@@ -3,7 +3,6 @@ package client
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"testing"
@@ -14,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
+	"io"
 )
 
 const (
@@ -87,7 +87,8 @@ func Test_GivenTokenSource_WhenATokenRequestIsCreated_ThenExpectParamsToBeOnTheR
 
 	// When
 	request, err := umaTokenSource.newTokenRequest(expectedEncodedPayload, testPermission, audienceConfig)
-	b, err := ioutil.ReadAll(request.Body)
+	require.NoError(t, err)
+	b, err := io.ReadAll(request.Body)
 	body := string(b)
 
 	// Then
@@ -108,7 +109,7 @@ func Test_GivenSuccessfulTokenResponse_WhenBodyIsExtracted_ThenExpectTheBodyBeRe
 	// Given
 	response := &http.Response{
 		StatusCode: http.StatusOK,
-		Body:       ioutil.NopCloser(bytes.NewBufferString(responseBodyJSONString)),
+		Body:       io.NopCloser(bytes.NewBufferString(responseBodyJSONString)),
 	}
 
 	// When
@@ -123,7 +124,7 @@ func Test_GivenUnsuccessfulTokenResponse_WhenBodyIsExtracted_ThenExpectAnError(t
 	// Given
 	response := &http.Response{
 		StatusCode: http.StatusUnauthorized,
-		Body:       ioutil.NopCloser(bytes.NewBufferString("responseBody")),
+		Body:       io.NopCloser(bytes.NewBufferString("responseBody")),
 	}
 
 	// When
