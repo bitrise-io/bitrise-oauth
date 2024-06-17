@@ -15,12 +15,12 @@ workflows:
         - content: |
             #!/bin/bash
             set -ex pipefail
-            envman add --key GOROOT --value ""
-            export GOROOT=""
-            
             asdf install golang 1.22
             asdf global golang 1.22
 
+            # some legacy steps don't have go.mod and would fail without this
+            go env -w GO111MODULE=auto
+            
             go version
     - go-list: {}
     - golint: {}
