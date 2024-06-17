@@ -4,6 +4,16 @@ project_type: ''
 workflows:
   test:
     steps:
+    - script:
+        title: Fix go mod
+        inputs:
+          - content: |-
+              #!/bin/bash
+              set -ex
+               # some legacy steps don't have go.mod and would fail without this
+              go env -w GO111MODULE=auto
+  
+              go version
     - go-list: {}
     - golint: {}
     - errcheck: {}
