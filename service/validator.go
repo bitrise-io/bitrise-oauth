@@ -93,6 +93,9 @@ func (sv ValidatorConfig) jwksURL() string {
 // ValidateRequest to validate if the request is authenticated and has active token.
 func (sv ValidatorConfig) ValidateRequest(r *http.Request) error {
 	token, err := sv.jwtValidator.ValidateRequest(r)
+	if err != nil {
+		return err
+	}
 
 	key, err := sv.secretProvider.GetSecret(r)
 	if err != nil {

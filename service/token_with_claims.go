@@ -164,7 +164,7 @@ func (tokenWithClaim *tokenWithClaims) ValidatePermissionScopes(resourceName str
 			return nil
 		}
 
-		return fmt.Errorf("resource name %s does not match with any resources in the token", resourceName)
+		return fmt.Errorf("resource name %s does not match with any resources in the token", resourceName) //nolint: staticcheck
 	}
 
 	return nil
