@@ -14,9 +14,13 @@ workflows:
         inputs:
         - content: |
             #!/bin/bash
-            set -euxo pipefail
+            set -ex pipefail
+            envman add --key GOROOT --value ""
+            export GOROOT=""
+            
             asdf install golang 1.22
             asdf global golang 1.22
+
             go version
     - go-list: {}
     - golint: {}
