@@ -3,7 +3,7 @@ module github.com/bitrise-io/bitrise-oauth
 go 1.22
 
 require (
-	github.com/bitrise-io/go-auth0 v0.0.0-20240614095412-612830bc24cf
+	github.com/bitrise-io/go-auth0 v0.0.0-20240617094136-141af4fdf00d
 	github.com/c2fo/testify v0.0.0-20150827203832-fba96363964a
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/stretchr/testify v1.9.0
