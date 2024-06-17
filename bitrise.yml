@@ -1,27 +1,9 @@
 format_version: 1.1.0
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 project_type: ''
-meta:
-  bitrise.io:
-    stack: linux-docker-android-22.04
-    machine_type_id: standard
-
 workflows:
   test:
     steps:
-    - script:
-        title: Update go
-        inputs:
-        - content: |
-            #!/bin/bash
-            set -ex pipefail
-            asdf install golang 1.22
-            asdf global golang 1.22
-
-            # some legacy steps don't have go.mod and would fail without this
-            go env -w GO111MODULE=auto
-            
-            go version
     - go-list: {}
     - golint: {}
     - errcheck: {}
