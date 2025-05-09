@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/bitrise-io/bitrise-oauth/config"
-	"github.com/c2fo/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_DefaultConfigValues(t *testing.T) {

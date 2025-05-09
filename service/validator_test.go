@@ -10,9 +10,9 @@ import (
 	"github.com/bitrise-io/bitrise-oauth/config"
 	"github.com/bitrise-io/bitrise-oauth/mocks"
 	"github.com/bitrise-io/go-auth0"
-	"github.com/c2fo/testify/assert"
-	"github.com/c2fo/testify/mock"
 	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"gopkg.in/go-jose/go-jose.v2"
 	"gopkg.in/go-jose/go-jose.v2/jwt"
 )
