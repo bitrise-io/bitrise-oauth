@@ -1,6 +1,6 @@
 package mocks
 
-import "github.com/c2fo/testify/mock"
+import "github.com/stretchr/testify/mock"
 
 // AuthService ...
 type AuthService struct {

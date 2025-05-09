@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/bitrise-io/go-auth0"
-	"github.com/c2fo/testify/mock"
+	"github.com/stretchr/testify/mock"
 )
 
 var _ auth0.SecretProvider = &MockSecretProvider{}

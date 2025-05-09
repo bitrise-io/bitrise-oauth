@@ -3,7 +3,7 @@ package mocks
 import (
 	"net/http"
 
-	"github.com/c2fo/testify/mock"
+	"github.com/stretchr/testify/mock"
 	"gopkg.in/go-jose/go-jose.v2/jwt"
 )
 

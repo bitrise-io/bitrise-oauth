@@ -1,8 +1,8 @@
 package mocks
 
 import (
-	"github.com/c2fo/testify/mock"
 	"github.com/labstack/echo"
+	"github.com/stretchr/testify/mock"
 )
 
 // MiddlewareHandlerFunction ...

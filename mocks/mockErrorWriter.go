@@ -3,8 +3,8 @@ package mocks
 import (
 	"net/http"
 
-	"github.com/c2fo/testify/mock"
 	"github.com/labstack/echo"
+	"github.com/stretchr/testify/mock"
 )
 
 // ErrorWriter ...

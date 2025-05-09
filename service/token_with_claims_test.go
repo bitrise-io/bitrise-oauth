@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/c2fo/testify/assert"
-	"github.com/c2fo/testify/require"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/go-jose/go-jose.v2/jwt"
 )
 
