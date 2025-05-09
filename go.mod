@@ -1,8 +1,6 @@
 module github.com/bitrise-io/bitrise-oauth
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.22
 
 require (
 	github.com/bitrise-io/go-auth0 v0.0.0-20250509092652-f2f164a73aec
