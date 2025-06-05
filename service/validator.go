@@ -36,6 +36,7 @@ type ValidatorConfig struct {
 	audience           config.AudienceConfig
 	issuer             string
 	secretProvider     auth0.SecretProvider
+	jwksURL            string
 }
 
 // NewValidator returns the prepared JWK model. All input arguments are optional.
@@ -69,8 +70,13 @@ func NewValidator(audienceConfig config.AudienceConfig, opts ...ValidatorOption)
 }
 
 func createDefaultSecretProvider(validatorConfig *ValidatorConfig) auth0.SecretProvider {
+	jwksURL := validatorConfig.jwksURL
+	if jwksURL == "" {
+		jwksURL = validatorConfig.defaultJWKSURL()
+	}
+
 	secretProvderClientOptions := auth0.JWKClientOptions{
-		URI:    validatorConfig.jwksURL(),
+		URI:    jwksURL,
 		Client: &http.Client{Timeout: validatorConfig.timeout},
 	}
 
@@ -86,7 +92,7 @@ func (sv ValidatorConfig) realmURL() string {
 	return fmt.Sprintf("%s/auth/realms/%s", sv.baseURL, sv.realm)
 }
 
-func (sv ValidatorConfig) jwksURL() string {
+func (sv ValidatorConfig) defaultJWKSURL() string {
 	return fmt.Sprintf("%s/protocol/openid-connect/certs", sv.realmURL())
 }
 

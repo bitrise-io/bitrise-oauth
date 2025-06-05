@@ -245,7 +245,7 @@ func Test_AudienceClaimValidation(t *testing.T) {
 
 			validator := NewValidator(
 				config.NewAudienceConfig(testCase.inputAudiences[0], testCase.inputAudiences[1:]...),
-				withIssuer(defaultIssuer),
+				WithIssuer(defaultIssuer),
 				withSecretProvider(defaultSecretProvider),
 			)
 
