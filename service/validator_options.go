@@ -53,8 +53,8 @@ func WithKeyCacher(kc auth0.KeyCacher) ValidatorOption {
 	}
 }
 
-// JWKSUrl sets the URL from which the JWKS (containing the public keys) can be fetched.
-func JWKSUrl(url string) ValidatorOption {
+// WithJWKSUrl sets the URL from which the JWKS (containing the public keys) can be fetched.
+func WithJWKSUrl(url string) ValidatorOption {
 	return func(c *ValidatorConfig) {
 		c.jwksURL = url
 	}
