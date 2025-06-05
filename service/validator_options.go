@@ -32,6 +32,13 @@ func WithSignatureAlgorithm(sa jose.SignatureAlgorithm) ValidatorOption {
 	}
 }
 
+// WithIssuer ...
+func WithIssuer(issuer string) ValidatorOption {
+	return func(c *ValidatorConfig) {
+		c.issuer = issuer
+	}
+}
+
 // WithRealm ...
 func WithRealm(realm string) ValidatorOption {
 	return func(c *ValidatorConfig) {
