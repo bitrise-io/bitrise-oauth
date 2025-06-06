@@ -32,6 +32,13 @@ func WithSignatureAlgorithm(sa jose.SignatureAlgorithm) ValidatorOption {
 	}
 }
 
+// WithIssuer ...
+func WithIssuer(issuer string) ValidatorOption {
+	return func(c *ValidatorConfig) {
+		c.issuer = issuer
+	}
+}
+
 // WithRealm ...
 func WithRealm(realm string) ValidatorOption {
 	return func(c *ValidatorConfig) {
@@ -46,15 +53,16 @@ func WithKeyCacher(kc auth0.KeyCacher) ValidatorOption {
 	}
 }
 
-func withValidator(validator jwtValidator) ValidatorOption {
+// WithJWKSUrl sets the URL from which the JWKS (containing the public keys) can be fetched.
+func WithJWKSUrl(url string) ValidatorOption {
 	return func(c *ValidatorConfig) {
-		c.jwtValidator = validator
+		c.jwksURL = url
 	}
 }
 
-func withIssuer(issuer string) ValidatorOption {
+func withValidator(validator jwtValidator) ValidatorOption {
 	return func(c *ValidatorConfig) {
-		c.issuer = issuer
+		c.jwtValidator = validator
 	}
 }
 
