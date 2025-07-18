@@ -6,7 +6,7 @@ require (
 	github.com/bitrise-io/go-auth0 v0.0.0-20250509092652-f2f164a73aec
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/oauth2 v0.21.0
+	golang.org/x/oauth2 v0.27.0
 	gopkg.in/go-jose/go-jose.v2 v2.6.3
 )
 
