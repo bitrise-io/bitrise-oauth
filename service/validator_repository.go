@@ -24,13 +24,13 @@ type DefaultJwtValidatorRepository struct {
 
 // NewJwtValidatorRepository Creates a new JwtValidatorContainer that holds a set of validators associated with their issuer (iss)
 func NewJwtValidatorRepository(jwtValidators map[string]Validator) JwtValidatorRepository {
-	return DefaultJwtValidatorRepository{
+	return &DefaultJwtValidatorRepository{
 		JwtValidators: jwtValidators,
 	}
 }
 
 // GetJwtValidatorForRequest ...
-func (vr DefaultJwtValidatorRepository) GetJwtValidatorForRequest(r *http.Request) (Validator, error) {
+func (vr *DefaultJwtValidatorRepository) GetJwtValidatorForRequest(r *http.Request) (Validator, error) {
 	rawJwt := strings.Split(strings.TrimSpace(r.Header.Get("Authorization")), "Bearer ")
 	if len(rawJwt) != 2 {
 		return nil, errors.New("failed to read JWT from header")
@@ -49,7 +49,7 @@ func (vr DefaultJwtValidatorRepository) GetJwtValidatorForRequest(r *http.Reques
 	return validator, nil
 }
 
-func (vr DefaultJwtValidatorRepository) getIssuerFromRawJWT(rawJwt string) (string, error) {
+func (vr *DefaultJwtValidatorRepository) getIssuerFromRawJWT(rawJwt string) (string, error) {
 	jwtParts := strings.Split(rawJwt, ".")
 
 	if len(jwtParts) != 3 {
@@ -75,7 +75,7 @@ func (vr DefaultJwtValidatorRepository) getIssuerFromRawJWT(rawJwt string) (stri
 	return issuer, nil
 }
 
-func (vr DefaultJwtValidatorRepository) base64Decode(src string) (string, error) {
+func (vr *DefaultJwtValidatorRepository) base64Decode(src string) (string, error) {
 	if l := len(src) % 4; l > 0 {
 		src += strings.Repeat("=", 4-l)
 	}
