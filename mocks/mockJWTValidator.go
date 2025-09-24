@@ -11,8 +11,8 @@ import (
 )
 
 // token is signed with the private key below
-var rawMockToken = `eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImMwMGM5Yjk2MWU0OGM4YTkzMDYwOGY2NmQ2ODE3OTFiIn0.eyJTY29wZXMiOlsiZm9vIiwiYmFyIl0sImlzcyI6Imlzc3VlciIsInN1YiI6InN1YmplY3QiLCJhdWQiOiJ0ZXN0X2F1ZGllbmNlIn0.aAhUFO6z2C1R0HpY4oqmDJqMBeBR__-CQoGxtWBY7jnYWCWSlOcWYJ9YgHDTu3JK84h-gkHsCY12aZ6SUbCE7bu60_ooLvG0r0Dn6G9CaPO6P818fW-43RBdsAuafWKLkVrL19DnW0LY9Wx-p9qMvcEJUm4RM3tDfXnYUhqgve-L4x8WrFOcvkls51UtlYLNqX0FmplbYNcOHkxNBLN8IUmp5S4zlfGddA3p-fXklwKOlUUeOAOIz3-UVuLeSseq8-WvSOF2KIqqoAkLMcCn9bKAr75WYDURBmR1WT5UdIrDmH7SXAZV_uqVnpBBY1h7CDAdtmydiu-9Etg-Zk4IhULkjg4tkDiCogkN1lEUxjtYYkDtZ_ap0GA-W9XClMyM1sQUngUxp9yR3y49Q15408tsjbn4R11Ifn4xNOduQdqrMf5bZ74BdxiPBjXsgbAhkX007e_jBg7DSxAVuAjWXQWALoUQ1hyfyTIWe73GJ4iaLPVXb9iQRii4rYhh4Eq5`
-var mockToken, _ = jwt.ParseSigned(rawMockToken, []jose.SignatureAlgorithm{jose.RS256})
+var RawMockToken = `eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImMwMGM5Yjk2MWU0OGM4YTkzMDYwOGY2NmQ2ODE3OTFiIn0.eyJTY29wZXMiOlsiZm9vIiwiYmFyIl0sImlzcyI6Imh0dHBzOi8vdG9rZW4taXNzdWVyLmJpdHJpc2UuaW8vYXV0aC9yZWFsbXMvYml0cmlzZS1zZXJ2aWNlcyIsInN1YiI6InN1YmplY3QiLCJhdWQiOiJ0ZXN0X2F1ZGllbmNlIn0.Ccb05Zu1HWvJCcs75kUghj_YyKVkbkm694wgrXA2pgkpMuEk6rPItZZd1UQcaBHzD2CAEPzVTQkx4wpvWG630tI2I1AkXoQmeEZJ52rygZIxbIOmxVzefxK_kDi-yl5SWnB5PBPMU4_0PKnObZYtDwt1MTjDZASON5xRoSKQRxY1MRdACNMB_-ayMfRzwoL76M7BzDvnLgQAbNrlsJkwWSuvqYFqL8995BqqChkxHndSShcjYZX8R8GVh0F1crmbb1J9-Twv5UmGPt4e9nYXaRxTTbMJwXaLkvy_Q-w9IKTjse99oMmNYRQ7CU3mnGlz5sdFJ6iHyDkawYnFCsxI0nBVE7NotcI18K-VK66s6coepwn4qaIR0pcicvzXUnSdmYwubRjoThFXz2iRXaeSr9sr-qInnZCVtatNVMUH4coH2XkF70QaArSpO4I3lrwHqiaFzAS8nI3TwNP66mxY7oCmPJHM-6ZBogLMBFTJDwjCsEGds1qBP9oTzccnbvOP`
+var MockToken, _ = jwt.ParseSigned(RawMockToken, []jose.SignatureAlgorithm{jose.RS256})
 
 // mock RS256 key pair in JWK (generated with https://www.scottbrady.io/tools/jwt)
 // private-public key in JWK:
@@ -42,7 +42,7 @@ func (m *JWTValidator) ValidateRequest(r *http.Request) (*jwt.JSONWebToken, erro
 
 // GivenSuccessfulJWTValidation ...
 func (m *JWTValidator) GivenSuccessfulJWTValidation() *JWTValidator {
-	m.On("ValidateRequest", mock.Anything).Return(mockToken, nil)
+	m.On("ValidateRequest", mock.Anything).Return(MockToken, nil)
 	return m
 }
 
