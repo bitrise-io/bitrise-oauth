@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/go-jose/go-jose.v2/jwt"
 )
 
 // Payload

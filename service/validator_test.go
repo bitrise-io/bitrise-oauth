@@ -13,8 +13,9 @@ import (
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gopkg.in/go-jose/go-jose.v2"
-	"gopkg.in/go-jose/go-jose.v2/jwt"
+
+	"github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4/jwt"
 )
 
 func Test_GivenSuccessfulJWTValidationWithMiddleware_WhenRequestIsHandled_ThenExpectTheNextMiddlewareToBeCalled(t *testing.T) {
@@ -158,7 +159,7 @@ func givenMockErrorWriter() *mocks.ErrorWriter {
 
 func givenMockSecretProvider() *mocks.MockSecretProvider {
 	mockSecretProvider := new(mocks.MockSecretProvider)
-	mockSecretProvider.On("GetSecret", mock.Anything).Return([]byte("secret"), nil)
+	mockSecretProvider.On("GetSecret", mock.Anything).Return(mocks.MockPublicKey(), nil)
 	return mockSecretProvider
 }
 

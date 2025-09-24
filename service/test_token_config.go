@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/bitrise-io/go-auth0"
-	"gopkg.in/go-jose/go-jose.v2"
-	"gopkg.in/go-jose/go-jose.v2/jwt"
+	"github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4/jwt"
 )
 
 const (
@@ -61,7 +61,7 @@ func (testToken testTokenConfig) getTokenString() string {
 		Expiry:   jwt.NewNumericDate(testToken.expTime),
 	}
 
-	tokenStr, err := jwt.Signed(signer).Claims(cl).CompactSerialize()
+	tokenStr, err := jwt.Signed(signer).Claims(cl).Serialize()
 	if err != nil {
 		panic(err)
 	}
