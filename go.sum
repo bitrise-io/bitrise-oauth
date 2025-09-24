@@ -1,5 +1,7 @@
 github.com/bitrise-io/go-auth0 v0.0.0-20250924051602-0e08ce7ce456 h1:3LESTMNySlRrTjn0aZhmDIy1xmzf0uOgX5DU9jYXc7s=
 github.com/bitrise-io/go-auth0 v0.0.0-20250924051602-0e08ce7ce456/go.mod h1:Lre6GilgdYuCkd8hOSUjTQn28Ar8Y6IZH8W/+RyVvLs=
+github.com/bitrise-io/go-auth0 v0.0.0-20250924125910-31ce4e32c32b h1:lypuksW0qioSYLhxlsgk/AS4vsHF05EKE9KejzpVcG4=
+github.com/bitrise-io/go-auth0 v0.0.0-20250924125910-31ce4e32c32b/go.mod h1:Lre6GilgdYuCkd8hOSUjTQn28Ar8Y6IZH8W/+RyVvLs=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/go-jose/go-jose/v4 v4.1.2 h1:TK/7NqRQZfgAh+Td8AlsrvtPoUyiHh0LqVvokh+1vHI=

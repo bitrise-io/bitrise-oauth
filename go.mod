@@ -3,7 +3,7 @@ module github.com/bitrise-io/bitrise-oauth
 go 1.23.0
 
 require (
-	github.com/bitrise-io/go-auth0 v0.0.0-20250924051602-0e08ce7ce456
+	github.com/bitrise-io/go-auth0 v0.0.0-20250924125910-31ce4e32c32b
 	github.com/go-jose/go-jose/v4 v4.1.2
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/pkg/errors v0.9.1
