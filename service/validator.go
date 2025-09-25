@@ -8,8 +8,9 @@ import (
 	"github.com/bitrise-io/bitrise-oauth/config"
 	"github.com/bitrise-io/go-auth0"
 	"github.com/labstack/echo"
-	"gopkg.in/go-jose/go-jose.v2"
-	"gopkg.in/go-jose/go-jose.v2/jwt"
+
+	"github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4/jwt"
 )
 
 type jwtValidator interface {
@@ -103,6 +104,10 @@ func (sv ValidatorConfig) ValidateRequest(r *http.Request) error {
 		return err
 	}
 
+	if token == nil {
+		return fmt.Errorf("no token found in the request")
+	}
+
 	key, err := sv.secretProvider.GetSecret(r)
 	if err != nil {
 		return err
@@ -126,6 +131,10 @@ func (sv ValidatorConfig) ValidateRequestAndReturnToken(r *http.Request) (TokenW
 	token, err := sv.jwtValidator.ValidateRequest(r)
 	if err != nil {
 		return nil, err
+	}
+
+	if token == nil {
+		return nil, fmt.Errorf("no token found in the request")
 	}
 
 	key, err := sv.secretProvider.GetSecret(r)

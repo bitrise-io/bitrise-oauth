@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/bitrise-io/go-auth0"
-	"gopkg.in/go-jose/go-jose.v2"
+
+	"github.com/go-jose/go-jose/v4"
 )
 
 // ValidatorOption ...
