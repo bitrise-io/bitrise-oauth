@@ -50,7 +50,7 @@ func Test_GivenNoMatchingValidatorExists_ReturnsError(t *testing.T) {
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", mocks.RawMockToken))
 
 	_, err = vr.GetJwtValidatorForRequest(request)
-	assert.EqualError(t, err, "there is no JWT validator for this issuer")
+	assert.EqualError(t, err, "there is no JWT validator for issuer: https://token-issuer.bitrise.io/auth/realms/bitrise-services")
 }
 
 func Test_GivenInvalidAuthorizationHeader_ReturnsError(t *testing.T) {

@@ -43,7 +43,7 @@ func (vr *DefaultJwtValidatorRepository) GetJwtValidatorForRequest(r *http.Reque
 
 	validator := vr.JwtValidators[iss]
 	if validator == nil {
-		return nil, errors.New("there is no JWT validator for this issuer")
+		return nil, fmt.Errorf("there is no JWT validator for issuer: %s", iss)
 	}
 
 	return validator, nil
