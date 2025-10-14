@@ -15,7 +15,25 @@ const (
 	tokenIssuerServiceIssuer = "https://token-issuer.bitrise.io/auth/realms/bitrise-services"
 )
 
-func Test_GivenMatchingValidatorExists_ReturnsValidator(t *testing.T) {
+func Test_GetJwtValidatorForRawToken_GivenMatchingValidatorExists_ReturnsValidator(t *testing.T) {
+	authServiceValidator := NewValidator(
+		config.NewAudienceConfig("bitrise-api", "bitrise"),
+		WithRealm("bitrise-services"))
+	tokenIssuerServiceValidator := NewValidator(
+		config.NewAudienceConfig("bitrise-api", "bitrise"),
+		WithRealm("bitrise-services"))
+	vr := NewJwtValidatorRepository(map[string]Validator{
+		authServiceIssuer:        authServiceValidator,
+		tokenIssuerServiceIssuer: tokenIssuerServiceValidator,
+	})
+
+	v, err := vr.GetJwtValidatorForRawToken(mocks.RawMockToken)
+	assert.NoError(t, err)
+
+	assert.Equal(t, tokenIssuerServiceValidator, v)
+}
+
+func Test_GetJwtValidatorForRequest_GivenMatchingValidatorExists_ReturnsValidator(t *testing.T) {
 	authServiceValidator := NewValidator(
 		config.NewAudienceConfig("bitrise-api", "bitrise"),
 		WithRealm("bitrise-services"))
@@ -37,7 +55,7 @@ func Test_GivenMatchingValidatorExists_ReturnsValidator(t *testing.T) {
 	assert.Equal(t, tokenIssuerServiceValidator, v)
 }
 
-func Test_GivenNoMatchingValidatorExists_ReturnsError(t *testing.T) {
+func Test_GetJwtValidatorForRequest_GivenNoMatchingValidatorExists_ReturnsError(t *testing.T) {
 	authServiceValidator := NewValidator(
 		config.NewAudienceConfig("bitrise-api", "bitrise"),
 		WithRealm("bitrise-services"))
@@ -50,10 +68,10 @@ func Test_GivenNoMatchingValidatorExists_ReturnsError(t *testing.T) {
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", mocks.RawMockToken))
 
 	_, err = vr.GetJwtValidatorForRequest(request)
-	assert.EqualError(t, err, "there is no JWT validator for this issuer")
+	assert.EqualError(t, err, "there is no JWT validator for issuer: https://token-issuer.bitrise.io/auth/realms/bitrise-services")
 }
 
-func Test_GivenInvalidAuthorizationHeader_ReturnsError(t *testing.T) {
+func Test_GetJwtValidatorForRequest_GivenInvalidAuthorizationHeader_ReturnsError(t *testing.T) {
 	authServiceValidator := NewValidator(
 		config.NewAudienceConfig("bitrise-api", "bitrise"),
 		WithRealm("bitrise-services"))

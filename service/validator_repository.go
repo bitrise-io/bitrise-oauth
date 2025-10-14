@@ -10,11 +10,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-// JwtValidatorRepository contains a set of JWT validators and can return the appropriate one for a given request
-// The request must contain a valid JWT in the Authorization header  ("Authorization: Bearer <token>")
+// JwtValidatorRepository contains a set of JWT validators and can return the appropriate one for a given request or raw JWT
+//
+// The request must contain a valid JWT in the Authorization header ("Authorization: Bearer <token>")
 // The validator is selected based on the "iss" claim in the JWT
 type JwtValidatorRepository interface {
 	GetJwtValidatorForRequest(r *http.Request) (Validator, error)
+	GetJwtValidatorForRawToken(rawJwt string) (Validator, error)
 }
 
 // DefaultJwtValidatorRepository ...
@@ -36,14 +38,19 @@ func (vr *DefaultJwtValidatorRepository) GetJwtValidatorForRequest(r *http.Reque
 		return nil, errors.New("failed to read JWT from header")
 	}
 
-	iss, err := vr.getIssuerFromRawJWT(rawJwt[1])
+	return vr.GetJwtValidatorForRawToken(rawJwt[1])
+}
+
+// GetJwtValidatorForRawToken ...
+func (vr *DefaultJwtValidatorRepository) GetJwtValidatorForRawToken(rawJwt string) (Validator, error) {
+	iss, err := vr.getIssuerFromRawJWT(rawJwt)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get issuer form the JWT")
 	}
 
 	validator := vr.JwtValidators[iss]
 	if validator == nil {
-		return nil, errors.New("there is no JWT validator for this issuer")
+		return nil, fmt.Errorf("there is no JWT validator for issuer: %s", iss)
 	}
 
 	return validator, nil
