@@ -10,7 +10,7 @@ import (
 
 type DatadogMetrics struct {
 	rawClient statsd.ClientInterface
-	logger    *zap.SugaredLogger
+	logger    Logger
 }
 
 // nolint: govet
@@ -20,7 +20,11 @@ type DatadogConfig struct {
 	MetricsEnabled bool   `env:"METRICS_ENABLED,default=true"`
 }
 
-func NewDatadogMetrics(cfg DatadogConfig, logger *zap.SugaredLogger) (*DatadogMetrics, func(), error) {
+type Logger interface {
+	Errorw(msg string, keysAndValues ...interface{})
+}
+
+func NewDatadogMetrics(cfg DatadogConfig, logger Logger) (*DatadogMetrics, func(), error) {
 	if !cfg.MetricsEnabled {
 		return &DatadogMetrics{
 			rawClient: &statsd.NoOpClient{},
