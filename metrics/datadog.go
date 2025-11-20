@@ -8,6 +8,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const unknownIssuerId = "unknown"
+
 type DatadogMetrics struct {
 	rawClient statsd.ClientInterface
 	logger    Logger
@@ -50,9 +52,17 @@ func (dm *DatadogMetrics) IncrRaw(name string, tags []string, rate float64) {
 }
 
 func (dm *DatadogMetrics) IncrAuthValidationSucceededMetric(issuer string) {
+	if issuer == "" {
+		issuer = unknownIssuerId
+	}
+
 	dm.IncrRaw("bitrise.jwt_auth.validation_succeeded", []string{"iss:" + issuer}, 1)
 }
 
 func (dm *DatadogMetrics) IncrAuthValidationFailedMetric(issuer string) {
+	if issuer == "" {
+		issuer = unknownIssuerId
+	}
+	
 	dm.IncrRaw("bitrise.jwt_auth.validation_failed", []string{"iss:" + issuer}, 1)
 }
