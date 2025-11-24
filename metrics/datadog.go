@@ -73,6 +73,6 @@ func (dm *DatadogMetrics) IncrAuthValidationFailedMetric(issuer string) {
 	dm.IncrRaw("bitrise.jwt_auth.validation_failed", []string{"iss:" + issuer}, 1)
 }
 
-func (dm *DatadogMetrics) Close() {
-	_ = dm.rawClient.Close()
+func (dm *DatadogMetrics) Close() error {
+	return dm.rawClient.Close()
 }
