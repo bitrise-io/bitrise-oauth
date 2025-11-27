@@ -27,9 +27,9 @@ func Test_GetJwtValidatorForRawToken_GivenMatchingValidatorExists_ReturnsValidat
 		tokenIssuerServiceIssuer: tokenIssuerServiceValidator,
 	})
 
-	v, err := vr.GetJwtValidatorForRawToken(mocks.RawMockToken)
+	v, iss, err := vr.GetJwtValidatorForRawToken(mocks.RawMockToken)
 	assert.NoError(t, err)
-
+	assert.Equal(t, tokenIssuerServiceIssuer, iss)
 	assert.Equal(t, tokenIssuerServiceValidator, v)
 }
 
@@ -49,9 +49,9 @@ func Test_GetJwtValidatorForRequest_GivenMatchingValidatorExists_ReturnsValidato
 	assert.NoError(t, err)
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", mocks.RawMockToken))
 
-	v, err := vr.GetJwtValidatorForRequest(request)
+	v, iss, err := vr.GetJwtValidatorForRequest(request)
 	assert.NoError(t, err)
-
+	assert.Equal(t, tokenIssuerServiceIssuer, iss)
 	assert.Equal(t, tokenIssuerServiceValidator, v)
 }
 
@@ -67,7 +67,7 @@ func Test_GetJwtValidatorForRequest_GivenNoMatchingValidatorExists_ReturnsError(
 	assert.NoError(t, err)
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", mocks.RawMockToken))
 
-	_, err = vr.GetJwtValidatorForRequest(request)
+	_, _, err = vr.GetJwtValidatorForRequest(request)
 	assert.EqualError(t, err, "there is no JWT validator for issuer: https://token-issuer.bitrise.io/auth/realms/bitrise-services")
 }
 
@@ -83,6 +83,6 @@ func Test_GetJwtValidatorForRequest_GivenInvalidAuthorizationHeader_ReturnsError
 	assert.NoError(t, err)
 	request.Header.Add("Authorization", "InvalidHeader")
 
-	_, err = vr.GetJwtValidatorForRequest(request)
+	_, _, err = vr.GetJwtValidatorForRequest(request)
 	assert.EqualError(t, err, "failed to read JWT from header")
 }

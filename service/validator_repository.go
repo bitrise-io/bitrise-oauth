@@ -14,9 +14,12 @@ import (
 //
 // The request must contain a valid JWT in the Authorization header ("Authorization: Bearer <token>")
 // The validator is selected based on the "iss" claim in the JWT
+//go:generate moq -out mocks/jwtvalidatorrepository_mock.go -pkg service_test . JwtValidatorRepository
 type JwtValidatorRepository interface {
-	GetJwtValidatorForRequest(r *http.Request) (Validator, error)
-	GetJwtValidatorForRawToken(rawJwt string) (Validator, error)
+	// GetJwtValidatorForRequest returns the JWT validator and its issuer for the given request
+	GetJwtValidatorForRequest(r *http.Request) (Validator, string, error)
+	// GetJwtValidatorForRawToken returns the JWT validator and its issuer for the given raw JWT
+	GetJwtValidatorForRawToken(rawJwt string) (Validator, string, error)
 }
 
 // DefaultJwtValidatorRepository ...
@@ -32,28 +35,28 @@ func NewJwtValidatorRepository(jwtValidators map[string]Validator) JwtValidatorR
 }
 
 // GetJwtValidatorForRequest ...
-func (vr *DefaultJwtValidatorRepository) GetJwtValidatorForRequest(r *http.Request) (Validator, error) {
+func (vr *DefaultJwtValidatorRepository) GetJwtValidatorForRequest(r *http.Request) (Validator, string, error) {
 	rawJwt := strings.Split(strings.TrimSpace(r.Header.Get("Authorization")), "Bearer ")
 	if len(rawJwt) != 2 {
-		return nil, errors.New("failed to read JWT from header")
+		return nil, "", errors.New("failed to read JWT from header")
 	}
 
 	return vr.GetJwtValidatorForRawToken(rawJwt[1])
 }
 
 // GetJwtValidatorForRawToken ...
-func (vr *DefaultJwtValidatorRepository) GetJwtValidatorForRawToken(rawJwt string) (Validator, error) {
+func (vr *DefaultJwtValidatorRepository) GetJwtValidatorForRawToken(rawJwt string) (Validator, string, error) {
 	iss, err := vr.getIssuerFromRawJWT(rawJwt)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get issuer form the JWT")
+		return nil, "", errors.Wrap(err, "failed to get issuer form the JWT")
 	}
 
 	validator := vr.JwtValidators[iss]
 	if validator == nil {
-		return nil, fmt.Errorf("there is no JWT validator for issuer: %s", iss)
+		return nil, iss, fmt.Errorf("there is no JWT validator for issuer: %s", iss)
 	}
 
-	return validator, nil
+	return validator, iss, nil
 }
 
 func (vr *DefaultJwtValidatorRepository) getIssuerFromRawJWT(rawJwt string) (string, error) {
