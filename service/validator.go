@@ -7,7 +7,7 @@ import (
 
 	"github.com/bitrise-io/bitrise-oauth/config"
 	"github.com/bitrise-io/go-auth0"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"

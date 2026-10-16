@@ -3,7 +3,7 @@ package service
 import (
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 var defaultHTTPErrorWriter = func(w http.ResponseWriter, r *http.Request, err error) {
